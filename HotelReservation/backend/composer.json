@@ -1,0 +1,6 @@
+﻿{
+    "name": "hotel-reservation/backend",
+    "description": "Hotel Reservation Backend",
+    "type": "project",
+    "require": {}
+}

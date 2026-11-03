@@ -1,0 +1,4 @@
+﻿#!/usr/bin/env php
+<?php
+
+// Artisan CLI entry point
