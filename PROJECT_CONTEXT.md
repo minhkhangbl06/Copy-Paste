@@ -130,7 +130,38 @@
 
 ---
 
-## 💡 5. HƯỚNG DẪN CÁC THÀNH VIÊN TIẾP TỤC DỰ ÁN
+## ⚡ 6. HƯỚNG DẪN KHI CLONE DỰ ÁN VỀ MÁY (DÀNH CHO ĐỒNG ĐỘI)
+
+Do Git tự động bỏ qua thư mục `vendor/`, file `.env` và database theo chuẩn bảo mật, nên khi bạn khác clone project về máy cần làm các bước sau:
+
+### Cách 1: Tự động (Khuyên dùng trên Windows)
+1. Mở thư mục `HotelReservation/backend`.
+2. Click đúp chuột vào file **`setup.bat`** (hoặc chạy lệnh `.\setup.bat` trong terminal).
+3. Script sẽ tự tạo `.env`, chạy `composer install`, tạo database SQLite và seed dữ liệu mẫu tự động 100%.
+
+### Cách 2: Thủ công qua Terminal
+```bash
+cd HotelReservation/backend
+
+# 1. Tạo file .env
+copy .env.example .env
+
+# 2. Cài đặt các gói thư viện
+composer install
+
+# 3. Tạo APP_KEY
+php artisan key:generate
+
+# 4. Khởi tạo database & nạp dữ liệu mẫu
+php artisan migrate:fresh --seed
+
+# 5. Khởi động server
+php artisan serve
+```
+
+---
+
+## 💡 7. HƯỚNG DẪN CÁC THÀNH VIÊN TIẾP TỤC DỰ ÁN
 
 - **Khanh (Auth & Roles)**: Mở rộng bảng `users` sẵn có (thêm cột `role`: `guest`, `receptionist`, `admin`, `housekeeping`). Viết `AuthController` với Sanctum hoặc Token.
 - **Muội (Booking API)**: Dùng trực tiếp 2 bảng `rooms` và `bookings`. Viết logic tìm phòng trống theo `check_in_date` và `check_out_date`, chống trùng lịch (double-booking).
