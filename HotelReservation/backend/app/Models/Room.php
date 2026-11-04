@@ -9,6 +9,8 @@ class Room extends Model
 {
     use HasFactory;
 
+    protected $table = 'rooms';
+
     protected $fillable = [
         'room_number',
         'room_type',
@@ -22,6 +24,6 @@ class Room extends Model
 
     public function bookings()
     {
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(Booking::class, 'room_id');
     }
 }

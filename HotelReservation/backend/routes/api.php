@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\Api\ReservationController;
 
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\ServiceController;
@@ -39,3 +40,10 @@ Route::prefix('invoices')->group(function () {
     Route::post('/{id}/pay', [InvoiceController::class, 'recordPayment']);
     Route::post('/{id}/close', [InvoiceController::class, 'closeInvoice']);
 });
+
+// --- Reservation Module (Trịnh Thị Tiểu Muội) ---
+Route::get('/rooms', [ReservationController::class, 'index']);
+Route::get('/rooms/available', [ReservationController::class, 'availableRooms']);
+Route::post('/bookings', [ReservationController::class, 'store']);
+Route::patch('/bookings/{id}', [ReservationController::class, 'update']);
+Route::post('/bookings/{id}/cancel', [ReservationController::class, 'cancel']);

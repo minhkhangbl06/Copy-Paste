@@ -9,6 +9,8 @@ class Booking extends Model
 {
     use HasFactory;
 
+    protected $table = 'bookings';
+
     protected $fillable = [
         'booking_code',
         'room_id',
@@ -23,25 +25,15 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'check_in_date' => 'date',
-        'check_out_date' => 'date',
-        'actual_checkout_at' => 'datetime',
+        'check_in_date'     => 'date',
+        'check_out_date'    => 'date',
+        'actual_checkout_at'=> 'datetime',
         'total_room_amount' => 'decimal:2',
-        'deposit_amount' => 'decimal:2',
+        'deposit_amount'    => 'decimal:2',
     ];
 
     public function room()
     {
-        return $this->belongsTo(Room::class);
-    }
-
-    public function serviceOrders()
-    {
-        return $this->hasMany(ServiceOrder::class);
-    }
-
-    public function invoice()
-    {
-        return $this->hasOne(Invoice::class);
+        return $this->belongsTo(Room::class, 'room_id');
     }
 }
