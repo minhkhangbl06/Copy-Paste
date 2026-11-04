@@ -11,3 +11,7 @@ docker-compose.override.yml
 database/database.sqlite
 database/database.sqlite-journal
 .DS_Store
+storage/framework/views/*
+storage/logs/*.log
+HotelReservation/backend/storage/framework/views/*
+HotelReservation/backend/storage/logs/*.log
