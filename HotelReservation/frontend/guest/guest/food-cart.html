@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Giỏ món cho dịch vụ ăn uống tại Copy Paste Hotel." />
+    <title>Giỏ món - Copy Paste Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap" />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/food.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/room-stay.js" defer></script>
+    <script src="../assets/js/booking-draft.js" defer></script>
+    <script src="../assets/js/booking-simulation.js" defer></script>
+    <script src="../assets/js/booking-data.js" defer></script>
+    <script src="../assets/js/booking-actions.js" defer></script>
+    <script src="../assets/js/service-data.js" defer></script>
+    <script src="../assets/js/food-data.js" defer></script>
+    <script src="../assets/js/food-cart-data.js" defer></script>
+    <script src="../assets/js/food-ui.js" defer></script>
+    <script src="../assets/js/food-context.js" defer></script>
+    <script src="../assets/js/food-cart.js" defer></script>
+  </head>
+  <body class="food-page" data-food-view="cart">
+    <header id="site-header" class="site-header" data-layout="header" data-active-nav="Dịch vụ"></header>
+    <main id="main">
+      <div class="food-heading">
+        <div class="container">
+          <a class="food-back" href="food-menu.html">← Tiếp tục chọn món</a>
+          <h1>Giỏ món</h1>
+          <p id="food-booking-message" role="status" hidden></p>
+          <a id="food-booking-help" class="food-back" href="my-bookings.html" hidden>Booking của tôi</a>
+          <div class="food-booking" hidden>
+            <p>Booking <strong></strong></p>
+            <span class="food-booking-status">Đang lưu trú</span>
+            <span class="food-booking-guests"></span>
+          </div>
+        </div>
+      </div>
+      <!-- Per-booking session cart. Prices come from FoodCatalog; requests remain frontend simulations. -->
+      <div class="container food-content food-cart-layout">
+        <div id="food-feedback" role="status" tabindex="-1" hidden></div>
+        <section id="food-empty" class="food-empty" hidden><h2>Giỏ món của bạn đang trống</h2><a class="button button-outline" href="food-menu.html">Về thực đơn</a></section>
+        <div class="food-cart-main">
+          <section class="food-cart-items" aria-label="Món đã chọn"></section>
+
+          <section class="food-note-panel" aria-labelledby="food-note-title">
+            <h2 id="food-note-title"><label for="food-note">Ghi chú cho đơn món</label></h2>
+            <p id="food-note-optional">Không bắt buộc</p>
+            <textarea id="food-note" name="foodNote" rows="4" maxlength="1000" placeholder="Nhập yêu cầu của bạn nếu có" aria-describedby="food-note-optional"></textarea>
+          </section>
+        </div>
+        <section class="food-summary" aria-labelledby="summary-title">
+          <h2 id="summary-title">Tóm tắt đơn món</h2>
+          <dl class="food-summary-facts"></dl>
+          <dl class="food-summary-total">
+            <dt>Tổng tạm tính</dt><dd>0 đ</dd>
+          </dl>
+          <p class="food-billing-note">Chi phí món ăn sẽ được tổng hợp vào hóa đơn lưu trú.</p>
+          <button id="food-submit" class="button button-primary" type="button">Xác nhận đặt món</button>
+        </section>
+      </div>
+    </main>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>

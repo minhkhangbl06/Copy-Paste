@@ -167,3 +167,15 @@ php artisan serve
 - **Muội (Booking API)**: Dùng trực tiếp 2 bảng `rooms` và `bookings`. Viết logic tìm phòng trống theo `check_in_date` và `check_out_date`, chống trùng lịch (double-booking).
 - **Lễ (Test & CI)**: Chạy lệnh `php artisan test` trong thư mục `backend`. Đã có sẵn test mẫu `KhangServiceAndBillingTest.php` với 60 assertions pass 100%. Tiếp tục bổ sung test cho Auth và Booking.
 - **Kiêng & Duy (Frontend)**: Backend đã chạy ngon lành tại `http://localhost:8000/api`. Cứ gọi trực tiếp vào các API trên để render giao diện.
+
+## Cập nhật — Kiêng — Guest Frontend — 04/11/2026
+
+- Thêm giao diện Guest bằng HTML/CSS/JavaScript tại
+  `HotelReservation/frontend/guest/`.
+- Thay trang `index.html` mẫu bằng trang chủ Copy Paste Hotel.
+- Thêm các thư mục `assets/`, `auth/`, `components/` và `guest/`
+  từ giao diện đã xây dựng.
+- Giữ cấu trúc đường dẫn của giao diện gốc.
+- Phạm vi lần cập nhật: đưa giao diện vào repository để review;
+  chưa xác nhận tích hợp với API Laravel.
+- Không sửa backend hoặc giao diện Staff.

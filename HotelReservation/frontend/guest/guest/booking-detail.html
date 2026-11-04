@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Thông tin lưu trú và chi tiết tiền phòng của booking tại Copy Paste Hotel."
+    />
+    <title>Chi tiết booking - Copy Paste Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap"
+    />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/booking-detail.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/room-stay.js" defer></script>
+    <script src="../assets/js/booking-draft.js" defer></script>
+    <script src="../assets/js/booking-simulation.js" defer></script>
+    <script src="../assets/js/booking-data.js" defer></script>
+    <script src="../assets/js/booking-actions.js" defer></script>
+    <script src="../assets/js/review-data.js" defer></script>
+    <script src="../assets/js/booking-detail.js" defer></script>
+  </head>
+  <body class="booking-detail-page">
+    <header
+      id="site-header"
+      class="site-header"
+      data-layout="header"
+      data-active-nav="Booking của tôi"
+    ></header>
+    <main id="main">
+      <div class="booking-detail-heading">
+        <div class="container">
+          <a class="booking-detail-back" href="my-bookings.html">← Về booking của tôi</a>
+          <h1>Chi tiết booking</h1>
+          <div class="booking-detail-reference" hidden>
+            <p>Mã đặt phòng <strong></strong></p>
+            <span class="booking-detail-status"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking content is read from booking-data.js by stable reference. -->
+      <section id="booking-detail-missing" class="container booking-detail-missing" role="status" hidden><p>Không tìm thấy booking</p><a class="booking-detail-back" href="my-bookings.html">← Về booking của tôi</a></section>
+      <p id="booking-detail-feedback" class="container" role="status" hidden></p>
+      <div class="container booking-detail-content" hidden>
+        <div class="booking-detail-information">
+          <section class="booking-detail-card" aria-labelledby="stay-title">
+            <h2 id="stay-title">Thông tin lưu trú</h2>
+            <div class="booking-detail-room">
+              <figure class="booking-detail-room-image">
+                <img
+                  src="../assets/images/khach-san-da-lat.jpg"
+                  alt="Không gian phòng nghỉ minh họa cho loại Deluxe"
+                  width="800"
+                  height="680"
+                />
+              </figure>
+              <div class="booking-detail-room-name">
+                <p>Loại phòng</p>
+                <h3></h3>
+              </div>
+            </div>
+            <dl class="booking-detail-stay-facts">
+              <div>
+                <dt>Ngày nhận phòng</dt>
+                <dd></dd>
+              </div>
+              <div>
+                <dt>Ngày trả phòng</dt>
+                <dd></dd>
+              </div>
+              <div>
+                <dt>Số đêm</dt>
+                <dd></dd>
+              </div>
+              <div>
+                <dt>Tổng số khách</dt>
+                <dd></dd>
+              </div>
+              <div>
+                <dt>Số lượng phòng</dt>
+                <dd></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="booking-detail-card" aria-labelledby="contact-title">
+            <h2 id="contact-title">Thông tin liên hệ</h2>
+            <dl class="booking-detail-contact-facts">
+              <div>
+                <dt>Họ và tên</dt>
+                <dd></dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd></dd>
+              </div>
+              <div>
+                <dt>Số điện thoại</dt>
+                <dd></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="booking-detail-card" aria-labelledby="requests-title">
+            <h2 id="requests-title">Ghi chú</h2>
+            <p></p>
+          </section>
+          <section id="booking-edit-panel" class="booking-detail-card" hidden>
+            <h2 id="booking-edit-title" tabindex="-1">Điều chỉnh đặt phòng</h2>
+            <p id="booking-edit-help"></p>
+            <form id="booking-edit-form" class="room-search-form booking-detail-edit-grid" novalidate>
+              <div class="booking-detail-edit-field"><label for="edit-check-in">Ngày nhận phòng</label><input id="edit-check-in" type="date"  required aria-describedby="edit-check-in-error" /><p id="edit-check-in-error" class="search-field-error" hidden></p></div>
+<div class="booking-detail-edit-field"><label for="edit-check-out">Ngày trả phòng</label><input id="edit-check-out" type="date"  required aria-describedby="edit-check-out-error" /><p id="edit-check-out-error" class="search-field-error" hidden></p></div>
+<div class="booking-detail-edit-field"><label for="edit-guests">Số khách</label><input id="edit-guests" type="number" min="1" step="1" required aria-describedby="edit-guests-error" /><p id="edit-guests-error" class="search-field-error" hidden></p></div>
+<div class="booking-detail-edit-field"><label for="edit-room-count">Số lượng phòng</label><input id="edit-room-count" type="number" min="1" step="1" required aria-describedby="edit-room-count-error" /><p id="edit-room-count-error" class="search-field-error" hidden></p></div>
+<div class="booking-detail-edit-field"><label for="edit-full-name">Họ và tên</label><input id="edit-full-name" type="text"  required aria-describedby="edit-full-name-error" /><p id="edit-full-name-error" class="search-field-error" hidden></p></div>
+<div class="booking-detail-edit-field"><label for="edit-email">Email</label><input id="edit-email" type="email"  required aria-describedby="edit-email-error" /><p id="edit-email-error" class="search-field-error" hidden></p></div>
+<div class="booking-detail-edit-field"><label for="edit-phone">Số điện thoại</label><input id="edit-phone" type="tel"  required aria-describedby="edit-phone-error" /><p id="edit-phone-error" class="search-field-error" hidden></p></div>
+              <div class="booking-detail-edit-wide booking-detail-edit-field"><label for="edit-note">Ghi chú · Không bắt buộc</label><textarea id="edit-note" rows="3" maxlength="1000" aria-describedby="edit-note-error"></textarea><p id="edit-note-error" class="search-field-error" hidden></p></div>
+              <dl class="booking-detail-edit-wide booking-detail-price-facts"><div><dt>Tiền phòng hiện tại</dt><dd id="edit-current-amount"></dd></div><div><dt>Tiền phòng dự kiến sau điều chỉnh</dt><dd id="edit-next-amount"></dd></div></dl>
+              <p id="booking-edit-error" class="search-field-error booking-detail-edit-wide" role="alert" hidden></p>
+              <div class="booking-detail-edit-wide booking-detail-edit-buttons"><button class="button button-primary" type="submit">Lưu thay đổi</button><button id="booking-edit-cancel" class="button button-outline" type="button">Hủy</button></div>
+            </form>
+          </section>
+          <section id="booking-adjustment-info" class="booking-detail-card" hidden><h2 tabindex="-1">Yêu cầu điều chỉnh chờ xác nhận</h2><p></p></section>
+          <section id="booking-cancellation-info" class="booking-detail-card" hidden><h2 tabindex="-1">Thông tin hủy booking</h2><p></p><p id="booking-refund-note" hidden>Việc hoàn tiền được xử lý sau khi khách sạn xác nhận giao dịch và điều kiện hủy.</p></section>
+        </div>
+
+        <div class="booking-detail-sidebar">
+          <section
+            class="booking-detail-card booking-detail-price"
+            aria-labelledby="price-title"
+          >
+            <h2 id="price-title">Chi tiết tiền phòng</h2>
+            <p class="booking-detail-price-room"></p>
+            <dl class="booking-detail-price-facts">
+              <div>
+                <dt>Đơn giá</dt>
+                <dd></dd>
+              </div>
+              <div>
+                <dt>Số lượng</dt>
+                <dd></dd>
+              </div>
+              <div>
+                <dt>Thời gian</dt>
+                <dd></dd>
+              </div>
+            </dl>
+            <p class="booking-detail-calculation"></p>
+            <dl class="booking-detail-total">
+              <dt>Tiền phòng</dt>
+              <dd></dd>
+            </dl>
+          </section>
+
+          <section id="booking-detail-transfer" class="booking-detail-card" hidden>
+            <h2>Chờ xác nhận chuyển khoản</h2>
+            <dl class="booking-detail-price-facts">
+              <div><dt>Khách báo đã chuyển</dt><dd data-demo-reported></dd></div>
+              <div><dt>Đã thanh toán được xác nhận</dt><dd data-demo-confirmed>0 đ</dd></div>
+            </dl>
+            <p class="booking-simulation-note">Đang dùng dữ liệu mô phỏng, chưa gửi đến khách sạn.</p>
+          </section>
+          <section class="booking-detail-card booking-detail-actions" aria-labelledby="actions-title" hidden>
+            <h2 id="actions-title">Thao tác booking</h2>
+            <div id="booking-action-controls"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+    <dialog id="booking-cancel-dialog" class="booking-cancel-dialog" aria-labelledby="booking-cancel-title">
+      <h2 id="booking-cancel-title">Hủy đặt phòng</h2><p id="booking-cancel-summary"></p>
+      <label for="booking-cancel-reason">Lý do hủy · Không bắt buộc</label><textarea id="booking-cancel-reason" rows="3" maxlength="1000"></textarea>
+      <p id="booking-cancel-error" role="alert" hidden></p>
+      <div class="booking-detail-edit-buttons"><button id="booking-cancel-back" class="button button-outline" type="button" autofocus>Quay lại</button><button id="booking-cancel-confirm" class="button button-primary" type="button">Xác nhận hủy</button></div>
+    </dialog>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>

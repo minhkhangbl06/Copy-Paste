@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Gọi món cho dịch vụ ăn uống tại Copy Paste Hotel." />
+    <title>Gọi món - Copy Paste Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap" />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/food.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/room-stay.js" defer></script>
+    <script src="../assets/js/booking-draft.js" defer></script>
+    <script src="../assets/js/booking-simulation.js" defer></script>
+    <script src="../assets/js/booking-data.js" defer></script>
+    <script src="../assets/js/booking-actions.js" defer></script>
+    <script src="../assets/js/service-data.js" defer></script>
+    <script src="../assets/js/food-data.js" defer></script>
+    <script src="../assets/js/food-cart-data.js" defer></script>
+    <script src="../assets/js/food-ui.js" defer></script>
+    <script src="../assets/js/food-context.js" defer></script>
+    <script src="../assets/js/food-menu.js" defer></script>
+  </head>
+  <body class="food-page" data-food-view="menu">
+    <header id="site-header" class="site-header" data-layout="header" data-active-nav="Dịch vụ"></header>
+    <main id="main">
+      <div class="food-heading">
+        <div class="container">
+          <a class="food-back" href="services.html">← Về dịch vụ</a>
+          <h1>Gọi món</h1>
+          <p class="food-intro">Lựa chọn món ăn và đồ uống cho kỳ nghỉ của bạn.</p>
+          <p id="food-booking-message" role="status" hidden></p>
+          <a id="food-booking-help" class="food-back" href="services.html" hidden>Chọn booking đang lưu trú</a>
+          <div class="food-booking" hidden>
+            <p>Booking <strong></strong></p>
+            <span class="food-booking-status">Đang lưu trú</span>
+            <span class="food-booking-guests"></span>
+          </div>
+        </div>
+      </div>
+      <!-- Catalog and cart share FoodCatalog/FoodCart. No real order or payment API. -->
+      <div class="container food-content">
+        <p id="food-feedback" role="status" tabindex="-1" hidden></p>
+        <div class="food-categories" role="group" aria-label="Phân loại món">
+          <button class="food-category" type="button" data-category="all" aria-pressed="true">Tất cả</button>
+          <button class="food-category" type="button" data-category="main" aria-pressed="false">Món chính</button>
+          <button class="food-category" type="button" data-category="snack" aria-pressed="false">Món nhẹ</button>
+          <button class="food-category" type="button" data-category="drink" aria-pressed="false">Đồ uống</button>
+        </div>
+        <section id="food-menu-list" class="food-menu-grid" aria-label="Thực đơn" tabindex="-1"></section>
+
+        <nav class="food-pagination" aria-label="Phân trang thực đơn" hidden>
+          <button class="button button-outline" type="button" data-page-step="-1" aria-controls="food-menu-list">Trước</button>
+          <div class="food-page-numbers"></div>
+          <button class="button button-outline" type="button" data-page-step="1" aria-controls="food-menu-list">Sau</button>
+        </nav>
+
+        <!-- Kept in normal document flow so it cannot cover the last item or footer. -->
+        <section class="food-cart-bar" aria-label="Giỏ món đã chọn" hidden>
+          <p class="food-cart-count"></p>
+          <p class="food-cart-bar-price">Tạm tính: <strong>0 đ</strong></p>
+          <a class="button button-primary" href="food-cart.html">Xem giỏ món</a>
+        </section>
+      </div>
+    </main>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>

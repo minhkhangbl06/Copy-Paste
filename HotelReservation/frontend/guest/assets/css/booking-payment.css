@@ -1,0 +1,148 @@
+.deposit-page { background: var(--color-surface); }
+.deposit-heading { padding-block: 16px 32px; background: var(--color-soft); }
+.deposit-back {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: 400 var(--text-size-caption)/1.6 var(--font-body);
+  text-align: left;
+}
+.deposit-back:hover,
+.deposit-back:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+.payment-invalid { padding-block: 24px 48px; }
+.payment-invalid .deposit-back { margin-top: 16px; }
+.payment-error { margin-block: 12px; color: #B42318; font-size: .875rem; }
+#payment-note-block { margin-top: 20px; }
+#payment-note-block h3 { margin-bottom: 8px; font-size: 1rem; }
+[data-payment-note] { white-space: pre-wrap; overflow-wrap: anywhere; }
+.deposit-room-name strong { overflow-wrap: anywhere; }
+.payment-result-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.payment-result-links .button { flex: 1 1 180px; gap: 0; }
+#payment-reported { display: grid; gap: 16px; margin-top: 16px; }
+.payment-simulation-note { font-size: .875rem; color: var(--text-secondary); }
+.payment-report-dialog { width: min(520px, calc(100% - 32px)); max-width: calc(100% - 32px); max-height: 90dvh; overflow: auto; padding: 24px; border: var(--border); background: var(--color-surface); color: var(--text-primary); }
+.payment-report-dialog::backdrop { background: rgb(35 62 87 / 65%); }
+.payment-report-dialog h2 { font-size: 1.375rem; }
+.payment-report-dialog p { margin-top: 16px; }
+.payment-option:has(input:disabled) { cursor: default; }
+.deposit-heading h1 { font-size: clamp(2rem, 3.4vw, 2.75rem); line-height: 1.3; letter-spacing: -.035em; }
+.deposit-intro { max-width: 800px; margin-top: 14px; font-size: 1.0625rem; }
+.deposit-status {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 4px 12px;
+  border: 1px solid var(--color-ink);
+  border-radius: 4px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: var(--text-size-caption);
+  font-weight: 500;
+}
+.deposit-content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 24px;
+  min-width: 0;
+  padding-block: 24px 72px;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+.deposit-booking-column { display: grid; gap: 24px; min-width: 0; }
+.payment-transfer-column { display: grid; gap: 24px; min-width: 0; }
+.payment-options { min-width: 0; margin: 0; padding: 0; border: 0; }
+.payment-options legend { margin-bottom: 20px; padding: 0; color: var(--color-ink); font: 600 1.375rem/1.4 var(--font-display); letter-spacing: -.02em; }
+.payment-options-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.payment-option { display: flex; align-items: start; gap: 10px; min-width: 0; padding: 14px 12px; border: var(--border); background: var(--color-surface); cursor: pointer; transition: background-color 180ms ease, border-color 180ms ease; }
+.payment-option:hover { border-color: var(--color-ink); }
+.payment-option:has(input:checked) { border-color: var(--color-ink); background: var(--color-soft); }
+.payment-option:focus-within { outline: 3px solid var(--color-ink); outline-offset: 0; }
+.payment-option input { flex: 0 0 20px; width: 20px; height: 20px; margin: 3px 0 0; accent-color: var(--color-ink); }
+.payment-option input:focus-visible { outline-offset: 0; }
+.payment-option-content { display: grid; gap: 14px; min-width: 0; }
+.payment-option-content > strong { color: var(--color-ink); font: 600 1rem/1.5 var(--font-display); }
+.payment-option-facts { display: grid; gap: 10px; }
+.payment-option-facts > span { color: var(--text-secondary); font-size: var(--text-size-caption); }
+.payment-option-facts strong { display: block; color: var(--text-primary); font-size: 1rem; font-weight: 500; }
+.deposit-card { min-width: 0; padding: 28px; border: var(--border); background: var(--color-surface); }
+.deposit-card h2 { margin-bottom: 24px; font-size: 1.375rem; line-height: 1.4; letter-spacing: -.02em; }
+.deposit-room { display: flex; align-items: center; gap: 20px; padding-bottom: 24px; border-bottom: var(--border); }
+.deposit-room-image { flex: 0 0 112px; aspect-ratio: 4 / 3; overflow: hidden; background: var(--color-soft); }
+.deposit-room-image img { width: 100%; height: 100%; object-fit: cover; }
+.deposit-room-name { min-width: 0; }
+.deposit-room-name p { margin-bottom: 6px; color: var(--text-secondary); font-size: var(--text-size-caption); }
+.deposit-room-name h3 { font-size: 1.5rem; line-height: 1.4; }
+.deposit-stay-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 24px; margin: 24px 0 0; }
+.deposit-stay-facts > div { min-width: 0; }
+.deposit-stay-facts dt { margin-bottom: 5px; color: var(--text-secondary); }
+.deposit-stay-facts dd { margin: 0; font-weight: 500; }
+.deposit-cost { background: var(--color-muted); }
+.deposit-facts,
+.deposit-transfer-facts { display: grid; gap: 16px; margin: 0; }
+.deposit-facts > div,
+.deposit-transfer-facts > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; gap: 12px; }
+.deposit-facts dt,
+.deposit-transfer-facts dt { color: var(--text-secondary); }
+.deposit-facts dd,
+.deposit-transfer-facts dd { min-width: 0; margin: 0; text-align: right; overflow-wrap: break-word; font-weight: 500; }
+.deposit-money { white-space: normal; overflow-wrap: anywhere; }
+.deposit-calculation { margin-top: 20px; color: var(--text-secondary); }
+.deposit-required { display: grid; gap: 8px; margin: 24px 0; padding: 20px; border: var(--border); background: var(--color-soft); }
+.deposit-required dt { color: var(--color-ink); font-weight: 500; }
+.deposit-required dd { margin: 0; color: var(--color-ink); font: 600 1.75rem/1.4 var(--font-display); text-align: right; }
+.deposit-remaining dd { color: var(--color-ink); font-weight: 600; }
+.deposit-cost-notes { display: grid; gap: 12px; margin-top: 24px; color: var(--text-secondary); }
+.deposit-qr-figure { margin-bottom: 28px; text-align: center; }
+.deposit-qr {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 180px);
+  aspect-ratio: 1 / 1;
+  margin-inline: auto;
+  border: var(--border);
+  background: var(--color-muted);
+}
+/* Intentionally non-scannable artwork: letters and a frame, no QR payload. */
+.deposit-qr::before { content: ""; position: absolute; inset: 16px; border: 1px dashed var(--color-border); }
+.deposit-qr span { color: var(--color-accent); font: 600 2.75rem/1 var(--font-display); letter-spacing: .08em; }
+.deposit-qr-figure figcaption { margin-top: 10px; color: var(--text-secondary); font-size: var(--text-size-caption); }
+.deposit-transfer-facts .deposit-placeholder { color: var(--text-secondary); font-weight: 400; }
+.deposit-transfer-amount { color: var(--color-ink); font-size: 1.25rem; }
+.deposit-transfer-facts .deposit-reference { color: var(--color-ink); font-weight: 600; }
+.deposit-instructions { margin-top: 28px; padding-top: 24px; border-top: var(--border); }
+.deposit-instructions h3 { font-size: 1.125rem; line-height: 1.5; }
+.deposit-instructions ol { display: grid; gap: 12px; margin: 16px 0 24px; padding-left: 24px; }
+.deposit-instructions li { padding-left: 4px; }
+.deposit-instructions li::marker { color: var(--color-ink); font-weight: 600; }
+.deposit-confirm { width: 100%; min-height: 48px; gap: 0; }
+.deposit-confirm-note { margin-top: 14px; color: var(--text-secondary); }
+@media (max-width: 1000px) {
+  .deposit-card { padding: 24px; }
+}
+@media (max-width: 900px) {
+  .deposit-content { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .payment-options-grid { grid-template-columns: minmax(0, 1fr); }
+  .payment-options legend { font-size: 1.25rem; }
+  .deposit-heading { padding-bottom: 24px; }
+  .deposit-intro { font-size: 1rem; }
+  .deposit-content { padding-bottom: 48px; }
+  .deposit-card { padding: 20px 16px; }
+  .deposit-card h2 { font-size: 1.25rem; }
+  .deposit-room { gap: 16px; }
+  .deposit-room-image { flex-basis: 96px; }
+  .deposit-stay-facts { grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 20px; }
+  .deposit-stay-facts > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px; }
+  .deposit-stay-facts dt { margin-bottom: 0; }
+  .deposit-stay-facts dd { text-align: right; }
+  .deposit-required { padding: 16px; }
+  .deposit-required dd { font-size: 1.5rem; }
+  .deposit-qr { width: min(100%, 160px); }
+}

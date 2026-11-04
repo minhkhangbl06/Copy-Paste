@@ -1,0 +1,41 @@
+<div class="container header-inner">
+  <a
+    class="brand"
+    href="index.html"
+    data-site-path="index.html"
+    aria-label="Copy Paste Hotel — Trang chủ"
+    ><span>Copy Paste <span class="brand-hotel">Hotel</span></span></a>
+  <button
+    class="menu-toggle"
+    type="button"
+    aria-controls="main-navigation"
+    aria-expanded="false"
+  >
+    Menu <span aria-hidden="true">☰</span>
+  </button>
+  <nav
+    id="main-navigation"
+    class="main-navigation"
+    aria-label="Điều hướng chính"
+    hidden
+  >
+    <div class="nav-links">
+      <a
+        data-label="Trang chủ" aria-current="location"
+         class="nav-item" href="index.html" data-site-path="index.html"><span>Trang chủ</span></a>
+      <a data-label="Loại phòng"
+         class="nav-item" href="guest/rooms.html" data-site-path="guest/rooms.html"><span>Loại phòng</span></a>
+      <a data-label="Dịch vụ" class="nav-item" href="guest/services.html" data-site-path="guest/services.html"><span>Dịch vụ</span></a>
+      <a data-label="Giới thiệu"
+         class="nav-item" href="index.html#gioi-thieu" data-site-path="index.html#gioi-thieu"><span>Giới thiệu</span></a>
+    </div>
+    <div class="auth-actions">
+      <a href="auth/login.html" data-site-path="auth/login.html" class="button button-outline">
+        Đăng nhập</a><a href="auth/register.html" data-site-path="auth/register.html" class="button button-primary">
+        Đăng ký
+      </a>
+    </div>
+  </nav>
+  <div class="header-account" hidden></div>
+</div>
+<div id="header-session-error" class="container header-session-error" role="status" hidden></div>

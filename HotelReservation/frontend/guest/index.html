@@ -1,13 +1,291 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotel Reservation - Guest</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <h1>Guest Portal</h1>
-    <script src="js/main.js"></script>
-</body>
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Khám phá các loại phòng và chuẩn bị kỳ nghỉ cùng Copy Paste Hotel."
+    />
+    <title>Copy Paste Hotel - Một kỳ nghỉ thoải mái</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap"
+    />
+    <link rel="stylesheet" href="assets/css/global.css" />
+    <link rel="stylesheet" href="assets/css/home.css" />
+    <script src="assets/js/guest-validation.js" defer></script>
+    <script src="assets/js/guest-session.js" defer></script>
+    <script src="assets/js/layout.js" defer></script>
+    <script src="assets/js/search-validation.js" defer></script>
+    <script src="assets/js/home.js" defer></script>
+  </head>
+  <body>
+    <!-- Shared header: sticky host must remain a direct child of body. -->
+    <header id="site-header" class="site-header" data-layout="header"></header>
+    <main id="main">
+      <section id="trang-chu" class="hero" aria-labelledby="hero-title">
+        <figure class="hero-visual">
+          <img
+            src="assets/images/khach-san-da-lat.jpg"
+            alt="Minh họa không gian phòng nghỉ với giường đôi và cửa sổ vòm"
+            width="800"
+            height="680"
+          />
+        </figure>
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">CHÀO MỪNG ĐẾN COPY PASTE HOTEL</p>
+            <h1 id="hero-title">
+              Một kỳ nghỉ<br />thoải mái,<br /><em>bắt đầu từ đây.</em>
+            </h1>
+            <p class="hero-description">
+              Tìm một không gian vừa ý, dành thời gian cho những điều bạn yêu.
+              Kỳ nghỉ của bạn bắt đầu từ một lựa chọn thật nhẹ nhàng.
+            </p>
+            <button type="button" class="button button-primary" data-focus-search>
+              Tìm phòng
+            </button>
+            <p class="hero-caption">
+              Không gian để nghỉ ngơi. Thời gian để tận hưởng.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section
+        class="search-section container"
+        id="tim-phong"
+        aria-labelledby="search-title"
+      >
+        <div class="search-panel">
+          <div class="section-heading search-heading">
+            <div>
+              <p class="eyebrow">LÊN KẾ HOẠCH KỲ NGHỈ</p>
+              <h2 id="search-title" tabindex="-1">Bạn muốn nghỉ khi nào?</h2>
+            </div>
+            <p>Chọn thời gian và không gian phù hợp.</p>
+          </div>
+          <form id="search-form" class="room-search-form" action="guest/rooms.html" method="get" aria-labelledby="search-title" novalidate>
+            <div class="search-fields">
+              <div class="field">
+                <label for="check-in">Ngày nhận phòng</label
+                ><input id="check-in" name="checkIn" type="date" required aria-describedby="check-in-error" />
+                <p id="check-in-error" class="search-field-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="check-out">Ngày trả phòng</label
+                ><input id="check-out" name="checkOut" type="date" required aria-describedby="check-out-error" />
+                <p id="check-out-error" class="search-field-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="guests">Số khách</label
+                ><input
+                  id="guests"
+                  name="guests"
+                  type="number"
+                  min="1"
+                  step="1"
+                  required
+                  aria-describedby="guests-error"
+                  placeholder="Nhập số khách"
+                />
+                <p id="guests-error" class="search-field-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="room-type">Loại phòng</label
+                ><select id="room-type" name="roomType" aria-describedby="room-type-error">
+                  <option value="">Tất cả</option>
+                  <option value="standard">Standard</option>
+                  <option value="deluxe">Deluxe</option>
+                  <option value="family">Family</option>
+                  <option value="suite">Suite</option>
+                </select>
+                <p id="room-type-error" class="search-field-error" hidden></p>
+              </div>
+              <button class="button button-primary search-submit" type="submit">
+                Tìm kiếm
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+      <section
+        class="rooms section-space"
+        id="loai-phong"
+        aria-labelledby="rooms-title"
+      >
+        <div class="container">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">KHÔNG GIAN NGHỈ NGƠI</p>
+              <h2 id="rooms-title">Chọn không gian phù hợp với bạn</h2>
+            </div>
+            <a class="rooms-view-all text-link" href="guest/rooms.html"
+              ><span class="text-link-label">Xem tất cả</span
+              ><span class="text-link-arrow" aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="room-grid">
+            <article class="room-card">
+              <div class="room-image standard">
+                <img
+                  src="assets/images/khach-san-da-lat.jpg"
+                  alt="Minh họa phòng Standard với giường đôi"
+                  width="800"
+                  height="680"
+                  loading="lazy"
+                />
+              </div>
+              <div class="room-content">
+                <p class="room-capacity">01 / TỐI ĐA 2 KHÁCH</p>
+                <h3>Standard</h3>
+                <p class="room-description">
+                  Không gian gọn gàng với giường đôi hoặc 2 giường đơn.
+                </p>
+                <p class="room-amenities">Giường đôi / 2 giường đơn</p>
+                <a class="room-action" href="guest/rooms.html?roomType=standard">
+                  Tìm loại phòng này
+                </a>
+              </div>
+            </article>
+            <article class="room-card">
+              <div class="room-image deluxe">
+                <img
+                  src="assets/images/khach-san-da-lat.jpg"
+                  alt="Minh họa không gian nghỉ ngơi cho phòng Deluxe"
+                  width="800"
+                  height="680"
+                  loading="lazy"
+                />
+              </div>
+              <div class="room-content">
+                <p class="room-capacity">02 / 2–3 KHÁCH</p>
+                <h3>Deluxe</h3>
+                <p class="room-description">
+                  Diện tích lớn hơn, view đẹp cho những phút giây thư thái.
+                </p>
+                <p class="room-amenities">Không gian rộng · View đẹp</p>
+                <a class="room-action" href="guest/rooms.html?roomType=deluxe">
+                  Tìm loại phòng này
+                </a>
+              </div>
+            </article>
+            <article class="room-card">
+              <div class="room-image family">
+                <img
+                  src="assets/images/khach-san-da-lat.jpg"
+                  alt="Minh họa phòng nghỉ cho loại Family"
+                  width="800"
+                  height="680"
+                  loading="lazy"
+                />
+              </div>
+              <div class="room-content">
+                <p class="room-capacity">03 / TỐI ĐA 4 KHÁCH</p>
+                <h3>Family</h3>
+                <p class="room-description">
+                  Cùng nhau nghỉ ngơi trong không gian dành cho gia đình.
+                </p>
+                <p class="room-amenities">2 phòng ngủ hoặc giường phụ</p>
+                <a class="room-action" href="guest/rooms.html?roomType=family">
+                  Tìm loại phòng này
+                </a>
+              </div>
+            </article>
+            <article class="room-card">
+              <div class="room-image suite">
+                <img
+                  src="assets/images/khach-san-da-lat.jpg"
+                  alt="Minh họa không gian nghỉ cho loại Suite"
+                  width="800"
+                  height="680"
+                  loading="lazy"
+                />
+              </div>
+              <div class="room-content">
+                <p class="room-capacity">04 / 2–4 KHÁCH</p>
+                <h3>Suite</h3>
+                <p class="room-description">
+                  Không gian riêng tư, thoải mái cho một kỳ nghỉ trọn vẹn.
+                </p>
+                <p class="room-amenities">
+                  Phòng khách riêng · Tiện nghi cao cấp
+                </p>
+                <a class="room-action" href="guest/rooms.html?roomType=suite">
+                  Tìm loại phòng này
+                </a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+      <section
+        class="services section-space"
+        id="dich-vu"
+        aria-labelledby="services-title"
+      >
+        <div class="container services-layout">
+          <div>
+            <p class="eyebrow">THÊM CHÚT THẢNH THƠI</p>
+            <h2 id="services-title">Chăm chút cho<br />kỳ nghỉ của bạn.</h2>
+            <p class="services-intro">
+              Những dịch vụ hỗ trợ trong hành trình lưu trú.
+            </p>
+          </div>
+          <div class="service-list">
+            <a class="service-link" href="guest/food-menu.html">
+              <span class="service-number" aria-hidden="true">01</span>
+              <div>
+                <h3>Ăn uống</h3>
+                <p>Lựa chọn món ăn và đồ uống theo nhu cầu trong thời gian lưu trú.</p>
+              </div>
+            </a>
+            <a class="service-link" href="guest/services.html?service=laundry">
+              <span class="service-number" aria-hidden="true">02</span>
+              <div>
+                <h3>Giặt ủi</h3>
+                <p>Thêm tiện lợi cho những ngày lưu trú.</p>
+              </div>
+            </a>
+            <a class="service-link" href="guest/services.html?service=transport">
+              <span class="service-number" aria-hidden="true">03</span>
+              <div>
+                <h3>Đưa đón</h3>
+                <p>Yêu cầu sắp xếp chuyến đưa đón theo lịch trình của bạn.</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+      <section
+        class="about section-space"
+        id="gioi-thieu"
+        aria-labelledby="about-title"
+      >
+        <div class="container about-layout">
+          <p class="eyebrow">VỀ COPY PASTE HOTEL</p>
+          <div>
+            <h2 id="about-title">
+              Từng bước nhẹ nhàng,<br />cho một hành trình thoải mái.
+            </h2>
+            <p>
+              Khám phá không gian nghỉ ngơi phù hợp và chuẩn bị cho hành trình
+              của bạn cùng Copy Paste Hotel.
+            </p>
+            <p>
+              Từ tìm phòng, đặt phòng đến theo dõi lưu trú, mỗi bước đều hướng
+              đến một trải nghiệm thuận tiện và thoải mái.
+            </p>
+            <button class="text-link" type="button" data-focus-search
+              ><span class="text-link-label">Bắt đầu từ việc tìm phòng</span
+              ><span class="text-link-arrow" aria-hidden="true">↗</span></button
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
 </html>

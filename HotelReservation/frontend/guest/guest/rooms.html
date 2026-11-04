@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Khám phá Standard, Deluxe, Family và Suite tại Copy Paste Hotel."
+    />
+    <title>Loại phòng - Copy Paste Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap"
+    />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/rooms.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/rooms.js" defer></script>
+  </head>
+  <body class="rooms-page">
+    <header
+      id="site-header"
+      class="site-header"
+      data-layout="header"
+      data-active-nav="Loại phòng"
+    ></header>
+    <main id="main">
+      <section class="rooms-intro" aria-labelledby="rooms-page-title">
+        <div class="container">
+          <p class="eyebrow">KHÔNG GIAN NGHỈ NGƠI</p>
+          <h1 id="rooms-page-title">Tìm không gian cho kỳ nghỉ của bạn</h1>
+          <p class="rooms-intro-description">
+            Khám phá các loại phòng và lựa chọn không gian phù hợp với nhu cầu
+            lưu trú.
+          </p>
+        </div>
+      </section>
+
+      <div class="container rooms-content">
+        <section class="rooms-search" aria-labelledby="rooms-search-title">
+          <h2 id="rooms-search-title">Tiêu chí tìm phòng</h2>
+          <form id="rooms-search-form" class="rooms-search-grid room-search-form" aria-labelledby="rooms-search-title" novalidate>
+            <div class="rooms-search-field">
+              <label for="check-in">Ngày nhận phòng</label>
+              <input
+                id="check-in"
+                name="checkIn"
+                type="date"
+                required
+                aria-describedby="check-in-error"
+              />
+              <p id="check-in-error" class="search-field-error" hidden></p>
+            </div>
+            <div class="rooms-search-field">
+              <label for="check-out">Ngày trả phòng</label>
+              <input
+                id="check-out"
+                name="checkOut"
+                type="date"
+                required
+                aria-describedby="check-out-error"
+              />
+              <p id="check-out-error" class="search-field-error" hidden></p>
+            </div>
+            <div class="rooms-search-field">
+              <label for="guests">Số khách</label>
+              <input id="guests" name="guests" type="number" min="1" step="1" required aria-describedby="guests-error" />
+              <p id="guests-error" class="search-field-error" hidden></p>
+            </div>
+            <div class="rooms-search-field">
+              <label for="room-type">Loại phòng</label>
+              <select id="room-type" name="roomType" aria-describedby="room-type-error">
+                <option value="">Tất cả</option>
+                <option value="standard">Standard</option>
+                <option value="deluxe">Deluxe</option>
+                <option value="family">Family</option>
+                <option value="suite">Suite</option>
+              </select>
+              <p id="room-type-error" class="search-field-error" hidden></p>
+            </div>
+            <button
+              class="button button-primary rooms-search-button"
+              type="submit"
+            >
+              Tìm kiếm
+            </button>
+          </form>
+        </section>
+
+        <section class="rooms-results" aria-labelledby="rooms-results-title">
+          <div class="rooms-results-heading">
+            <div>
+              <p class="eyebrow">LỰA CHỌN KHÔNG GIAN CỦA BẠN</p>
+              <h2 id="rooms-results-title">Các loại phòng</h2>
+            </div>
+            <div class="rooms-sort">
+              <label for="room-sort">Sắp xếp</label>
+              <select id="room-sort" name="sort" aria-describedby="room-sort-error">
+                <option value="default">Mặc định</option>
+                <option value="price-asc">Giá tăng dần</option>
+                <option value="price-desc">Giá giảm dần</option>
+              </select>
+            </div>
+          </div>
+
+          <p id="room-sort-error" class="rooms-field-error" hidden></p>
+          <div class="rooms-results-tools">
+            <p id="rooms-result-count" role="status" aria-live="polite"></p>
+            <button id="rooms-clear-filters" class="button button-outline" type="button">Xóa bộ lọc</button>
+          </div>
+          <p id="rooms-empty" hidden></p>
+          <!-- Fixed sample counts/prices are centralized in room-data.js, not date availability. -->
+          <div class="room-results-list"></div>
+          <template id="room-result-template">
+            <article class="room-result">
+              <figure class="room-result-image">
+                <img src="../assets/images/khach-san-da-lat.jpg" alt="" width="800" height="680" loading="lazy" />
+              </figure>
+              <div class="room-result-info">
+                <h3></h3>
+                <p></p>
+                <dl class="room-result-facts">
+                  <dt>Sức chứa</dt><dd data-room-capacity></dd>
+                  <dt>Đặc điểm</dt><dd data-room-feature></dd>
+                  <dt>Phòng trống</dt><dd><span class="room-availability"></span></dd>
+                  <dt data-room-needed-label hidden>Số phòng tối thiểu</dt><dd data-room-needed hidden></dd>
+                </dl>
+              </div>
+              <div class="room-result-offer">
+                <p class="room-result-price-label">Giá tham khảo/đêm</p>
+                <p class="room-result-price"></p>
+                <a class="button button-primary">Xem chi tiết</a>
+              </div>
+            </article>
+          </template>
+        </section>
+      </div>
+    </main>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>

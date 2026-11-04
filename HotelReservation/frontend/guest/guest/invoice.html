@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Theo dõi tiền phòng, dịch vụ và các khoản đã thanh toán tại Copy Paste Hotel." />
+    <title>Hóa đơn lưu trú - Copy Paste Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap" />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/invoice.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/room-stay.js" defer></script>
+    <script src="../assets/js/booking-draft.js" defer></script>
+    <script src="../assets/js/booking-simulation.js" defer></script>
+    <script src="../assets/js/booking-data.js" defer></script>
+    <script src="../assets/js/booking-actions.js" defer></script>
+    <script src="../assets/js/service-data.js" defer></script>
+    <script src="../assets/js/booking-extras.js" defer></script>
+    <script src="../assets/js/billing-data.js" defer></script>
+    <script src="../assets/js/invoice-context.js" defer></script>
+  </head>
+  <body class="invoice-page">
+    <header id="site-header" class="site-header" data-layout="header" data-active-nav="Booking của tôi"></header>
+    <main id="main">
+      <div class="invoice-heading">
+        <div class="container">
+          <a class="invoice-back" href="booking-detail.html">← Về chi tiết booking</a>
+          <h1>Hóa đơn lưu trú</h1>
+          <p class="invoice-intro">Theo dõi tiền phòng, dịch vụ và các khoản đã thanh toán.</p>
+          <dl class="invoice-status-list" hidden>
+            <div><dt>Trạng thái hóa đơn</dt><dd><span id="invoice-status" class="invoice-badge"></span></dd></div>
+            <div><dt>Trạng thái thanh toán</dt><dd><span id="invoice-payment-status" class="invoice-badge invoice-badge-outline"></span></dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Read-only BillingData adapter: historical booking prices, request snapshots
+           and confirmed transactions. No invoice creation, repricing or finalization. -->
+      <section id="invoice-context-message" class="container guest-context-message" role="status" hidden><p></p><a class="invoice-back" href="my-bookings.html">← Về booking của tôi</a></section>
+      <div class="container invoice-content" hidden>
+        <div id="invoice-data-error" role="status" hidden></div>
+        <section class="invoice-card invoice-stay" aria-labelledby="stay-title">
+          <h2 id="stay-title">Thông tin lưu trú</h2>
+          <dl class="invoice-stay-facts">
+            <div><dt>Mã booking</dt><dd></dd></div>
+            <div><dt>Loại phòng</dt><dd></dd></div>
+            <div><dt>Ngày nhận phòng</dt><dd></dd></div>
+            <div><dt>Ngày trả phòng</dt><dd></dd></div>
+            <div><dt>Số đêm</dt><dd></dd></div>
+            <div><dt>Số lượng phòng</dt><dd></dd></div>
+            <div><dt>Tổng số khách</dt><dd></dd></div>
+            <div><dt>Trạng thái booking</dt><dd></dd></div>
+          </dl>
+        </section>
+
+        <div class="invoice-columns">
+          <div class="invoice-details">
+            <section class="invoice-card" aria-labelledby="room-title"><h2 id="room-title">Tiền phòng</h2></section>
+
+            <section class="invoice-card" aria-labelledby="services-title"><h2 id="services-title">Dịch vụ đã ghi nhận</h2></section>
+
+            <section class="invoice-card" aria-labelledby="pending-title"><h2 id="pending-title">Dịch vụ chưa tính vào tổng</h2></section>
+
+            <section class="invoice-card" aria-labelledby="payments-title"><h2 id="payments-title">Lịch sử thanh toán</h2></section>
+          </div>
+
+          <section class="invoice-card invoice-summary" aria-labelledby="summary-title"><h2 id="summary-title">Tổng hợp hóa đơn</h2></section>
+        </div>
+      </div>
+    </main>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>

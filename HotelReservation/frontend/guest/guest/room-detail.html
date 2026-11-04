@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Khám phá loại phòng Deluxe tại Copy Paste Hotel: không gian rộng hơn cho kỳ nghỉ của bạn."
+    />
+    <title>Deluxe - Copy Paste Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap"
+    />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/room-detail.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/room-stay.js" defer></script>
+    <script src="../assets/js/room-detail.js" defer></script>
+  </head>
+  <body class="room-detail-page">
+    <header
+      id="site-header"
+      class="site-header"
+      data-layout="header"
+      data-active-nav="Loại phòng"
+    ></header>
+    <main id="main" class="room-detail-main">
+      <div class="room-detail-heading">
+        <div class="container">
+          <a class="room-detail-back" href="rooms.html">← Về danh sách phòng</a>
+          <p class="eyebrow">KHÔNG GIAN NGHỈ NGƠI</p>
+          <h1>Deluxe</h1>
+          <p class="room-detail-subtitle">
+            Không gian rộng hơn để thư giãn và tận hưởng kỳ nghỉ.
+          </p>
+        </div>
+      </div>
+
+      <p id="room-detail-message" class="container room-detail-message" role="status" hidden></p>
+      <div class="container room-detail-content">
+        <!-- Existing local photo reused; per-type photographs await confirmation. -->
+        <section
+          class="room-detail-gallery"
+          aria-label="Hình ảnh loại phòng Deluxe"
+        >
+          <figure class="room-detail-photo room-detail-photo-main">
+            <button class="room-detail-image-open" type="button" aria-label="Xem ảnh phòng lớn">
+              <img
+              src="../assets/images/khach-san-da-lat.jpg"
+              alt="Không gian phòng nghỉ minh họa cho loại Deluxe"
+              width="800"
+              height="680"
+            />
+            </button>
+          </figure>
+          <figure class="room-detail-photo room-detail-photo-secondary">
+            <button class="room-detail-image-open" type="button" aria-label="Xem ảnh phòng lớn">
+              <img
+              src="../assets/images/khach-san-da-lat.jpg"
+              alt=""
+              width="800"
+              height="680"
+            />
+            </button>
+          </figure>
+          <figure class="room-detail-photo room-detail-photo-secondary">
+            <button class="room-detail-image-open" type="button" aria-label="Xem ảnh phòng lớn">
+              <img
+              src="../assets/images/khach-san-da-lat.jpg"
+              alt=""
+              width="800"
+              height="680"
+            />
+            </button>
+          </figure>
+        </section>
+
+        <!-- Shared sample prices/counts; frontend calculations are not a confirmed quote. -->
+        <div class="room-detail-columns">
+          <div class="room-detail-information">
+            <section
+              class="room-detail-description"
+              aria-labelledby="room-introduction-title"
+            >
+              <p class="eyebrow">MỘT CHÚT THẢNH THƠI</p>
+              <h2 id="room-introduction-title">
+                Không gian dành cho kỳ nghỉ của bạn
+              </h2>
+              <p>
+                Deluxe mang đến không gian thoải mái cho chuyến đi hai người
+                hoặc nhóm nhỏ, phù hợp để nghỉ ngơi và thư giãn trong thời gian
+                lưu trú.
+              </p>
+            </section>
+
+            <section
+              class="room-detail-facts-section"
+              aria-labelledby="room-facts-title"
+            >
+              <h2 id="room-facts-title">Thông tin loại phòng</h2>
+              <dl class="room-detail-facts">
+                <div>
+                  <dt>Sức chứa</dt>
+                  <dd>2–3 khách</dd>
+                </div>
+                <div>
+                  <dt>Đặc điểm nổi bật</dt>
+                  <dd>Diện tích lớn hơn, view đẹp</dd>
+                </div>
+                <div>
+                  <dt>Hướng nhìn</dt>
+                  <dd>View đẹp</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+
+          <aside class="room-detail-stay" aria-labelledby="stay-title">
+            <div class="room-detail-price-block">
+              <p class="room-detail-price-label">Giá tham khảo/đêm</p>
+              <p class="room-detail-price">800.000 <span>đ</span></p>
+              <p class="room-detail-availability">Chọn ngày để kiểm tra phòng trống</p>
+            </div>
+            <h2 id="stay-title">Lựa chọn lưu trú</h2>
+            <form id="room-detail-form" class="room-detail-stay-fields room-search-form" aria-labelledby="stay-title" novalidate>
+              <div class="room-detail-field">
+                <label for="check-in">Ngày nhận phòng</label>
+                <input id="check-in" name="checkIn" type="date" required aria-describedby="check-in-error" />
+                <p id="check-in-error" class="search-field-error" hidden></p>
+              </div>
+              <div class="room-detail-field">
+                <label for="check-out">Ngày trả phòng</label>
+                <input id="check-out" name="checkOut" type="date" required aria-describedby="check-out-error" />
+                <p id="check-out-error" class="search-field-error" hidden></p>
+              </div>
+              <div class="room-detail-field">
+                <label for="guests">Số khách</label>
+                <input
+                  id="guests"
+                  name="guests"
+                  type="number" min="1" step="1"
+                  placeholder="Nhập số khách"
+                required aria-describedby="guests-error" />
+                <p id="guests-error" class="search-field-error" hidden></p>
+              </div>
+              <div class="room-detail-field">
+                <label for="room-count">Số lượng phòng</label>
+                <input
+                  id="room-count"
+                  name="roomCount"
+                  type="number" min="1" step="1"
+                  placeholder="Nhập số phòng"
+                required aria-describedby="room-count-error" />
+                <p id="room-count-error" class="search-field-error" hidden></p>
+              </div>
+              <dl id="room-detail-estimate" class="room-detail-estimate" aria-live="polite" hidden>
+                <div><dt>Số đêm</dt><dd data-estimate="nights"></dd></div>
+                <div><dt>Số lượng phòng</dt><dd data-estimate="rooms"></dd></div>
+                <div><dt>Tiền phòng tạm tính</dt><dd data-estimate="amount"></dd></div>
+              </dl>
+              <button
+                class="button button-primary room-detail-book"
+                type="submit"
+              >
+                Đặt phòng
+              </button>
+            </form>
+          </aside>
+        </div>
+      </div>
+    </main>
+    <dialog id="room-gallery-dialog" class="room-gallery-dialog" aria-labelledby="room-gallery-title">
+      <div class="room-gallery-toolbar">
+        <h2 id="room-gallery-title">Ảnh loại phòng</h2>
+        <button id="room-gallery-close" class="button button-outline" type="button" autofocus>Đóng</button>
+      </div>
+      <img id="room-gallery-image" alt="" />
+    </dialog>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>
