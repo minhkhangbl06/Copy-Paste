@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Dịch vụ và các yêu cầu trong thời gian lưu trú tại Copy Paste Hotel."
+    />
+    <title>Dịch vụ - Copy Paste Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap"
+    />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/services.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/room-stay.js" defer></script>
+    <script src="../assets/js/booking-draft.js" defer></script>
+    <script src="../assets/js/booking-simulation.js" defer></script>
+    <script src="../assets/js/booking-data.js" defer></script>
+    <script src="../assets/js/booking-actions.js" defer></script>
+    <script src="../assets/js/service-data.js" defer></script>
+    <script src="../assets/js/booking-extras.js" defer></script>
+    <script src="../assets/js/services-context.js" defer></script>
+    <script src="../assets/js/services.js" defer></script>
+  </head>
+  <body class="services-page">
+    <header
+      id="site-header"
+      class="site-header"
+      data-layout="header"
+      data-active-nav="Dịch vụ"
+    ></header>
+    <main id="main">
+      <div class="services-heading">
+        <div class="container">
+          <a class="services-back" href="booking-detail.html">← Về chi tiết booking</a>
+          <h1>Dịch vụ</h1>
+          <p>
+            Lựa chọn dịch vụ và theo dõi các yêu cầu trong thời gian lưu trú.
+          </p>
+        </div>
+      </div>
+
+      <!-- Service context and history are read by booking reference. Frontend session
+           simulation only; M4 must validate hotel timezone, checkout cutoff and rights. -->
+      <section id="services-context-message" class="container guest-context-message" role="status" hidden><p></p><a class="services-back" href="my-bookings.html">← Về booking của tôi</a></section>
+      <div class="container services-content" hidden>
+        <section id="services-booking-picker" class="services-stay"><label for="services-booking">Booking đang lưu trú</label><select id="services-booking" aria-label="Chọn booking để sử dụng dịch vụ"></select></section>
+        <p id="services-feedback" role="status" tabindex="-1" hidden></p>
+        <section class="services-stay" aria-labelledby="stay-title">
+          <div class="services-stay-heading">
+            <h2 id="stay-title">Thông tin lưu trú</h2>
+            <span class="service-status service-status-staying"
+              >Đang lưu trú</span
+            >
+          </div>
+          <dl class="services-stay-facts">
+            <div>
+              <dt>Mã booking</dt>
+              <dd></dd>
+            </div>
+            <div>
+              <dt>Loại phòng</dt>
+              <dd></dd>
+            </div>
+            <div>
+              <dt>Tổng số khách</dt>
+              <dd></dd>
+            </div>
+            <div>
+              <dt>Ngày nhận phòng</dt>
+              <dd></dd>
+            </div>
+            <div>
+              <dt>Ngày trả phòng</dt>
+              <dd></dd>
+            </div>
+            <div>
+              <dt>Số lượng phòng</dt>
+              <dd></dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="services-catalog" aria-labelledby="catalog-title">
+          <h2 id="catalog-title">Dịch vụ dành cho bạn</h2>
+          <div class="services-catalog-grid">
+            <article class="service-card" aria-labelledby="breakfast-title">
+              <h3 id="breakfast-title">Ăn uống</h3>
+              <p class="service-description">
+                Lựa chọn món ăn, đồ uống và số lượng theo nhu cầu.
+              </p>
+              <p class="service-price service-price-note">Giá theo từng món</p>
+              <a id="services-food-menu" class="button button-outline" href="food-menu.html">Xem thực đơn</a>
+            </article>
+            <article class="service-card" aria-labelledby="laundry-title">
+              <h3 id="laundry-title">Giặt ủi</h3>
+              <p class="service-description">
+                Yêu cầu giặt ủi quần áo, tính phí theo khối lượng.
+              </p>
+              <p class="service-price">50.000 <span>đ / kg</span></p>
+              <button
+                id="open-laundry-request"
+                class="button button-outline"
+                type="button"
+                aria-label="Yêu cầu dịch vụ giặt ủi"
+                data-service-open="laundry-request-panel"
+                aria-controls="laundry-request-panel"
+                aria-expanded="false"
+              >
+                Yêu cầu dịch vụ
+              </button>
+            </article>
+            <article class="service-card" aria-labelledby="airport-title">
+              <h3 id="airport-title">Đưa đón theo yêu cầu</h3>
+              <p class="service-description">
+                Cung cấp lịch trình để khách sạn hỗ trợ sắp xếp chuyến đi.
+              </p>
+              <!-- 15,000 VND/km is a fixed UI design sample, not an approved pricing
+                   policy. It does not calculate distance, fares or pending quotes. -->
+              <p class="service-price">15.000 <span>đ / km</span></p>
+              <button
+                id="open-transfer-request"
+                class="button button-outline"
+                type="button"
+                data-service-open="transfer-request-panel"
+                aria-controls="transfer-request-panel"
+                aria-expanded="false"
+              >
+                Yêu cầu đưa đón
+              </button>
+            </article>
+          </div>
+        </section>
+
+        <section
+          id="laundry-request-panel"
+          class="services-request-panel"
+          aria-labelledby="request-title"
+          data-service-panel
+          hidden
+        >
+          <div class="service-panel-heading">
+            <h2 id="request-title" tabindex="-1">Yêu cầu giặt ủi</h2>
+            <button
+              class="button button-outline service-panel-close"
+              type="button"
+              data-service-close
+              aria-label="Đóng yêu cầu giặt ủi"
+            >
+              Đóng
+            </button>
+          </div>
+          <p class="service-laundry-rate">
+            Đơn giá tham khảo: <strong>50.000 đ/kg</strong>
+          </p>
+          <p class="service-transfer-note">
+            Khối lượng và chi phí được xác nhận sau khi nhận đồ.
+          </p>
+          <p class="service-transfer-note">
+            Thời gian dự kiến trả đồ sạch sẽ được khách sạn thông báo sau khi tiếp nhận yêu cầu.
+          </p>
+          <!-- UI convention: pickup is on the day the guest sends the request.
+               Backend will determine that date using hotel time/timezone when integrated.
+               No fixed/current date is rendered here; no return-time promise.
+               Weight is confirmed by staff after collection, not entered by the guest.
+               Fields retain values when toggled; reset only after a successful session save
+               or a booking-context change. No real staff acceptance occurs here. -->
+          <form id="laundry-form" class="services-request-fields room-search-form" aria-labelledby="request-title" novalidate>
+            <fieldset
+              class="service-timing service-field-wide"
+              data-service-timing="laundry-time-fields"
+            >
+              <legend>Bạn muốn nhân viên đến lấy đồ khi nào?</legend>
+              <label for="laundry-asap">
+                <input
+                  id="laundry-asap"
+                  name="laundryTiming"
+                  type="radio"
+                  value="asap"
+                  checked
+                />
+                <span>Lấy đồ sớm nhất có thể</span>
+              </label>
+              <label for="laundry-scheduled">
+                <input
+                  id="laundry-scheduled"
+                  name="laundryTiming"
+                  type="radio"
+                  value="scheduled"
+                  aria-controls="laundry-time-fields"
+                />
+                <span>Chọn giờ đến lấy đồ</span>
+              </label>
+            </fieldset>
+            <div id="laundry-time-fields" class="service-field" hidden>
+              <label for="service-time">Giờ nhân viên đến lấy đồ</label>
+              <input
+                id="service-time"
+                name="preferredTime"
+                type="time"
+                aria-describedby="laundry-time-help service-time-error"
+              />
+              <p id="service-time-error" class="search-field-error" hidden></p>
+              <p id="laundry-time-help" class="service-field-help">
+                Giờ bạn mong muốn nhân viên đến lấy quần áo đem giặt.
+              </p>
+            </div>
+            <div class="service-field service-field-wide">
+              <label for="service-note">Ghi chú</label>
+              <textarea
+                id="service-note"
+                name="note"
+                rows="4" maxlength="1000" aria-describedby="service-note-error"
+                placeholder="Lưu ý về quần áo hoặc hướng dẫn nhân viên đến lấy đồ."
+              ></textarea>
+              <p id="service-note-error" class="search-field-error" hidden></p>
+            </div>
+            <p id="laundry-form-error" class="search-field-error service-field-wide" role="alert" hidden></p>
+            <div class="service-request-action">
+              <button class="button button-primary" type="submit">
+                Gửi yêu cầu giặt ủi
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section
+          id="transfer-request-panel"
+          class="services-request-panel"
+          aria-labelledby="transfer-request-title"
+          data-service-panel
+          hidden
+        >
+          <div class="service-panel-heading">
+            <h2 id="transfer-request-title" tabindex="-1">Yêu cầu đưa đón</h2>
+            <button
+              class="button button-outline service-panel-close"
+              type="button"
+              data-service-close
+              aria-label="Đóng yêu cầu đưa đón"
+            >
+              Đóng
+            </button>
+          </div>
+          <p class="service-transfer-note">
+            Khách sạn sẽ xác nhận thời gian đón, khả năng phục vụ và báo giá.
+          </p>
+          <!-- Schedule controls preserve values when hidden; availability, quotation
+               and status rules still await agreement with the group/backend.
+               No map/address lookup, GPS or distance/price calculation. Requests remain
+               session-only pending records until real M4 integration. -->
+          <form id="transfer-form" class="services-request-fields room-search-form" aria-labelledby="transfer-request-title" novalidate>
+            <div class="service-field service-field-wide">
+              <label for="transfer-pickup">Điểm đón</label>
+              <input
+                id="transfer-pickup"
+                name="pickupPoint"
+                type="text"
+                placeholder="Tên địa điểm và địa chỉ cụ thể"
+              aria-describedby="transfer-pickup-error" />
+              <p id="transfer-pickup-error" class="search-field-error" hidden></p>
+            </div>
+            <div class="service-field service-field-wide">
+              <label for="transfer-destination">Điểm đến</label>
+              <input
+                id="transfer-destination"
+                name="destination"
+                type="text"
+                placeholder="Tên địa điểm và địa chỉ cụ thể"
+              aria-describedby="transfer-destination-error" />
+              <p id="transfer-destination-error" class="search-field-error" hidden></p>
+            </div>
+            <fieldset
+              class="service-timing service-field-wide"
+              data-service-timing="transfer-schedule-fields"
+            >
+              <legend>Thời điểm đưa đón</legend>
+              <label for="transfer-asap">
+                <input
+                  id="transfer-asap"
+                  name="transferTiming"
+                  type="radio"
+                  value="asap"
+                  checked
+                />
+                <span>Đi sớm nhất có thể</span>
+              </label>
+              <label for="transfer-scheduled">
+                <input
+                  id="transfer-scheduled"
+                  name="transferTiming"
+                  type="radio"
+                  value="scheduled"
+                  aria-controls="transfer-schedule-fields"
+                />
+                <span>Đặt lịch</span>
+              </label>
+            </fieldset>
+            <div
+              id="transfer-schedule-fields"
+              class="services-request-fields service-field-wide"
+              hidden
+            >
+              <div class="service-field">
+                <label for="transfer-date">Ngày đón</label>
+                <input id="transfer-date" name="pickupDate" type="date" aria-describedby="transfer-date-error" />
+              <p id="transfer-date-error" class="search-field-error" hidden></p>
+              </div>
+              <div class="service-field">
+                <label for="transfer-time">Giờ đón</label>
+                <input id="transfer-time" name="pickupTime" type="time" aria-describedby="transfer-time-error" />
+              <p id="transfer-time-error" class="search-field-error" hidden></p>
+              </div>
+            </div>
+            <div class="service-field">
+              <label for="transfer-passengers">Số hành khách</label>
+              <input id="transfer-passengers" name="passengers" type="number" min="1" step="1" aria-describedby="transfer-passengers-error" />
+              <p id="transfer-passengers-error" class="search-field-error" hidden></p>
+            </div>
+            <div class="service-field">
+              <label for="transfer-phone">Số điện thoại liên hệ</label>
+              <input
+                id="transfer-phone"
+                name="contactPhone"
+                type="tel"
+                autocomplete="tel"
+              aria-describedby="transfer-phone-error" />
+              <p id="transfer-phone-error" class="search-field-error" hidden></p>
+            </div>
+            <div class="service-field service-field-wide">
+              <label for="transfer-note">Ghi chú</label>
+              <textarea
+                id="transfer-note"
+                name="transferNote"
+                rows="4" maxlength="1000" aria-describedby="transfer-note-error"
+                placeholder="Thông tin hành lý, chuyến bay hoặc yêu cầu khác nếu có"
+              ></textarea>
+              <p id="transfer-note-error" class="search-field-error" hidden></p>
+            </div>
+            <p id="transfer-form-error" class="search-field-error service-field-wide" role="alert" hidden></p>
+            <div class="service-request-action">
+              <button class="button button-primary" type="submit">
+                Gửi yêu cầu đưa đón
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section class="services-history" aria-labelledby="history-title">
+          <h2 id="history-title" tabindex="-1">Yêu cầu của tôi</h2>
+          <p id="services-history-error" role="status" hidden></p>
+          <div class="service-requests-list"></div>
+        </section>
+      </div>
+    </main>
+    <dialog id="service-cancel-dialog" class="service-cancel-dialog" aria-labelledby="service-cancel-title">
+      <h2 id="service-cancel-title">Hủy yêu cầu</h2><p id="service-cancel-summary"></p><p id="service-cancel-error" role="alert" hidden></p>
+      <div class="service-dialog-actions"><button id="service-cancel-back" class="button button-outline" type="button" autofocus>Quay lại</button><button id="service-cancel-confirm" class="button button-primary" type="button">Xác nhận hủy</button></div>
+    </dialog>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>

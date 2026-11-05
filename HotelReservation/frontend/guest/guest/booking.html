@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Thông tin lưu trú và liên hệ cho lựa chọn phòng tại Copy Paste Hotel."
+    />
+    <title>Thông tin đặt phòng - Copy Paste Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap"
+    />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/booking.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/room-stay.js" defer></script>
+    <script src="../assets/js/booking-draft.js" defer></script>
+    <script src="../assets/js/booking-simulation.js" defer></script>
+    <script src="../assets/js/booking-data.js" defer></script>
+    <script src="../assets/js/booking-actions.js" defer></script>
+    <script src="../assets/js/booking.js" defer></script>
+  </head>
+  <body class="booking-page">
+    <header
+      id="site-header"
+      class="site-header"
+      data-layout="header"
+      data-active-nav="Loại phòng"
+    ></header>
+    <main id="main">
+      <div class="booking-heading">
+        <div class="container">
+          <a class="booking-back" href="room-detail.html">← Về chi tiết loại phòng</a>
+          <h1>Thông tin đặt phòng</h1>
+          <p>Kiểm tra thông tin lưu trú và thông tin liên hệ của bạn.</p>
+        </div>
+      </div>
+
+      <!-- Stay details are validated from URL criteria. Prices/counts come only from
+           room-data.js; totals are a frontend sample, not a final quote or booking.
+           Contact data is saved only as a versioned session draft before navigation; no booking is created. -->
+      <section id="booking-invalid" class="container booking-invalid" role="status" hidden>
+        <p>Vui lòng quay lại chọn đầy đủ thông tin lưu trú hợp lệ.</p>
+        <p id="booking-invalid-reason"></p>
+        <a class="booking-back" href="rooms.html">← Về danh sách phòng</a>
+      </section>
+      <form id="booking-form" class="container booking-content room-search-form" method="post" novalidate hidden>
+        <div class="booking-information">
+          <section class="booking-card" aria-labelledby="stay-title">
+            <h2 id="stay-title">Thông tin lưu trú</h2>
+            <div class="booking-room">
+              <figure class="booking-room-image">
+                <img
+                  src="../assets/images/khach-san-da-lat.jpg"
+                  alt="Không gian phòng nghỉ minh họa cho loại Deluxe"
+                  width="800"
+                  height="680"
+                />
+              </figure>
+              <div class="booking-room-name">
+                <p>Loại phòng</p>
+                <h3 data-booking-room-name></h3>
+              </div>
+            </div>
+            <dl class="booking-stay-facts">
+              <div>
+                <dt>Ngày nhận phòng</dt>
+                <dd><time data-stay="checkIn"></time></dd>
+              </div>
+              <div>
+                <dt>Ngày trả phòng</dt>
+                <dd><time data-stay="checkOut"></time></dd>
+              </div>
+              <div>
+                <dt>Số đêm</dt>
+                <dd data-stay="nights"></dd>
+              </div>
+              <div>
+                <dt>Tổng số khách</dt>
+                <dd data-stay="guests"></dd>
+              </div>
+              <div class="booking-fact-wide">
+                <dt>Số lượng phòng</dt>
+                <dd data-stay="roomCount"></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="booking-card" aria-labelledby="contact-title">
+            <h2 id="contact-title">Thông tin liên hệ</h2>
+            <!-- Native fields: Enter submits this form; Enter in the textarea stays a newline. -->
+            <div
+              class="booking-contact-fields"
+              role="group"
+              aria-labelledby="contact-title"
+            >
+              <div class="booking-field booking-field-wide">
+                <label for="full-name">Họ và tên</label>
+                <input
+                  id="full-name"
+                  name="fullName"
+                  type="text"
+                  autocomplete="name"
+                  placeholder="Nhập họ và tên"
+                required aria-describedby="full-name-error" />
+                <p id="full-name-error" class="search-field-error" hidden></p>
+              </div>
+              <div class="booking-field">
+                <label for="email">Email</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="Nhập email"
+                required aria-describedby="email-error" />
+                <p id="email-error" class="search-field-error" hidden></p>
+              </div>
+              <div class="booking-field">
+                <label for="phone">Số điện thoại</label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  autocomplete="tel"
+                  placeholder="Nhập số điện thoại"
+                required aria-describedby="phone-error" />
+                <p id="phone-error" class="search-field-error" hidden></p>
+              </div>
+            </div>
+          </section>
+
+          <section
+            class="booking-card booking-requests"
+            aria-labelledby="requests-title"
+          >
+            <h2 id="requests-title">
+              <label for="special-request">Ghi chú</label
+              ><span id="request-optional">Không bắt buộc</span>
+            </h2>
+            <textarea
+              id="special-request"
+              name="specialRequest"
+              rows="4"
+              placeholder="Nhập ghi chú hoặc yêu cầu cho kỳ lưu trú nếu có"
+              maxlength="1000" aria-describedby="request-optional special-request-error"
+            ></textarea>
+            <p id="special-request-error" class="search-field-error" hidden></p>
+          </section>
+        </div>
+
+        <aside class="booking-summary" aria-labelledby="summary-title">
+          <h2 id="summary-title">Tóm tắt đặt phòng</h2>
+          <dl class="booking-summary-facts">
+            <div>
+              <dt>Loại phòng</dt>
+              <dd data-summary="roomType"></dd>
+            </div>
+            <div>
+              <dt>Đơn giá</dt>
+              <dd data-summary="unitPrice"></dd>
+            </div>
+            <div>
+              <dt>Số lượng</dt>
+              <dd data-summary="roomCount"></dd>
+            </div>
+            <div>
+              <dt>Thời gian</dt>
+              <dd data-summary="nights"></dd>
+            </div>
+          </dl>
+          <p class="booking-price-breakdown"></p>
+          <dl class="booking-subtotal">
+            <dt>Tiền phòng tạm tính</dt>
+            <dd id="booking-total"></dd>
+          </dl>
+          <p class="booking-payment-note">Chọn đặt cọc hoặc thanh toán toàn bộ ở bước tiếp theo.</p>
+          <!-- Continue saves a frontend draft only; no booking/payment is created. -->
+          <p id="booking-form-error" class="search-field-error" role="alert" tabindex="-1" hidden></p>
+          <button class="button button-primary booking-confirm" type="submit">
+            Tiếp tục thanh toán
+          </button>
+        </aside>
+      </form>
+    </main>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>

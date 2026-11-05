@@ -89,3 +89,15 @@
 - **Routes**: `routes/api.php` đăng ký đầy đủ các route cho `/api/rooms` và `/api/bookings`.
 - **Database**: Cung cấp migration tạo bảng `rooms`, `bookings` và seeder khởi tạo sẵn 30 phòng mẫu theo đề tài.
 - **Tests**: `tests/Feature/ReservationModuleTest.php` với 5 kịch bản kiểm thử toàn diện, đạt 100% assertions.
+
+## Cập nhật — Kiêng — Guest Frontend — 04/11/2026
+
+- Thêm giao diện Guest bằng HTML/CSS/JavaScript tại
+  `HotelReservation/frontend/guest/`.
+- Thay trang `index.html` mẫu bằng trang chủ Copy Paste Hotel.
+- Thêm các thư mục `assets/`, `auth/`, `components/` và `guest/`
+  từ giao diện đã xây dựng.
+- Giữ cấu trúc đường dẫn của giao diện gốc.
+- Phạm vi lần cập nhật: đưa giao diện vào repository để review;
+  chưa xác nhận tích hợp với API Laravel.
+- Không sửa backend hoặc giao diện Staff.

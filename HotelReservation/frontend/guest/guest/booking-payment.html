@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Thông tin thanh toán đặt phòng bằng chuyển khoản tại Copy Paste Hotel." />
+    <title>Thanh toán đặt phòng</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap" />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/booking-payment.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/room-stay.js" defer></script>
+    <script src="../assets/js/booking-draft.js" defer></script>
+    <script src="../assets/js/booking-simulation.js" defer></script>
+    <script src="../assets/js/booking-data.js" defer></script>
+    <script src="../assets/js/booking-actions.js" defer></script>
+    <script src="../assets/js/booking-payment.js" defer></script>
+  </head>
+  <body class="deposit-page">
+    <header id="site-header" class="site-header" data-layout="header" data-active-nav="Booking của tôi"></header>
+    <main id="main">
+      <div class="deposit-heading">
+        <div class="container">
+          <a class="deposit-back" href="booking.html">← Về thông tin đặt phòng</a>
+          <h1>Thanh toán đặt phòng</h1>
+          <p class="deposit-intro">Lựa chọn đặt cọc hoặc thanh toán toàn bộ tiền phòng trước kỳ lưu trú.</p>
+          <span class="deposit-status">Chờ thanh toán</span>
+        </div>
+      </div>
+
+      <!-- Frontend session draft only: backend will issue booking ID and transfer reference.
+           Recalculate prices from shared room data, never from storage/URL totals.
+           The bank/account and QR remain non-paying placeholders. Backend must supply
+           a QR matching the real amount/reference; selecting a plan does not confirm payment. -->
+      <section id="payment-invalid" class="container payment-invalid" role="status" hidden>
+        <p>Vui lòng chọn lại thông tin lưu trú để tiếp tục.</p>
+        <a class="deposit-back" href="rooms.html">← Về danh sách phòng</a>
+      </section>
+      <div class="container deposit-content" hidden>
+        <div class="deposit-booking-column">
+          <section class="deposit-card" aria-labelledby="booking-title">
+            <h2 id="booking-title">Thông tin đặt phòng</h2>
+            <div class="deposit-room">
+              <figure class="deposit-room-image">
+                <img src="../assets/images/khach-san-da-lat.jpg" alt="Không gian phòng nghỉ minh họa cho loại Deluxe" width="800" height="680" />
+              </figure>
+              <div class="deposit-room-name">
+                <p>Mã tham chiếu <strong data-payment-reference-id>—</strong></p>
+                <h3 data-payment-room></h3>
+              </div>
+            </div>
+            <dl class="deposit-stay-facts">
+              <div><dt>Ngày nhận phòng</dt><dd><time data-payment-stay="checkIn"></time></dd></div>
+              <div><dt>Ngày trả phòng</dt><dd><time data-payment-stay="checkOut"></time></dd></div>
+              <div><dt>Số đêm</dt><dd data-payment-stay="nights"></dd></div>
+              <div><dt>Số khách</dt><dd data-payment-stay="guests"></dd></div>
+              <div><dt>Số lượng phòng</dt><dd data-payment-stay="roomCount"></dd></div>
+            </dl>
+          </section>
+
+          <section class="deposit-card" aria-labelledby="payment-contact-title">
+            <h2 id="payment-contact-title">Thông tin liên hệ</h2>
+            <dl class="deposit-transfer-facts">
+              <div><dt>Họ và tên</dt><dd data-payment-contact="fullName"></dd></div>
+              <div><dt>Email</dt><dd data-payment-contact="email"></dd></div>
+              <div><dt>Số điện thoại</dt><dd data-payment-contact="phone"></dd></div>
+            </dl>
+            <div id="payment-note-block" hidden><h3>Ghi chú</h3><p data-payment-note></p></div>
+          </section>
+          <section class="deposit-card deposit-cost" aria-labelledby="cost-title">
+            <h2 id="cost-title">Chi tiết tiền phòng</h2>
+            <dl class="deposit-facts">
+              <div><dt>Đơn giá</dt><dd class="deposit-money" data-payment-unit-price></dd></div>
+              <div><dt>Tiền phòng</dt><dd class="deposit-money" data-payment-total></dd></div>
+              <div><dt>Phương án thanh toán</dt><dd data-payment-label>Đặt cọc 30%</dd></div>
+            </dl>
+            <p class="deposit-calculation"></p>
+            <div aria-live="polite">
+            <dl class="deposit-required">
+              <dt>Cần chuyển khoản</dt>
+              <dd class="deposit-money" data-payment-amount>—</dd>
+            </dl>
+            <dl class="deposit-facts deposit-remaining">
+              <div><dt>Tiền phòng còn lại</dt><dd class="deposit-money" data-payment-remaining>—</dd></div>
+            </dl>
+            <div class="deposit-cost-notes">
+              <p>Khoản thanh toán trước được trừ khỏi hóa đơn lưu trú.</p>
+              <p data-payment-explanation>Tiền phòng còn lại và dịch vụ phát sinh được thanh toán khi check-out.</p>
+            </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="payment-transfer-column">
+          <section class="deposit-card payment-choice-panel" aria-label="Lựa chọn thanh toán">
+            <fieldset class="payment-options">
+              <legend>Bạn muốn thanh toán bao nhiêu?</legend>
+              <div class="payment-options-grid">
+                <label class="payment-option" for="plan-deposit">
+                  <input id="plan-deposit" name="paymentPlan" type="radio" value="deposit" data-payment-choice checked />
+                  <span class="payment-option-content">
+                    <strong>Đặt cọc 30%</strong>
+                    <span class="payment-option-facts">
+                      <span>Thanh toán ngay<strong data-plan-amount="deposit">—</strong></span>
+                      <span>Tiền phòng còn lại<strong data-plan-remaining="deposit">—</strong></span>
+                    </span>
+                  </span>
+                </label>
+                <label class="payment-option" for="plan-full">
+                  <input id="plan-full" name="paymentPlan" type="radio" value="full" data-payment-choice />
+                  <span class="payment-option-content">
+                    <strong>Thanh toán toàn bộ</strong>
+                    <span class="payment-option-facts">
+                      <span>Thanh toán ngay<strong data-plan-amount="full">—</strong></span>
+                      <span>Tiền phòng còn lại<strong data-plan-remaining="full">—</strong></span>
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+          </section>
+        <section class="deposit-card deposit-transfer" aria-labelledby="transfer-title">
+          <h2 id="transfer-title">Thông tin chuyển khoản</h2>
+          <figure class="deposit-qr-figure">
+            <div class="deposit-qr" aria-hidden="true"><span>QR</span></div>
+            <figcaption>QR minh họa</figcaption>
+          </figure>
+          <dl class="deposit-transfer-facts">
+            <div><dt>Ngân hàng</dt><dd class="deposit-placeholder">Chưa cung cấp</dd></div>
+            <div><dt>Chủ tài khoản</dt><dd>COPY PASTE HOTEL</dd></div>
+            <div><dt>Số tài khoản</dt><dd class="deposit-placeholder">Chưa cung cấp</dd></div>
+            <div><dt>Số tiền</dt><dd class="deposit-money deposit-transfer-amount" data-payment-amount>—</dd></div>
+            <div><dt>Nội dung chuyển khoản</dt><dd class="deposit-reference" data-payment-reference>—</dd></div>
+          </dl>
+          <section class="deposit-instructions" aria-labelledby="instructions-title">
+            <h3 id="instructions-title">Hướng dẫn chuyển khoản</h3>
+            <ol>
+              <li>Mở ứng dụng ngân hàng và quét mã QR.</li>
+              <li>Kiểm tra tài khoản nhận, số tiền và nội dung chuyển khoản.</li>
+              <li>Hoàn tất chuyển khoản, sau đó chọn “Tôi đã chuyển khoản”.</li>
+            </ol>
+          </section>
+          <button class="button button-primary deposit-confirm" type="button">Tôi đã chuyển khoản</button>
+          <p id="payment-error" class="payment-error" role="alert" hidden></p>
+          <div id="payment-reported" tabindex="-1" hidden>
+            <p>Chờ xác nhận chuyển khoản</p>
+            <dl class="deposit-transfer-facts">
+              <div><dt>Khách báo đã chuyển</dt><dd data-payment-reported></dd></div>
+              <div><dt>Đã thanh toán được xác nhận</dt><dd>0 đ</dd></div>
+            </dl>
+            <p class="payment-simulation-note">Đang dùng dữ liệu mô phỏng, chưa gửi đến khách sạn.</p>
+            <div class="payment-result-links">
+              <a class="button button-primary" id="payment-my-bookings">Xem booking của tôi</a>
+              <a class="button button-outline" id="payment-booking-detail">Xem chi tiết booking</a>
+            </div>
+          </div>
+          <p class="deposit-confirm-note">Khách sạn sẽ kiểm tra giao dịch trước khi xác nhận thanh toán và booking.</p>
+        </section>
+        </div>
+      </div>
+    </main>
+    <dialog id="payment-report-dialog" class="payment-report-dialog" aria-labelledby="payment-report-title" aria-describedby="payment-report-help">
+      <h2 id="payment-report-title">Thông báo chuyển khoản</h2>
+      <p id="payment-report-summary"></p>
+      <p id="payment-report-help">Bạn đang thông báo chuyển khoản để khách sạn kiểm tra, chưa phải xác nhận khách sạn đã nhận tiền.</p>
+      <p id="payment-dialog-error" class="payment-error" role="alert" hidden></p>
+      <div class="payment-result-links">
+        <button id="payment-report-back" class="button button-outline" type="button" autofocus>Quay lại</button>
+        <button id="payment-report-send" class="button button-primary" type="button">Gửi thông báo</button>
+      </div>
+    </dialog>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>

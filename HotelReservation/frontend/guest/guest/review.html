@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Chia sẻ trải nghiệm kỳ lưu trú tại Copy Paste Hotel." />
+    <title>Đánh giá kỳ lưu trú - Copy Paste Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap" />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/review.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/room-stay.js" defer></script>
+    <script src="../assets/js/booking-draft.js" defer></script>
+    <script src="../assets/js/booking-simulation.js" defer></script>
+    <script src="../assets/js/booking-data.js" defer></script>
+    <script src="../assets/js/booking-actions.js" defer></script>
+    <script src="../assets/js/review-data.js" defer></script>
+    <script src="../assets/js/review.js" defer></script>
+  </head>
+  <body class="review-page">
+    <header id="site-header" class="site-header" data-layout="header" data-active-nav="Booking của tôi"></header>
+    <main id="main">
+      <div class="review-heading">
+        <div class="container">
+          <a class="review-back" href="my-bookings.html" data-review-return>← Về chi tiết booking</a>
+          <h1>Đánh giá kỳ lưu trú</h1>
+          <p>Chia sẻ trải nghiệm của bạn tại Copy Paste Hotel.</p>
+        </div>
+      </div>
+
+      <!-- Booking context is read from booking-data.js; M3/M5 must verify ownership,
+           completion and review-count rules. ReviewData stores session simulations only. -->
+      <section id="review-unavailable" class="container review-unavailable" role="status" hidden><p></p><a class="review-back" href="my-bookings.html">← Về booking của tôi</a></section>
+      <div class="container review-content" hidden>
+        <section class="review-card review-stay" aria-labelledby="stay-title">
+          <h2 id="stay-title">Thông tin kỳ lưu trú</h2>
+          <div class="review-room">
+            <figure class="review-room-image">
+              <img src="../assets/images/khach-san-da-lat.jpg" alt="Không gian phòng nghỉ minh họa cho loại Standard" width="800" height="680" />
+            </figure>
+            <div class="review-room-name">
+              <p>Loại phòng</p>
+              <h3></h3>
+            </div>
+          </div>
+          <dl class="review-stay-facts">
+            <div><dt>Mã booking</dt><dd></dd></div>
+            <div><dt>Ngày nhận phòng</dt><dd></dd></div>
+            <div><dt>Ngày trả phòng</dt><dd></dd></div>
+            <div><dt>Số đêm</dt><dd></dd></div>
+            <div><dt>Số khách</dt><dd></dd></div>
+            <div><dt>Số lượng phòng</dt><dd></dd></div>
+            <div><dt>Trạng thái</dt><dd><span class="review-booking-status"></span></dd></div>
+          </dl>
+        </section>
+
+        <section class="review-card review-editor" aria-labelledby="experience-title">
+          <h2 id="experience-title">Trải nghiệm của bạn thế nào?</h2>
+          <p id="review-feedback" role="status" tabindex="-1" hidden></p>
+          <!-- Native radios handle pointer/touch and Tab/arrow/Space selection. -->
+          <div class="review-fields" role="group" aria-labelledby="experience-title">
+            <fieldset id="review-rating" class="review-rating" tabindex="-1" aria-describedby="rating-help rating-description rating-error">
+              <legend>Mức độ hài lòng</legend>
+              <p id="rating-help" class="review-help">Chọn mức từ 1 đến 5 sao.</p>
+              <div class="review-stars">
+                <label class="review-star-option" for="rating-1" data-highlighted="false">
+                  <input id="rating-1" name="rating" type="radio" value="1" aria-label="1 sao — Rất không hài lòng" />
+                  <span class="review-star" aria-hidden="true">☆</span>
+                </label>
+                <label class="review-star-option" for="rating-2" data-highlighted="false">
+                  <input id="rating-2" name="rating" type="radio" value="2" aria-label="2 sao — Không hài lòng" />
+                  <span class="review-star" aria-hidden="true">☆</span>
+                </label>
+                <label class="review-star-option" for="rating-3" data-highlighted="false">
+                  <input id="rating-3" name="rating" type="radio" value="3" aria-label="3 sao — Bình thường" />
+                  <span class="review-star" aria-hidden="true">☆</span>
+                </label>
+                <label class="review-star-option" for="rating-4" data-highlighted="false">
+                  <input id="rating-4" name="rating" type="radio" value="4" aria-label="4 sao — Hài lòng" />
+                  <span class="review-star" aria-hidden="true">☆</span>
+                </label>
+                <label class="review-star-option" for="rating-5" data-highlighted="false">
+                  <input id="rating-5" name="rating" type="radio" value="5" aria-label="5 sao — Rất hài lòng" />
+                  <span class="review-star" aria-hidden="true">☆</span>
+                </label>
+              </div>
+              <p id="rating-description" class="review-rating-description" aria-live="polite">Chọn mức độ hài lòng của bạn.</p>
+              <p id="rating-error" class="review-error" hidden></p>
+            </fieldset>
+
+            <div class="review-comment">
+              <div class="review-comment-heading">
+                <label for="review-comment">Nhận xét của bạn</label>
+                <span>Không bắt buộc</span>
+              </div>
+              <textarea id="review-comment" name="comment" rows="6" maxlength="1000" placeholder="Bạn hài lòng điều gì và khách sạn có thể cải thiện điều gì?" aria-describedby="comment-limit comment-privacy comment-error"></textarea>
+              <p id="comment-error" class="review-error" hidden></p>
+              <div class="review-comment-meta">
+                <p id="comment-limit">Tối đa 1.000 ký tự</p>
+                <span id="review-character-count" aria-label="Số ký tự đã nhập">0/1.000</span>
+              </div>
+              <p id="comment-privacy" class="review-privacy">Vui lòng không chia sẻ thông tin cá nhân hoặc thông tin thanh toán trong nhận xét.</p>
+            </div>
+          </div>
+          <div class="review-actions">
+            <button id="review-submit" class="button button-primary" type="button">Gửi đánh giá</button>
+            <a class="button button-outline" href="my-bookings.html" data-review-return>Để sau</a>
+          </div>
+          <div id="review-sent" hidden>
+            <p><span class="review-booking-status">Đã đánh giá</span></p>
+            <p id="review-sent-stars" role="img"></p>
+            <p id="review-sent-description" class="review-rating-description"></p>
+            <p id="review-sent-comment" hidden></p>
+            <p class="review-help">Thời điểm gửi: <time id="review-sent-at"></time></p>
+            <div class="review-actions"><a class="button button-outline" href="my-bookings.html" data-review-return>Về chi tiết booking</a></div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>
