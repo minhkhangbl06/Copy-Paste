@@ -10,7 +10,7 @@
 - **Muội** *(Đã hoàn thành 100%)*: API Booking core (`/api/rooms/available`, đặt phòng, tính tiền multi-night/multi-room, chống double-booking, sửa/hủy đặt phòng, tính cọc và hoàn cọc).
 - **Khang** *(Đã hoàn thành mẫu)*: API Quản lý dịch vụ (`/api/services`), Đơn gọi dịch vụ (`/api/service-orders`), Tính phụ thu trả phòng muộn (Late checkout), Tổng hợp & Đóng hóa đơn (`/api/invoices`), Thanh toán (`/api/invoices/{id}/pay`).
 - **Lễ**: Unit test & Integration test cho toàn bộ hệ thống (Availability, Cancellation, Late checkout, Invoice calculation, Setup GitHub Actions CI).
-- **Kiêng**: Giao diện Guest (React/Vue/Blade: Home, Search phòng, Room Detail, Booking, Room Service, Invoice, My Bookings).
+- **Kiêng** *(Đã hoàn thành 100% UI/UX Guest)*: Giao diện Guest (HTML/CSS/JS thuần: Home, Search phòng, Room Detail, Booking & Payment, Room Service & Food Menu, Invoice, My Bookings, Profile & Review). Hiện đang chạy dữ liệu giả lập (mock simulation), sẽ nối API Laravel ở giai đoạn tích hợp chung.
 - **Duy**: Giao diện Staff (Dashboard, Quản lý Booking, Check-in/Check-out, Room Service Queue, Billing, Báo cáo).
 
 ---
@@ -90,14 +90,19 @@
 - **Database**: Cung cấp migration tạo bảng `rooms`, `bookings` và seeder khởi tạo sẵn 30 phòng mẫu theo đề tài.
 - **Tests**: `tests/Feature/ReservationModuleTest.php` với 5 kịch bản kiểm thử toàn diện, đạt 100% assertions.
 
-## Cập nhật — Kiêng — Guest Frontend — 04/11/2026
-
-- Thêm giao diện Guest bằng HTML/CSS/JavaScript tại
-  `HotelReservation/frontend/guest/`.
-- Thay trang `index.html` mẫu bằng trang chủ Copy Paste Hotel.
-- Thêm các thư mục `assets/`, `auth/`, `components/` và `guest/`
-  từ giao diện đã xây dựng.
-- Giữ cấu trúc đường dẫn của giao diện gốc.
-- Phạm vi lần cập nhật: đưa giao diện vào repository để review;
-  chưa xác nhận tích hợp với API Laravel.
-- Không sửa backend hoặc giao diện Staff.
+### 📌 Tống Phước Kiêng - Giao diện Guest Frontend (Đã hoàn thành 100% UI/UX & Đã Merge vào `main`)
+- **Vị trí source code**: `HotelReservation/frontend/guest/`.
+- **Danh mục các màn hình đã hoàn thành**:
+  - **Trang chủ (`index.html`)**: Giới thiệu khách sạn, các hạng phòng, tiện ích và thanh tìm kiếm nhanh.
+  - **Tra cứu & Danh sách phòng (`guest/rooms.html`)**: Bộ lọc phòng theo ngày check-in/out, số lượng khách, hạng phòng, sắp xếp theo giá và hiển thị số lượng phòng trống.
+  - **Chi tiết phòng (`guest/room-detail.html`)**: Thông tin chi tiết, tiện nghi, chọn số đêm & số lượng phòng, ước tính chi phí.
+  - **Quy trình đặt phòng & Thanh toán (`guest/booking.html`, `guest/booking-payment.html`, `guest/booking-detail.html`)**: Nhập thông tin khách, chọn dịch vụ bổ sung, hướng dẫn chuyển khoản cọc và hiển thị mã đơn đặt phòng.
+  - **Dịch vụ & Gọi món tại phòng (`guest/services.html`, `guest/food-menu.html`, `guest/food-cart.html`)**: Xem dịch vụ giặt ủi, xe đưa đón và thực đơn gọi món ăn kèm giỏ hàng.
+  - **Hóa đơn (`guest/invoice.html`)**: Bảng kê chi tiết các khoản chi phí phòng, dịch vụ, khấu trừ tiền cọc.
+  - **Lịch sử đặt phòng (`guest/my-bookings.html`)**: Quản lý các đơn đặt phòng theo trạng thái (Chờ xác nhận, Đang ở, Đã hoàn tất, Đã hủy) kèm tính năng thanh toán/đánh giá.
+  - **Tính năng bổ trợ**: Đăng nhập/Đăng ký (`auth/login.html`, `auth/register.html`), Hồ sơ cá nhân (`guest/profile.html`), Đánh giá phòng (`guest/review.html`).
+- **Trạng thái kỹ thuật hiện tại**:
+  - Giao diện xây dựng bằng HTML5, CSS3 hiện đại, Vanilla JS dạng modular, có responsive cho mobile/desktop.
+  - Đang chạy độc lập với **dữ liệu giả lập (Mock data / `sessionStorage`)**, có thể trải nghiệm toàn bộ luồng nghiệp vụ trên trình duyệt mà không phụ thuộc backend.
+  - **Khuyến nghị xem giao diện**: Mở qua Live Server (VS Code) hoặc bất kỳ local web server nào để tránh lỗi CORS khi tải linh kiện chung (`components/header.html`, `components/footer.html`).
+  - **Kế hoạch tiếp theo**: Sau khi các thành viên hoàn tất Auth và CSDL chung, nhóm sẽ tiến hành đấu nối các API Laravel (`/api/rooms`, `/api/bookings`, `/api/services`, `/api/invoices`) vào frontend.
