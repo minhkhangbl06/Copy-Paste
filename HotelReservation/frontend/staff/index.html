@@ -1,13 +1,227 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotel Reservation - Staff</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#233e57">
+  <meta name="description" content="Staff Management - Hotel Reservation">
+  <title>Dashboard | Hotel Reservation Staff</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/main.js" defer></script>
 </head>
 <body>
-    <h1>Staff Portal</h1>
-    <script src="js/main.js"></script>
+  <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+
+  <div class="staff-layout">
+    <aside class="sidebar" id="sidebar" aria-label="Điều hướng chính">
+      <a class="brand" href="#dashboard" aria-label="Hotel Reservation Staff - Dashboard">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span class="brand-copy">
+          <strong>HOTEL RESERVATION</strong>
+          <small>STAFF MANAGEMENT</small>
+        </span>
+      </a>
+
+      <div class="sidebar-section">
+        <p class="sidebar-label">MENU CHÍNH</p>
+        <nav class="side-nav">
+          <a class="nav-link is-active" href="#dashboard" aria-current="page">
+            <span class="nav-icon" aria-hidden="true">▦</span><span>Dashboard</span>
+          </a>
+          <a class="nav-link" href="bookings.html">
+            <span class="nav-icon" aria-hidden="true">▤</span><span>Quản lý đặt phòng</span>
+          </a>
+          <a class="nav-link" href="#checkin">
+            <span class="nav-icon" aria-hidden="true">⇄</span><span>Check-in / Check-out</span>
+          </a>
+          <a class="nav-link" href="#services">
+            <span class="nav-icon" aria-hidden="true">♧</span><span>Dịch vụ phòng</span>
+          </a>
+          <a class="nav-link" href="#billing">
+            <span class="nav-icon" aria-hidden="true">▧</span><span>Hóa đơn</span>
+          </a>
+          <a class="nav-link" href="#reports">
+            <span class="nav-icon" aria-hidden="true">▥</span><span>Báo cáo</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="help-card">
+          <span class="help-icon" aria-hidden="true">?</span>
+          <div>
+            <strong>Cần hỗ trợ?</strong>
+            <p>Liên hệ quản trị viên hệ thống.</p>
+          </div>
+        </div>
+        <div class="sidebar-user">
+          <div class="avatar" aria-hidden="true">D</div>
+          <div class="user-copy">
+            <strong>Nhân viên</strong>
+            <span>Staff account</span>
+          </div>
+          <button class="icon-button logout-button" type="button" aria-label="Tùy chọn tài khoản" title="Tùy chọn tài khoản">•••</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Mở hoặc đóng menu" aria-expanded="false" aria-controls="sidebar">
+            <span aria-hidden="true">☰</span>
+          </button>
+          <div class="breadcrumb"><span>Staff</span><span class="breadcrumb-separator">/</span><strong>Dashboard</strong></div>
+        </div>
+        <div class="topbar-actions">
+          <span class="today-label" id="today-label">Hôm nay</span>
+          <div class="notification-wrap">
+            <button class="icon-button notification-button" id="notification-button" type="button" aria-label="Thông báo" aria-expanded="false" aria-controls="notification-panel">
+              <span aria-hidden="true">♧</span><i></i>
+            </button>
+            <div class="notification-panel" id="notification-panel" hidden>
+              <strong>Thông báo</strong>
+              <p>Hiện chưa có thông báo mới.</p>
+            </div>
+          </div>
+          <div class="topbar-profile">
+            <div class="avatar avatar-small" aria-hidden="true">D</div>
+            <div class="user-copy">
+              <strong>Nhân viên</strong>
+              <span>Staff</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content" id="main-content">
+        <section class="page-heading" id="dashboard">
+          <div>
+            <p class="eyebrow">TỔNG QUAN HOẠT ĐỘNG</p>
+            <h1>Dashboard</h1>
+            <p class="page-description">Xin chào! Đây là tình hình hoạt động tổng quan của khách sạn.</p>
+          </div>
+          <button class="button button-outline" id="refresh-button" type="button">
+            <span aria-hidden="true">↻</span> Làm mới giao diện
+          </button>
+        </section>
+
+        <section class="stats-grid" aria-label="Thống kê tổng quan">
+          <article class="stat-card">
+            <div class="stat-topline"><span class="stat-label">Tổng số phòng</span><span class="stat-icon">▦</span></div>
+            <strong class="stat-value">120</strong>
+            <span class="stat-note">Tổng số phòng trong hệ thống</span>
+          </article>
+          <article class="stat-card">
+            <div class="stat-topline"><span class="stat-label">Phòng trống</span><span class="stat-icon">⌂</span></div>
+            <strong class="stat-value">35</strong>
+            <span class="stat-note"><span class="status-dot dot-available"></span>Sẵn sàng đón khách</span>
+          </article>
+          <article class="stat-card">
+            <div class="stat-topline"><span class="stat-label">Đang sử dụng</span><span class="stat-icon">♙</span></div>
+            <strong class="stat-value">75</strong>
+            <span class="stat-note"><span class="status-dot dot-occupied"></span>Phòng có khách lưu trú</span>
+          </article>
+          <article class="stat-card">
+            <div class="stat-topline"><span class="stat-label">Đặt phòng chờ xử lý</span><span class="stat-icon">▤</span></div>
+            <strong class="stat-value">8</strong>
+            <span class="stat-note"><span class="status-dot dot-pending"></span>Cần nhân viên xác nhận</span>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel occupancy-panel" id="rooms">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">TÌNH TRẠNG PHÒNG</p>
+                <h2>Tổng quan phòng</h2>
+              </div>
+              <a class="text-link" href="#reports">Xem báo cáo <span aria-hidden="true">→</span></a>
+            </div>
+            <div class="occupancy-summary">
+              <div class="occupancy-number"><strong>62.5%</strong><span>Công suất phòng</span></div>
+              <div class="occupancy-bar" role="img" aria-label="Công suất phòng minh họa 62,5 phần trăm">
+                <span style="width: 62.5%"></span>
+              </div>
+            </div>
+            <div class="room-legend">
+              <div><span class="legend-swatch available"></span><span>Phòng trống</span><strong>35</strong></div>
+              <div><span class="legend-swatch occupied"></span><span>Đang sử dụng</span><strong>75</strong></div>
+              <div><span class="legend-swatch maintenance"></span><span>Bảo trì / dọn phòng</span><strong>10</strong></div>
+            </div>
+            <p class="demo-note">Số liệu minh họa cho giao diện, chưa kết nối cơ sở dữ liệu.</p>
+          </article>
+
+          <article class="panel quick-actions-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">TRUY CẬP NHANH</p>
+                <h2>Tác vụ nhân viên</h2>
+              </div>
+            </div>
+            <div class="quick-actions">
+              <a class="quick-action" href="#checkin"><span class="quick-icon">⇄</span><span><strong>Check-in / Check-out</strong><small>Tiếp nhận và trả phòng</small></span><span class="action-arrow">→</span></a>
+              <a class="quick-action" href="#bookings"><span class="quick-icon">▤</span><span><strong>Đặt phòng mới</strong><small>Kiểm tra yêu cầu đặt phòng</small></span><span class="action-arrow">→</span></a>
+              <a class="quick-action" href="#services"><span class="quick-icon">♧</span><span><strong>Yêu cầu dịch vụ</strong><small>Theo dõi dịch vụ tại phòng</small></span><span class="action-arrow">→</span></a>
+              <a class="quick-action" href="#billing"><span class="quick-icon">▧</span><span><strong>Thanh toán</strong><small>Tra cứu và xử lý hóa đơn</small></span><span class="action-arrow">→</span></a>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel bookings-panel" id="bookings">
+          <div class="panel-heading bookings-heading">
+            <div>
+              <p class="eyebrow">CẬP NHẬT MỚI NHẤT</p>
+              <h2>Đặt phòng gần đây</h2>
+              <p class="panel-description">Danh sách dữ liệu mẫu để xây dựng giao diện quản lý.</p>
+            </div>
+            <label class="search-box">
+              <span class="sr-only">Tìm theo mã đặt phòng hoặc tên khách</span>
+              <span aria-hidden="true">⌕</span>
+              <input id="booking-search" type="search" placeholder="Tìm đặt phòng..." autocomplete="off">
+            </label>
+          </div>
+          <div class="table-scroll">
+            <table class="booking-table">
+              <thead>
+                <tr>
+                  <th>MÃ ĐẶT PHÒNG</th>
+                  <th>KHÁCH HÀNG</th>
+                  <th>PHÒNG</th>
+                  <th>NHẬN PHÒNG</th>
+                  <th>TRẢ PHÒNG</th>
+                  <th>TRẠNG THÁI</th>
+                </tr>
+              </thead>
+              <tbody id="booking-table-body">
+                <tr><td class="booking-code">#BK-1024</td><td>Nguyễn Minh Anh</td><td>Deluxe 305</td><td>05/11/2026</td><td>08/11/2026</td><td><span class="status status-confirmed">Đã xác nhận</span></td></tr>
+                <tr><td class="booking-code">#BK-1023</td><td>Trần Hoàng Nam</td><td>Suite 402</td><td>05/11/2026</td><td>07/11/2026</td><td><span class="status status-pending">Chờ xác nhận</span></td></tr>
+                <tr><td class="booking-code">#BK-1022</td><td>Lê Thu Hà</td><td>Standard 201</td><td>06/11/2026</td><td>09/11/2026</td><td><span class="status status-checked">Đang lưu trú</span></td></tr>
+                <tr><td class="booking-code">#BK-1021</td><td>Phạm Quốc Bảo</td><td>Deluxe 308</td><td>04/11/2026</td><td>06/11/2026</td><td><span class="status status-cancelled">Đã hủy</span></td></tr>
+              </tbody>
+            </table>
+            <p class="empty-state" id="empty-state" hidden>Không tìm thấy đặt phòng phù hợp.</p>
+          </div>
+          <div class="table-footer"><span>Hiển thị dữ liệu mẫu</span><a class="text-link" href="bookings.html">Xem tất cả <span aria-hidden="true">→</span></a></div>
+        </section>
+
+        <div class="placeholder-sections" aria-label="Các khu vực sẽ được phát triển">
+          <section class="placeholder-panel" id="checkin"><span>02</span><div><h2>Check-in / Check-out</h2><p>Khu vực sẽ được triển khai ở giai đoạn tiếp theo.</p></div></section>
+          <section class="placeholder-panel" id="services"><span>03</span><div><h2>Dịch vụ phòng</h2><p>Khu vực sẽ được triển khai ở giai đoạn tiếp theo.</p></div></section>
+          <section class="placeholder-panel" id="billing"><span>04</span><div><h2>Hóa đơn</h2><p>Khu vực sẽ được triển khai ở giai đoạn tiếp theo.</p></div></section>
+          <section class="placeholder-panel" id="reports"><span>05</span><div><h2>Báo cáo</h2><p>Khu vực sẽ được triển khai ở giai đoạn tiếp theo.</p></div></section>
+        </div>
+
+        <footer class="page-footer">
+          <span>Hotel Reservation · Staff Management</span>
+          <span>Giao diện thử nghiệm — dữ liệu minh họa</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
 </body>
 </html>
