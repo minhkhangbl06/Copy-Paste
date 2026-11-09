@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -35,5 +36,17 @@ class Booking extends Model
     public function room()
     {
         return $this->belongsTo(Room::class, 'room_id');
+    }
+
+    public function serviceOrders()
+    {
+        return $this->hasMany(ServiceOrder::class);
+    }
+
+    public function scopeOverlappingStay(Builder $query, string $checkIn, string $checkOut): Builder
+    {
+        return $query->whereIn('status', ['pending', 'confirmed', 'checked_in'])
+            ->whereDate('check_in_date', '<', $checkOut)
+            ->whereDate('check_out_date', '>', $checkIn);
     }
 }

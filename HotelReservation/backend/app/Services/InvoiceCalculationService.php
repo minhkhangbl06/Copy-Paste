@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Booking;
-use App\Models\Invoice;
 use Carbon\Carbon;
 
 class InvoiceCalculationService
@@ -48,7 +47,7 @@ class InvoiceCalculationService
         $taxAmount = round(max(0, $subtotal - $depositDeducted) * $taxRate, 2);
 
         // 7. Tổng cộng phải trả cuối cùng
-        $totalAmount = max(0, round(($subtotal - $depositDeducted) + $taxAmount, 2));
+        $totalAmount = max(0.0, round(($subtotal - $depositDeducted) + $taxAmount, 2));
 
         return [
             'booking_id' => $booking->id,
