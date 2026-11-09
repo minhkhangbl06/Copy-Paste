@@ -1,0 +1,22 @@
+USE hotel_guest_service_v2;
+
+CREATE ROLE IF NOT EXISTS 'hotel_v2_backend'@'%';
+GRANT SELECT ON hotel_guest_service_v2.* TO 'hotel_v2_backend'@'%';
+GRANT INSERT (full_name, email) ON hotel_guest_service_v2.guests TO 'hotel_v2_backend'@'%';
+GRANT INSERT (room_id, status, note) ON hotel_guest_service_v2.housekeeping_events TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.list_rooms TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.find_available_rooms TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.booking_conflicts TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.get_booking TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.create_booking TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.amend_booking TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.cancel_booking TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.list_services TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.check_in_room TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.create_service_order TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.set_service_order_status TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.add_surcharge TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.mark_room_no_show TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.depart_room TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.record_payment TO 'hotel_v2_backend'@'%';
+GRANT EXECUTE ON PROCEDURE hotel_guest_service_v2.close_invoice TO 'hotel_v2_backend'@'%';
