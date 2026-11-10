@@ -21,8 +21,25 @@ jobs:
         with:
           php-version: '8.2'
           extensions: mbstring, pdo_sqlite
-          coverage: none
+          coverage: pcov
           tools: composer:v2
       - run: composer install --prefer-dist --no-interaction --no-progress
       - run: cp .env.example .env && php artisan key:generate
-      - run: php artisan test
+      - name: Run PHPUnit and enforce 60% line coverage
+        run: php artisan test --coverage --min=60
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: HotelReservation/backend/tests/Api/package-lock.json
+      - name: Run Playwright API tests with an isolated SQLite database
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ${{ runner.temp }}/hotel-playwright.sqlite
+          DB_URL: ''
+        run: |
+          touch "$DB_DATABASE"
+          php artisan migrate --seed --force
+          npm --prefix tests/Api ci
+          npm --prefix tests/Api test
