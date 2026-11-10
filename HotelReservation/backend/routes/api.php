@@ -43,19 +43,9 @@ Route::prefix('invoices')->group(function () {
 
 // --- Reservation Module (Trịnh Thị Tiểu Muội) ---
 Route::get('/rooms', [ReservationController::class, 'index']);
-Route::get('/rooms/available', [ReservationController::class, 'availableRooms']);
-Route::post('/bookings', [ReservationController::class, 'store']);
-Route::patch('/bookings/{id}', [ReservationController::class, 'update']);
-Route::post('/bookings/{id}/cancel', [ReservationController::class, 'cancel']);
-
-// --- Module 4: Phân hệ Đặt phòng (Trịnh Thị Tiểu Muội) ---
-Route::prefix('rooms')->group(function () {
-    Route::get('/', [ReservationController::class, 'index']);
-    Route::get('/available', [ReservationController::class, 'availableRooms']);
-});
-
-Route::prefix('bookings')->group(function () {
-    Route::post('/', [ReservationController::class, 'store']);
-    Route::patch('/{id}', [ReservationController::class, 'update']);
-    Route::post('/{id}/cancel', [ReservationController::class, 'cancel']);
-});
+Route::get('/rooms/available', [ReservationController::class, 'getAvailableRooms']);
+Route::get('/rooms/{id}', [ReservationController::class, 'showRoom']);
+Route::post('/bookings', [ReservationController::class, 'createBooking']);
+Route::get('/bookings/{id}', [ReservationController::class, 'showBooking']);
+Route::patch('/bookings/{id}', [ReservationController::class, 'updateBooking']);
+Route::post('/bookings/{id}/cancel', [ReservationController::class, 'cancelBooking']);

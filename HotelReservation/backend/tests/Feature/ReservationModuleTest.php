@@ -32,8 +32,7 @@ class ReservationModuleTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_can_list_all_rooms()
+    public function test_it_can_list_all_rooms()
     {
         $response = $this->getJson('/api/rooms');
 
@@ -42,8 +41,7 @@ class ReservationModuleTest extends TestCase
                  ->assertJsonCount(2, 'data');
     }
 
-    /** @test */
-    public function it_can_search_available_rooms_correctly()
+    public function test_it_can_search_available_rooms_correctly()
     {
         $response = $this->getJson('/api/rooms/available?check_in_date=' . now()->addDays(1)->toDateString() . '&check_out_date=' . now()->addDays(3)->toDateString());
 
@@ -52,8 +50,7 @@ class ReservationModuleTest extends TestCase
                  ->assertJsonPath('data.count', 2);
     }
 
-    /** @test */
-    public function it_can_create_booking_and_calculate_deposit()
+    public function test_it_can_create_booking_and_calculate_deposit()
     {
         $room = Room::first();
         $checkIn = now()->addDays(2)->toDateString();
@@ -79,8 +76,7 @@ class ReservationModuleTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_prevents_double_booking_on_same_room_and_dates()
+    public function test_it_prevents_double_booking_on_same_room_and_dates()
     {
         $room = Room::first();
         $checkIn = now()->addDays(2)->toDateString();
@@ -113,8 +109,7 @@ class ReservationModuleTest extends TestCase
                  ->assertJson(['status' => 'error']);
     }
 
-    /** @test */
-    public function it_can_cancel_booking_and_calculate_refund_percentage()
+    public function test_it_can_cancel_booking_and_calculate_refund_percentage()
     {
         $room = Room::first();
         $booking = Booking::create([
