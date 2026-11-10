@@ -1,0 +1,193 @@
+/**
+ * Hotel Reservation System - Billing & Invoices Stylesheet
+ * File: HotelReservation/frontend/staff/css/billing.css
+ * Author: Pham Quang Duy (Staff Frontend Lead)
+ */
+
+/* ── INVOICE SUMMARY CARDS ── */
+.billing-summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.billing-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+.billing-stat span {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.billing-stat strong {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--color-ink);
+  margin: 6px 0 2px;
+}
+.billing-stat small { font-size: 11px; color: var(--text-secondary); }
+.billing-stat.stat-paid strong   { color: #059669; }
+.billing-stat.stat-unpaid strong { color: #d97706; }
+.billing-stat.stat-revenue strong{ color: var(--color-ink); font-size: 18px; }
+
+/* ── FILTER BAR ── */
+.billing-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.billing-select {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-ink);
+}
+
+/* ── INVOICE TABLE ── */
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 720px;
+}
+.invoice-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border-bottom: 2px solid var(--color-border);
+  background: #f9fafb;
+}
+.invoice-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  color: var(--color-ink);
+}
+.invoice-table tr:hover td {
+  background: #f8fafc;
+}
+.invoice-code {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-ink);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* Payment Status Badge */
+.pay-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 2px;
+}
+.pay-badge.paid   { background: #d1fae5; color: #065f46; }
+.pay-badge.unpaid { background: #fef3c7; color: #92400e; }
+.pay-badge.closed { background: #e0e7ff; color: #3730a3; }
+
+/* Invoice Detail Side Panel */
+.invoice-detail-panel {
+  position: fixed;
+  top: 0;
+  right: -440px;
+  width: 420px;
+  height: 100vh;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  box-shadow: -4px 0 24px rgb(0 0 0 / 12%);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  transition: right 240ms ease;
+  overflow-y: auto;
+}
+.invoice-detail-panel.is-open {
+  right: 0;
+}
+.inv-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+  z-index: 1;
+}
+.inv-panel-header h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  margin: 0;
+  color: var(--color-ink);
+}
+.inv-panel-body {
+  padding: 20px 24px;
+  flex-grow: 1;
+}
+.inv-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px dashed #f1f5f9;
+}
+.inv-breakdown-row:last-child { border-bottom: none; }
+.inv-total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  margin-top: 8px;
+  border-top: 2px solid var(--color-ink);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.inv-panel-actions {
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.inv-payment-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-ink);
+}
+.panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 25%);
+  z-index: 290;
+}
+
+@media (max-width: 900px) {
+  .billing-summary-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 600px) {
+  .billing-summary-row { grid-template-columns: 1fr; }
+  .invoice-detail-panel { width: 100%; right: -100%; }
+}

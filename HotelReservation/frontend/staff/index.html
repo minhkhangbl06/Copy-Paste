@@ -1,13 +1,297 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotel Reservation - Staff</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#233e57">
+  <meta name="description" content="Staff Management - Hotel Reservation">
+  <title>Dashboard | Hotel Reservation Staff</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/main.js" defer></script>
 </head>
 <body>
-    <h1>Staff Portal</h1>
-    <script src="js/main.js"></script>
+  <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+
+  <div class="staff-layout">
+    <aside class="sidebar" id="sidebar" aria-label="Điều hướng chính">
+      <a class="brand" href="index.html" aria-label="Hotel Reservation Staff - Dashboard">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span class="brand-copy">
+          <strong>HOTEL RESERVATION</strong>
+          <small>STAFF MANAGEMENT</small>
+        </span>
+      </a>
+
+      <div class="sidebar-section">
+        <p class="sidebar-label">MENU CHÍNH</p>
+        <nav class="side-nav">
+          <a class="nav-link is-active" href="index.html" aria-current="page">
+            <span class="nav-icon" aria-hidden="true">▦</span><span>Dashboard</span>
+          </a>
+          <a class="nav-link" href="bookings.html">
+            <span class="nav-icon" aria-hidden="true">▤</span><span>Quản lý đặt phòng</span>
+          </a>
+          <a class="nav-link" href="checkin.html">
+            <span class="nav-icon" aria-hidden="true">⇄</span><span>Check-in / Check-out</span>
+          </a>
+          <a class="nav-link" href="housekeeping.html">
+            <span class="nav-icon" aria-hidden="true">⌂</span><span>Housekeeping Board</span>
+          </a>
+          <a class="nav-link" href="services.html">
+            <span class="nav-icon" aria-hidden="true">♧</span><span>Dịch vụ phòng</span>
+          </a>
+          <a class="nav-link" href="billing.html">
+            <span class="nav-icon" aria-hidden="true">▧</span><span>Hóa đơn</span>
+          </a>
+          <a class="nav-link" href="reports.html">
+            <span class="nav-icon" aria-hidden="true">▥</span><span>Báo cáo</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="help-card">
+          <span class="help-icon" aria-hidden="true">?</span>
+          <div>
+            <strong>Cần hỗ trợ?</strong>
+            <p>Liên hệ quản trị viên hệ thống.</p>
+          </div>
+        </div>
+        <div class="sidebar-user">
+          <div class="avatar" aria-hidden="true">D</div>
+          <div class="user-copy">
+            <strong>Phạm Quang Duy</strong>
+            <span>Front Desk / Staff</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Mở hoặc đóng menu" aria-expanded="false" aria-controls="sidebar">
+            <span aria-hidden="true">☰</span>
+          </button>
+          <div class="breadcrumb"><span>Staff</span><span class="breadcrumb-separator">/</span><strong>Dashboard</strong></div>
+        </div>
+        <div class="topbar-actions">
+          <!-- Điều khiển chế độ API Thật / Mock Mode -->
+          <div class="mode-control-wrap" id="mode-control-wrap">
+            <span class="mode-badge" id="mode-badge">Đang tải...</span>
+            <button class="mode-toggle-btn" id="mode-toggle-btn" type="button" title="Chuyển đổi chủ động giữa API thật và Mock Mode">Đổi chế độ</button>
+          </div>
+
+          <span class="today-label" id="today-label">Hôm nay</span>
+          <div class="topbar-profile">
+            <div class="avatar avatar-small" aria-hidden="true">D</div>
+            <div class="user-copy">
+              <strong>Duy</strong>
+              <span>Front Desk</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content" id="main-content">
+        <!-- Banner cảnh báo rõ ràng khi bật Mock Mode -->
+        <div class="notice-banner" id="mode-notice-banner" hidden>
+          <span><strong>⚠️ DỮ LIỆU MÔ PHỎNG / CHỜ TÍCH HỢP API:</strong> Đang hoạt động trên Mock Data trong LocalStorage phục vụ kiểm thử UI. Dữ liệu này không phải từ máy chủ thật.</span>
+          <button class="button button-outline button-small" id="switch-to-api-btn" type="button">Chuyển sang API thật</button>
+        </div>
+
+        <section class="page-heading" id="dashboard">
+          <div>
+            <p class="eyebrow">TỔNG QUAN HOẠT ĐỘNG</p>
+            <h1>Dashboard</h1>
+            <p class="page-description">Xin chào Duy! Đây là tình hình hoạt động tổng quan của khách sạn theo thời gian thực.</p>
+          </div>
+          <button class="button button-outline" id="refresh-button" type="button">
+            <span aria-hidden="true">↻</span> Làm mới dữ liệu
+          </button>
+        </section>
+
+        <!-- Trạng thái Lỗi Kết Nối API -->
+        <div class="error-state" id="dashboard-error" hidden>
+          <h3>Không thể kết nối đến máy chủ Backend</h3>
+          <p id="dashboard-error-msg">Không thể lấy dữ liệu tổng quan từ API máy chủ (http://127.0.0.1:8000/api).</p>
+          <div class="error-state-actions">
+            <button class="button button-primary button-small" id="retry-dashboard-btn" type="button">Thử kết nối lại</button>
+            <button class="button button-outline button-small" id="enable-mock-btn" type="button">Bật Mock Mode để kiểm thử UI</button>
+          </div>
+        </div>
+
+        <!-- 4 thẻ thống kê tổng quan -->
+        <section class="stats-grid" aria-label="Thống kê tổng quan">
+          <article class="stat-card">
+            <div class="stat-topline"><span class="stat-label">Tổng số phòng</span><span class="stat-icon">▦</span></div>
+            <strong class="stat-value" id="stat-total-rooms">—</strong>
+            <span class="stat-note">Tổng số phòng trong hệ thống</span>
+          </article>
+          <article class="stat-card">
+            <div class="stat-topline"><span class="stat-label">Phòng trống</span><span class="stat-icon">⌂</span></div>
+            <strong class="stat-value" id="stat-available-rooms">—</strong>
+            <span class="stat-note"><span class="status-dot dot-available"></span>Sẵn sàng đón khách</span>
+          </article>
+          <article class="stat-card">
+            <div class="stat-topline"><span class="stat-label">Đang sử dụng</span><span class="stat-icon">♙</span></div>
+            <strong class="stat-value" id="stat-occupied-rooms">—</strong>
+            <span class="stat-note"><span class="status-dot dot-occupied"></span>Phòng có khách lưu trú</span>
+          </article>
+          <article class="stat-card">
+            <div class="stat-topline"><span class="stat-label">Đặt phòng chờ xác nhận</span><span class="stat-icon">▤</span></div>
+            <strong class="stat-value" id="stat-pending-bookings">—</strong>
+            <span class="stat-note"><span class="status-dot dot-pending"></span>Cần nhân viên xác nhận</span>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel occupancy-panel" id="rooms">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">TÌNH TRẠNG PHÒNG</p>
+                <h2>Tổng quan công suất</h2>
+              </div>
+              <a class="text-link" href="reports.html">Xem báo cáo chi tiết <span aria-hidden="true">→</span></a>
+            </div>
+            <div class="occupancy-summary">
+              <div class="occupancy-number"><strong id="occupancy-rate-text">0.0%</strong><span>Công suất phòng</span></div>
+              <div class="occupancy-bar" role="img" aria-label="Công suất phòng">
+                <span id="occupancy-bar-fill" style="width: 0%"></span>
+              </div>
+            </div>
+            <div class="room-legend">
+              <div><span class="legend-swatch available"></span><span>Phòng trống</span><strong id="legend-available">—</strong></div>
+              <div><span class="legend-swatch occupied"></span><span>Đang sử dụng</span><strong id="legend-occupied">—</strong></div>
+              <div><span class="legend-swatch maintenance"></span><span>Cần dọn / Bảo trì</span><strong id="legend-maintenance">—</strong></div>
+            </div>
+            <p class="demo-note" id="occupancy-data-source">Đang cập nhật nguồn dữ liệu...</p>
+          </article>
+
+          <article class="panel quick-actions-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">TRUY CẬP NHANH</p>
+                <h2>Tác vụ nhân viên</h2>
+              </div>
+            </div>
+            <div class="quick-actions">
+              <a class="quick-action" href="checkin.html">
+                <span class="quick-icon">⇄</span>
+                <span><strong>Check-in / Check-out</strong><small>Tiếp nhận nhận phòng & trả phòng</small></span>
+                <span class="action-arrow">→</span>
+              </a>
+              <a class="quick-action" href="bookings.html">
+                <span class="quick-icon">▤</span>
+                <span><strong>Quản lý đặt phòng</strong><small>Kiểm tra yêu cầu đặt phòng & hủy BR-06</small></span>
+                <span class="action-arrow">→</span>
+              </a>
+              <a class="quick-action" href="housekeeping.html">
+                <span class="quick-icon">⌂</span>
+                <span><strong>Housekeeping Board</strong><small>Quản lý tình trạng phòng & vệ sinh</small></span>
+                <span class="action-arrow">→</span>
+              </a>
+              <a class="quick-action" href="services.html">
+                <span class="quick-icon">♧</span>
+                <span><strong>Dịch vụ phòng</strong><small>Theo dõi đơn gọi món & minibar</small></span>
+                <span class="action-arrow">→</span>
+              </a>
+              <a class="quick-action" href="billing.html">
+                <span class="quick-icon">▧</span>
+                <span><strong>Hóa đơn & Thanh toán</strong><small>Tra cứu và xử lý hóa đơn trả phòng</small></span>
+                <span class="action-arrow">→</span>
+              </a>
+            </div>
+          </article>
+        </section>
+
+        <!-- Bảng Đặt phòng gần đây -->
+        <section class="panel bookings-panel" id="bookings">
+          <div class="panel-heading bookings-heading">
+            <div>
+              <p class="eyebrow">CẬP NHẬT GẦN ĐÂY</p>
+              <h2>Đặt phòng mới nhất</h2>
+              <p class="panel-description" id="recent-bookings-desc">Các đơn đặt phòng phát sinh gần đây nhất trong hệ thống.</p>
+            </div>
+            <label class="search-box">
+              <span class="sr-only">Tìm theo mã đặt phòng hoặc tên khách</span>
+              <span aria-hidden="true">⌕</span>
+              <input id="booking-search" type="search" placeholder="Lọc nhanh danh sách..." autocomplete="off">
+            </label>
+          </div>
+
+          <div class="loading-state" id="dashboard-loading" hidden>
+            <div class="loading-spinner"></div>
+            <span>Đang tải dữ liệu từ hệ thống...</span>
+          </div>
+
+          <div class="table-scroll">
+            <table class="booking-table">
+              <thead>
+                <tr>
+                  <th>MÃ ĐẶT PHÒNG</th>
+                  <th>KHÁCH HÀNG</th>
+                  <th>PHÒNG</th>
+                  <th>NHẬN PHÒNG</th>
+                  <th>TRẢ PHÒNG</th>
+                  <th>TRẠNG THÁI</th>
+                </tr>
+              </thead>
+              <tbody id="booking-table-body">
+                <!-- Được điền linh hoạt qua JavaScript -->
+              </tbody>
+            </table>
+            <p class="empty-state" id="empty-state" hidden>Không tìm thấy đặt phòng phù hợp.</p>
+          </div>
+          <div class="table-footer">
+            <span id="table-footer-status">Đang nạp dữ liệu...</span>
+            <a class="text-link" href="bookings.html">Xem toàn bộ danh sách <span aria-hidden="true">→</span></a>
+          </div>
+        </section>
+
+        <!-- Danh mục lối tắt các phân hệ nghiệp vụ -->
+        <div class="placeholder-sections" aria-label="Các phân hệ nghiệp vụ Staff">
+          <a class="placeholder-panel" href="checkin.html" style="text-decoration: none; color: inherit; display: flex;">
+            <span>01</span>
+            <div>
+              <h2>Check-in / Check-out</h2>
+              <p>Quản lý thủ tục nhận phòng, gán phòng, kiểm tra hóa đơn và phụ phí trả phòng muộn.</p>
+            </div>
+          </a>
+          <a class="placeholder-panel" href="housekeeping.html" style="text-decoration: none; color: inherit; display: flex;">
+            <span>02</span>
+            <div>
+              <h2>Housekeeping Board</h2>
+              <p>Theo dõi tình trạng phòng trống, đang ở, cần dọn dẹp hoặc bảo trì theo thời gian thực.</p>
+            </div>
+          </a>
+          <a class="placeholder-panel" href="services.html" style="text-decoration: none; color: inherit; display: flex;">
+            <span>03</span>
+            <div>
+              <h2>Dịch vụ phòng</h2>
+              <p>Hàng đợi tiếp nhận và cập nhật tiến độ dịch vụ ăn uống, minibar và giặt là tận phòng.</p>
+            </div>
+          </a>
+          <a class="placeholder-panel" href="billing.html" style="text-decoration: none; color: inherit; display: flex;">
+            <span>04</span>
+            <div>
+              <h2>Hóa đơn & Thanh toán</h2>
+              <p>Tổng hợp tiền phòng, phí dịch vụ, khấu trừ cọc và xuất hóa đơn thanh toán cho khách.</p>
+            </div>
+          </a>
+        </div>
+
+        <footer class="page-footer">
+          <span>Hotel Reservation · Staff Management System</span>
+          <span>Phụ trách: Phạm Quang Duy (Staff Frontend Lead)</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
 </body>
 </html>

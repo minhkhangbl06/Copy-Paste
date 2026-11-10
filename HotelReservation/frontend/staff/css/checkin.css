@@ -1,0 +1,255 @@
+/**
+ * Hotel Reservation System - Check-in / Check-out Stylesheet
+ * File: HotelReservation/frontend/staff/css/checkin.css
+ * Author: Pham Quang Duy (Staff Frontend Lead)
+ */
+
+/* ========================================================
+   SUMMARY STATS BANNER
+   ======================================================== */
+.checkin-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.checkin-stat-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+.checkin-stat-card span {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.checkin-stat-card strong {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--color-ink);
+  margin: 6px 0 2px;
+}
+.checkin-stat-card small {
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+/* ========================================================
+   TABS NAVIGATION
+   ======================================================== */
+.checkin-tabs-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: 0;
+  flex-wrap: wrap;
+}
+.checkin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: -2px;
+}
+.tab-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+.tab-button:hover {
+  color: var(--color-ink);
+  background: var(--color-soft);
+}
+.tab-button.is-active {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-ink);
+  font-weight: 700;
+}
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #334155;
+}
+.tab-button.is-active .tab-badge {
+  background: var(--color-ink);
+  color: #ffffff;
+}
+
+/* ========================================================
+   ROOM STATUS BADGE IN TABLE
+   ======================================================== */
+.room-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 2px;
+}
+.room-badge.room-ready {
+  background: #d4f3e3;
+  color: #0b6b3a;
+}
+.room-badge.room-dirty {
+  background: #fef3c7;
+  color: #92400e;
+}
+.room-badge.room-occupied {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+.room-badge.room-maintenance {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Action buttons */
+.btn-checkin-action {
+  background: #0f766e;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 140ms ease;
+}
+.btn-checkin-action:hover {
+  background: #115e59;
+}
+.btn-checkout-action {
+  background: var(--color-ink);
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: opacity 140ms ease;
+}
+.btn-checkout-action:hover {
+  opacity: 0.9;
+}
+
+/* ========================================================
+   INVOICE / CHECKOUT MODAL DIALOG
+   ======================================================== */
+.checkout-receipt {
+  background: #fafafa;
+  border: 1px dashed var(--color-border);
+  padding: 20px;
+  margin: 16px 0;
+  font-family: var(--font-body);
+}
+.receipt-header {
+  text-align: center;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px dashed var(--color-border);
+}
+.receipt-header h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--color-ink);
+}
+.receipt-header p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 12px;
+}
+.receipt-row.subtotal {
+  border-top: 1px solid #e5e5e5;
+  margin-top: 6px;
+  padding-top: 10px;
+}
+.receipt-row.total-due {
+  border-top: 2px solid var(--color-ink);
+  margin-top: 8px;
+  padding-top: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.receipt-discount {
+  color: #0b6b3a;
+}
+.receipt-late-fee {
+  color: #b91c1c;
+}
+
+.payment-method-group {
+  margin: 16px 0;
+}
+.payment-method-group label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--color-ink);
+}
+.payment-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.payment-option-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 2px;
+}
+.payment-option-label:hover {
+  background: var(--color-soft);
+  border-color: var(--color-ink);
+}
+
+@media (max-width: 800px) {
+  .checkin-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .payment-options {
+    grid-template-columns: 1fr;
+  }
+}

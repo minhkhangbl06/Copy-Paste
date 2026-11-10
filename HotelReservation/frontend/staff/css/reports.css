@@ -1,0 +1,238 @@
+/**
+ * Hotel Reservation System - Reports & Analytics Stylesheet
+ * File: HotelReservation/frontend/staff/css/reports.css
+ * Author: Pham Quang Duy (Staff Frontend Lead)
+ */
+
+/* ── RANGE FILTER TOOLBAR ── */
+.reports-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.range-tabs {
+  display: flex;
+  gap: 6px;
+}
+.range-tab-btn {
+  padding: 8px 16px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 140ms ease;
+}
+.range-tab-btn:hover { background: #e2e8f0; color: var(--color-ink); }
+.range-tab-btn.is-active {
+  background: var(--color-ink);
+  color: #ffffff;
+  border-color: var(--color-ink);
+}
+.report-last-update {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* ── KPI CARDS ── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+.kpi-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 8px 0 4px;
+}
+.kpi-sub {
+  font-size: 11px;
+  color: var(--color-accent);
+}
+.kpi-card.kpi-green  .kpi-value { color: #059669; }
+.kpi-card.kpi-blue   .kpi-value { color: #2563eb; }
+.kpi-card.kpi-orange .kpi-value { color: #d97706; }
+
+/* ── CHART PANELS ── */
+.reports-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.chart-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+  padding: 24px;
+}
+.chart-panel-header {
+  margin-bottom: 20px;
+}
+.chart-panel-header h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--color-ink);
+}
+.chart-panel-header p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* ── BAR CHART (CSS) ── */
+.bar-chart-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 8px;
+  height: 160px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+.bar-segment {
+  width: 100%;
+  min-height: 4px;
+  background: var(--color-ink);
+  border-radius: 2px 2px 0 0;
+  transition: height 400ms ease;
+}
+.bar-segment.bar-secondary { background: #708090; }
+.bar-label-top {
+  font-size: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 2px;
+}
+.bar-label-bottom {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-align: center;
+  word-break: break-all;
+}
+.bar-chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/* ── DONUT / PIE CHART (SVG approach via CSS segments) ── */
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.donut-svg {
+  flex-shrink: 0;
+}
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.donut-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.donut-legend-item strong { font-size: 14px; color: var(--color-ink); }
+
+/* ── BOOKING STATUS TABLE ── */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.report-table th {
+  padding: 9px 12px;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border-bottom: 2px solid var(--color-border);
+  background: #f9fafb;
+}
+.report-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--color-ink);
+}
+.report-progress-bar {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.report-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--color-ink);
+}
+
+@media (max-width: 1100px) {
+  .reports-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .kpi-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 600px) {
+  .kpi-row { grid-template-columns: 1fr; }
+}
