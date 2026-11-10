@@ -1,0 +1,198 @@
+/**
+ * Hotel Reservation System - Housekeeping Board Stylesheet
+ * File: HotelReservation/frontend/staff/css/housekeeping.css
+ * Author: Pham Quang Duy (Staff Frontend Lead)
+ */
+
+/* ========================================================
+   SUMMARY STATS GRID
+   ======================================================== */
+.housekeeping-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.hk-stat-card {
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+}
+.hk-stat-card span {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.hk-stat-card strong {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--color-ink);
+  margin: 6px 0 2px;
+}
+.hk-stat-card small {
+  font-size: 11px;
+}
+.hk-stat-available small { color: #059669; font-weight: 600; }
+.hk-stat-dirty small { color: #d97706; font-weight: 600; }
+.hk-stat-occupied small { color: #2563eb; font-weight: 600; }
+.hk-stat-maintenance small { color: #dc2626; font-weight: 600; }
+
+/* ========================================================
+   FILTER TOOLBAR
+   ======================================================== */
+.hk-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.hk-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.hk-select {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-ink);
+}
+
+/* ========================================================
+   ROOM CARDS GRID
+   ======================================================== */
+.room-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.hk-room-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 4px solid var(--color-accent);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.hk-room-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 8%);
+}
+
+.hk-room-card.is-available {
+  border-top-color: #059669;
+}
+.hk-room-card.is-dirty {
+  border-top-color: #d97706;
+  background: #fffdf5;
+}
+.hk-room-card.is-occupied {
+  border-top-color: #2563eb;
+}
+.hk-room-card.is-maintenance {
+  border-top-color: #dc2626;
+  background: #fef7f7;
+}
+
+.hk-room-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.hk-room-number {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.hk-room-type {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.hk-room-body {
+  padding: 14px 16px;
+  flex-grow: 1;
+}
+.hk-room-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+.hk-meta-row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-secondary);
+}
+.hk-meta-row strong {
+  color: var(--color-ink);
+}
+
+.hk-room-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #f1f5f9;
+  background: #fbfcfd;
+}
+.btn-hk-action {
+  flex: 1;
+  padding: 7px 10px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 140ms ease;
+  text-align: center;
+}
+.btn-clean-done {
+  background: #059669;
+  color: #ffffff;
+}
+.btn-clean-done:hover {
+  background: #047857;
+}
+.btn-mark-dirty {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+.btn-mark-dirty:hover {
+  background: #fde68a;
+}
+.btn-mark-maint {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+.btn-mark-maint:hover {
+  background: #fca5a5;
+}
+
+@media (max-width: 900px) {
+  .housekeeping-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .housekeeping-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

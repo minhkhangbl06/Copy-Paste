@@ -45,6 +45,86 @@
 .detail-item { padding-bottom: 10px; border-bottom: 1px solid #e8ecef; }
 .detail-item span { display: block; color: var(--text-secondary); font-size: 9px; }
 .detail-item strong { display: block; margin-top: 4px; color: var(--color-ink); font-size: 11px; overflow-wrap: anywhere; }
+
+/* ========================================================
+   CALCULATED COST PREVIEW (BR-04, BR-05)
+   ======================================================== */
+.cost-breakdown-box {
+  grid-column: 1 / -1;
+  padding: 12px 14px;
+  background: #f7fafc;
+  border: 1px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+}
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cost-row.cost-highlight {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.cost-row strong {
+  color: var(--color-ink);
+}
+
+/* ========================================================
+   CANCELLATION & BR-06 POLICY DIALOG
+   ======================================================== */
+.cancel-dialog {
+  width: min(580px, calc(100% - 30px));
+}
+.cancel-calculation-card {
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fcfdfe;
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 11px;
+}
+.rule-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 2px;
+}
+.rule-tag.ut-can-01 {
+  background: #eaf5ea;
+  color: #1b6326;
+  border: 1px solid #b3e3bc;
+}
+.rule-tag.ut-can-02 {
+  background: #fff8e5;
+  color: #8c5d00;
+  border: 1px solid #fedc84;
+}
+.rule-tag.ut-can-03 {
+  background: #fdf3f2;
+  color: #922b27;
+  border: 1px solid #f1c1be;
+}
+.cancel-warning-note {
+  padding: 10px 12px;
+  background: #fff8e5;
+  border-left: 3px solid #e6a100;
+  color: #7a4f00;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
 .toast { position: fixed; right: 24px; bottom: 24px; z-index: 300; max-width: min(380px, calc(100% - 32px)); padding: 13px 17px; background: var(--color-ink); color: #fff; box-shadow: 0 8px 28px rgb(0 0 0 / 18%); font-size: 11px; }
 @media (max-width: 900px) { .booking-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .booking-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .search-field { grid-column: 1 / -1; } }
 @media (max-width: 600px) { .booking-page-heading { align-items: flex-start; flex-direction: column; } .booking-page-heading .button { width: 100%; } .booking-summary { gap: 9px; } .summary-card { padding: 13px; } .summary-card strong { font-size: 23px; } .booking-filters { grid-template-columns: 1fr; padding: 12px; } .search-field { grid-column: auto; } .booking-dialog { padding: 19px; } .form-grid, .detail-list { grid-template-columns: 1fr; } .form-field.full-width { grid-column: auto; } .dialog-actions .button { flex: 1; } }

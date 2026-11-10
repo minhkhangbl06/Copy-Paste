@@ -11,25 +11,61 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/bookings.css">
+  <script src="js/api.js" defer></script>
   <script src="js/bookings.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
   <div class="staff-layout">
     <aside class="sidebar" id="sidebar" aria-label="Điều hướng chính">
-      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">H</span><span class="brand-copy"><strong>HOTEL RESERVATION</strong><small>STAFF MANAGEMENT</small></span></a>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span class="brand-copy">
+          <strong>HOTEL RESERVATION</strong>
+          <small>STAFF MANAGEMENT</small>
+        </span>
+      </a>
       <div class="sidebar-section">
         <p class="sidebar-label">MENU CHÍNH</p>
         <nav class="side-nav">
-          <a class="nav-link" href="index.html"><span class="nav-icon" aria-hidden="true">▦</span><span>Dashboard</span></a>
-          <a class="nav-link is-active" href="bookings.html" aria-current="page"><span class="nav-icon" aria-hidden="true">▤</span><span>Quản lý đặt phòng</span></a>
-          <a class="nav-link" href="index.html#checkin"><span class="nav-icon" aria-hidden="true">⇄</span><span>Check-in / Check-out</span></a>
-          <a class="nav-link" href="index.html#housekeeping"><span class="nav-icon" aria-hidden="true">⌂</span><span>Housekeeping</span></a>
+          <a class="nav-link" href="index.html">
+            <span class="nav-icon" aria-hidden="true">▦</span><span>Dashboard</span>
+          </a>
+          <a class="nav-link is-active" href="bookings.html" aria-current="page">
+            <span class="nav-icon" aria-hidden="true">▤</span><span>Quản lý đặt phòng</span>
+          </a>
+          <a class="nav-link" href="checkin.html">
+            <span class="nav-icon" aria-hidden="true">⇄</span><span>Check-in / Check-out</span>
+          </a>
+          <a class="nav-link" href="housekeeping.html">
+            <span class="nav-icon" aria-hidden="true">⌂</span><span>Housekeeping Board</span>
+          </a>
+          <a class="nav-link" href="services.html">
+            <span class="nav-icon" aria-hidden="true">♧</span><span>Dịch vụ phòng</span>
+          </a>
+          <a class="nav-link" href="billing.html">
+            <span class="nav-icon" aria-hidden="true">▧</span><span>Hóa đơn</span>
+          </a>
+          <a class="nav-link" href="reports.html">
+            <span class="nav-icon" aria-hidden="true">▥</span><span>Báo cáo</span>
+          </a>
         </nav>
       </div>
       <div class="sidebar-bottom">
-        <div class="help-card"><span class="help-icon" aria-hidden="true">?</span><div><strong>Cần hỗ trợ?</strong><p>Liên hệ quản trị viên hệ thống.</p></div></div>
-        <div class="sidebar-user"><div class="avatar" aria-hidden="true">D</div><div class="user-copy"><strong>Nhân viên</strong><span>Front Desk</span></div></div>
+        <div class="help-card">
+          <span class="help-icon" aria-hidden="true">?</span>
+          <div>
+            <strong>Cần hỗ trợ?</strong>
+            <p>Liên hệ quản trị viên hệ thống.</p>
+          </div>
+        </div>
+        <div class="sidebar-user">
+          <div class="avatar" aria-hidden="true">D</div>
+          <div class="user-copy">
+            <strong>Phạm Quang Duy</strong>
+            <span>Front Desk / Staff</span>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -37,67 +73,275 @@
       <header class="topbar">
         <div class="topbar-left">
           <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Mở hoặc đóng menu" aria-expanded="false" aria-controls="sidebar">☰</button>
-          <div class="breadcrumb"><a href="index.html">Staff</a><span class="breadcrumb-separator">/</span><strong>Quản lý đặt phòng</strong></div>
+          <div class="breadcrumb">
+            <a href="index.html">Staff</a>
+            <span class="breadcrumb-separator">/</span>
+            <strong>Quản lý đặt phòng</strong>
+          </div>
         </div>
-        <div class="topbar-actions"><span class="today-label" id="today-label">Hôm nay</span><div class="topbar-profile"><div class="avatar avatar-small" aria-hidden="true">D</div><div class="user-copy"><strong>Nhân viên</strong><span>Front Desk</span></div></div></div>
+
+        <div class="topbar-actions">
+          <!-- Điều khiển chế độ API Thật / Mock Mode (Section 3) -->
+          <div class="mode-control-wrap" id="mode-control-wrap">
+            <span class="mode-badge" id="mode-badge">Đang tải...</span>
+            <button class="mode-toggle-btn" id="mode-toggle-btn" type="button" title="Chuyển đổi chủ động giữa API thật và Mock Mode">Đổi chế độ</button>
+          </div>
+
+          <span class="today-label" id="today-label">Hôm nay</span>
+          <div class="topbar-profile">
+            <div class="avatar avatar-small" aria-hidden="true">D</div>
+            <div class="user-copy">
+              <strong>Duy</strong>
+              <span>Front Desk</span>
+            </div>
+          </div>
+        </div>
       </header>
 
       <main class="main-content" id="main-content">
+        <!-- Banner cảnh báo rõ ràng khi bật Mock Mode (Section 3.3) -->
+        <div class="notice-banner" id="mode-notice-banner" hidden>
+          <span><strong>⚠️ DỮ LIỆU MÔ PHỎNG / CHỜ TÍCH HỢP API:</strong> Đang hoạt động trên Mock Data trong LocalStorage phục vụ kiểm thử UI. Dữ liệu này không phải từ máy chủ thật.</span>
+          <button class="button button-outline button-small" id="switch-to-api-btn" type="button">Chuyển sang API thật</button>
+        </div>
+
         <section class="page-heading booking-page-heading">
-          <div><p class="eyebrow">FRONT DESK · RESERVATIONS</p><h1>Quản lý đặt phòng</h1><p class="page-description">Tra cứu, tạo mới, cập nhật và hủy đặt phòng của khách lưu trú.</p></div>
-          <button class="button button-primary" id="open-create-modal" type="button"><span aria-hidden="true">＋</span> Tạo đặt phòng</button>
-        </section>
-
-        <section class="booking-summary" aria-label="Tổng quan đặt phòng">
-          <article class="summary-card"><span>Tổng đặt phòng</span><strong id="summary-total">—</strong><small>Tất cả trạng thái</small></article>
-          <article class="summary-card"><span>Đã xác nhận</span><strong id="summary-confirmed">—</strong><small>Booking đã được xác nhận</small></article>
-          <article class="summary-card"><span>Đang lưu trú</span><strong id="summary-checked-in">—</strong><small>Khách đang ở khách sạn</small></article>
-          <article class="summary-card"><span>Đã hủy</span><strong id="summary-cancelled">—</strong><small>Booking đã hủy</small></article>
-        </section>
-
-        <section class="panel booking-management-panel">
-          <div class="panel-heading management-heading"><div><p class="eyebrow">RESERVATION LIST</p><h2>Danh sách đặt phòng</h2><p class="panel-description">Dữ liệu hiện tại là dữ liệu mẫu để kiểm tra giao diện.</p></div><button class="button button-outline button-small" id="reset-filters" type="button">Đặt lại bộ lọc</button></div>
-          <div class="booking-filters">
-            <label class="filter-field search-field"><span>Tìm kiếm</span><input id="booking-search" type="search" placeholder="Mã booking, tên hoặc số điện thoại..." autocomplete="off"></label>
-            <label class="filter-field"><span>Trạng thái</span><select id="status-filter"><option value="all">Tất cả trạng thái</option><option value="pending">Chờ xác nhận</option><option value="confirmed">Đã xác nhận</option><option value="checked_in">Đang lưu trú</option><option value="checked_out">Đã trả phòng</option><option value="cancelled">Đã hủy</option></select></label>
-            <label class="filter-field"><span>Ngày nhận phòng từ</span><input id="date-filter" type="date"></label>
+          <div>
+            <p class="eyebrow">FRONT DESK · RESERVATIONS</p>
+            <h1>Quản lý đặt phòng</h1>
+            <p class="page-description">Tra cứu, tạo mới, kiểm tra chi phí lưu trú và hủy đặt phòng theo quy định BR-06.</p>
           </div>
-          <div class="table-scroll">
+          <button class="button button-primary" id="open-create-modal" type="button">
+            <span aria-hidden="true">＋</span> Tạo đặt phòng
+          </button>
+        </section>
+
+        <!-- Thống kê tổng quan đặt phòng -->
+        <section class="booking-summary" aria-label="Tổng quan đặt phòng">
+          <article class="summary-card">
+            <span>Tổng đặt phòng</span>
+            <strong id="summary-total">—</strong>
+            <small>Tất cả trạng thái</small>
+          </article>
+          <article class="summary-card">
+            <span>Đã xác nhận</span>
+            <strong id="summary-confirmed">—</strong>
+            <small>Booking đã được xác nhận</small>
+          </article>
+          <article class="summary-card">
+            <span>Đang lưu trú</span>
+            <strong id="summary-checked-in">—</strong>
+            <small>Khách đang ở khách sạn</small>
+          </article>
+          <article class="summary-card">
+            <span>Đã hủy</span>
+            <strong id="summary-cancelled">—</strong>
+            <small>Booking đã hủy theo BR-06</small>
+          </article>
+        </section>
+
+        <!-- Khu vực quản lý và bảng dữ liệu -->
+        <section class="panel booking-management-panel">
+          <div class="panel-heading management-heading">
+            <div>
+              <p class="eyebrow">RESERVATION LIST</p>
+              <h2>Danh sách đặt phòng</h2>
+              <p class="panel-description" id="data-source-description">Đang kết nối...</p>
+            </div>
+            <button class="button button-outline button-small" id="reset-filters" type="button">Đặt lại bộ lọc</button>
+          </div>
+
+          <!-- Bộ lọc tìm kiếm -->
+          <div class="booking-filters">
+            <label class="filter-field search-field">
+              <span>Tìm kiếm</span>
+              <input id="booking-search" type="search" placeholder="Mã booking, tên khách, SĐT hoặc số phòng..." autocomplete="off">
+            </label>
+            <label class="filter-field">
+              <span>Trạng thái</span>
+              <select id="status-filter">
+                <option value="all">Tất cả trạng thái</option>
+                <option value="pending">Chờ xác nhận</option>
+                <option value="confirmed">Đã xác nhận</option>
+                <option value="checked_in">Đang lưu trú</option>
+                <option value="checked_out">Đã trả phòng</option>
+                <option value="cancelled">Đã hủy</option>
+              </select>
+            </label>
+            <label class="filter-field">
+              <span>Ngày nhận phòng từ</span>
+              <input id="date-filter" type="date">
+            </label>
+          </div>
+
+          <!-- Loading state -->
+          <div class="loading-state" id="bookings-loading" hidden>
+            <div class="loading-spinner"></div>
+            <span>Đang tải danh sách đặt phòng từ hệ thống...</span>
+          </div>
+
+          <!-- Error state (Hiển thị rõ ràng khi API lỗi, KHÔNG tự ý chuyển sang mock) -->
+          <div class="error-state" id="bookings-error" hidden>
+            <h3 id="error-title">Lỗi kết nối API Backend</h3>
+            <p id="error-message">Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại dịch vụ Backend.</p>
+            <div class="error-state-actions">
+              <button class="button button-primary button-small" id="retry-fetch-btn" type="button">Thử lại API</button>
+              <button class="button button-outline button-small" id="enable-mock-btn" type="button">Bật Mock Mode để kiểm thử UI</button>
+            </div>
+          </div>
+
+          <!-- Data table -->
+          <div class="table-scroll" id="table-scroll-container">
             <table class="booking-table management-table">
-              <thead><tr><th>MÃ BOOKING</th><th>KHÁCH HÀNG</th><th>LIÊN HỆ</th><th>PHÒNG</th><th>NHẬN PHÒNG</th><th>TRẢ PHÒNG</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>MÃ BOOKING</th>
+                  <th>KHÁCH HÀNG</th>
+                  <th>LIÊN HỆ</th>
+                  <th>PHÒNG</th>
+                  <th>NHẬN PHÒNG</th>
+                  <th>TRẢ PHÒNG</th>
+                  <th>TRẠNG THÁI</th>
+                  <th>THAO TÁC</th>
+                </tr>
+              </thead>
               <tbody id="bookings-table-body"></tbody>
             </table>
-            <div class="empty-state" id="bookings-empty" hidden><strong>Không tìm thấy đặt phòng</strong><span>Thử thay đổi từ khóa hoặc bộ lọc.</span></div>
+            <div class="empty-state" id="bookings-empty" hidden>
+              <strong>Không tìm thấy đặt phòng</strong>
+              <span>Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc trạng thái.</span>
+            </div>
           </div>
-          <div class="table-footer"><span id="results-count" aria-live="polite">Đang tải dữ liệu...</span><span>Danh sách demo · Chưa kết nối API</span></div>
+
+          <div class="table-footer">
+            <span id="results-count" aria-live="polite">Đang nạp dữ liệu...</span>
+            <span id="connection-status-note">Kiểm tra kết nối...</span>
+          </div>
         </section>
-        <p class="booking-guidance"><strong>Lưu ý nghiệp vụ:</strong> Theo logic Backend hiện tại, booking tạo mới được xác nhận ngay. Không có thao tác duyệt/từ chối tại màn hình này. Check-in và check-out sẽ được triển khai thành chức năng riêng.</p>
-        <footer class="page-footer"><span>Hotel Reservation · Staff Management</span><span>Front Desk Portal</span></footer>
+
+        <p class="booking-guidance">
+          <strong>Chính sách hủy phòng (BR-06):</strong>
+          Hủy trước hoặc đúng 48h hoàn 100% cọc (UT-CAN-01); Hủy từ 24h đến dưới 48h hoàn 50% cọc (UT-CAN-02); Hủy dưới 24h hoặc vắng mặt không hoàn tiền (UT-CAN-03).
+        </p>
+
+        <footer class="page-footer">
+          <span>Hotel Reservation · Staff Management Platform</span>
+          <span>Phụ trách: Phạm Quang Duy (Staff Frontend)</span>
+        </footer>
       </main>
     </div>
   </div>
   <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
 
+  <!-- Modal Tạo đặt phòng mới -->
   <dialog class="booking-dialog" id="booking-dialog" aria-labelledby="dialog-title">
     <form id="booking-form" method="dialog">
-      <div class="dialog-heading"><div><p class="eyebrow">FRONT DESK</p><h2 id="dialog-title">Tạo đặt phòng mới</h2><p class="dialog-description">Nhập thông tin khách và thời gian lưu trú.</p></div><button class="dialog-close" id="close-dialog" type="button" aria-label="Đóng">×</button></div>
-      <div class="form-grid">
-        <label class="form-field full-width"><span>Họ tên khách <b>*</b></span><input name="guest_name" required maxlength="150" placeholder="Nguyễn Văn A"></label>
-        <label class="form-field"><span>Số điện thoại</span><input name="guest_phone" type="tel" maxlength="20" placeholder="09xxxxxxxx"></label>
-        <label class="form-field"><span>Phòng <b>*</b></span><input name="room_ids" required placeholder="Ví dụ: 305" aria-describedby="room-help"><small id="room-help">Nhập mã phòng. Có thể nhập nhiều phòng, cách nhau bằng dấu phẩy (bản demo).</small></label>
-        <label class="form-field"><span>Ngày nhận phòng <b>*</b></span><input name="check_in_date" type="date" required></label>
-        <label class="form-field"><span>Ngày trả phòng <b>*</b></span><input name="check_out_date" type="date" required></label>
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">FRONT DESK</p>
+          <h2 id="dialog-title">Tạo đặt phòng mới</h2>
+          <p class="dialog-description">Nhập thông tin khách, chọn phòng khả dụng và thời gian lưu trú.</p>
+        </div>
+        <button class="dialog-close" id="close-dialog" type="button" aria-label="Đóng">×</button>
       </div>
+
+      <div class="form-grid">
+        <label class="form-field full-width">
+          <span>Họ tên khách hàng <b>*</b></span>
+          <input name="guest_name" id="booking-guest-name" required maxlength="150" placeholder="Ví dụ: Nguyễn Văn A">
+        </label>
+        <label class="form-field">
+          <span>Số điện thoại <b>*</b></span>
+          <input name="guest_phone" id="booking-guest-phone" type="tel" required maxlength="20" placeholder="09xxxxxxxx">
+        </label>
+        <label class="form-field">
+          <span>Chọn phòng lưu trú <b>*</b></span>
+          <select name="room_id" id="booking-room-select" required>
+            <option value="">-- Đang nạp danh sách phòng --</option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span>Ngày nhận phòng <b>*</b></span>
+          <input name="check_in_date" id="booking-checkin-date" type="date" required>
+        </label>
+        <label class="form-field">
+          <span>Ngày trả phòng <b>*</b></span>
+          <input name="check_out_date" id="booking-checkout-date" type="date" required>
+        </label>
+
+        <!-- Khung dự tính chi phí tự động (BR-04, BR-05) -->
+        <div class="cost-breakdown-box" id="cost-preview-box" hidden>
+          <div class="cost-row">
+            <span>Thời gian lưu trú:</span>
+            <strong id="preview-nights">0 đêm</strong>
+          </div>
+          <div class="cost-row">
+            <span>Đơn giá cơ bản:</span>
+            <strong id="preview-base-price">0 VNĐ/đêm</strong>
+          </div>
+          <div class="cost-row cost-highlight">
+            <span>Tổng tiền phòng dự tính (gồm phụ thu cuối tuần nếu có):</span>
+            <strong id="preview-total-cost">0 VNĐ</strong>
+          </div>
+          <div class="cost-row cost-highlight">
+            <span>Tiền đặt cọc yêu cầu (BR-05):</span>
+            <strong id="preview-deposit-cost">0 VNĐ</strong>
+          </div>
+        </div>
+      </div>
+
       <p class="form-feedback" id="form-feedback" role="alert" hidden></p>
-      <div class="dialog-actions"><button class="button button-outline" id="cancel-dialog" type="button">Hủy</button><button class="button button-primary" type="submit">Tạo booking</button></div>
-      <p class="dialog-footnote">Bản giao diện demo: dữ liệu mới chỉ lưu trong bộ nhớ trình duyệt và sẽ mất khi tải lại trang.</p>
+      <div class="dialog-actions">
+        <button class="button button-outline" id="cancel-dialog" type="button">Đóng</button>
+        <button class="button button-primary" id="submit-booking-btn" type="submit">Xác nhận đặt phòng</button>
+      </div>
+      <p class="dialog-footnote" id="form-mode-footnote">Đang sử dụng API Backend thật để tạo đơn.</p>
     </form>
   </dialog>
+
+  <!-- Modal Chi tiết đặt phòng -->
   <dialog class="booking-dialog compact-dialog" id="detail-dialog" aria-labelledby="detail-title">
-    <div class="dialog-heading"><div><p class="eyebrow">BOOKING DETAILS</p><h2 id="detail-title">Chi tiết đặt phòng</h2></div><button class="dialog-close" id="close-detail" type="button" aria-label="Đóng">×</button></div>
+    <div class="dialog-heading">
+      <div>
+        <p class="eyebrow">BOOKING DETAILS</p>
+        <h2 id="detail-title">Chi tiết đặt phòng</h2>
+      </div>
+      <button class="dialog-close" id="close-detail" type="button" aria-label="Đóng">×</button>
+    </div>
     <div id="booking-detail-content"></div>
-    <div class="dialog-actions"><button class="button button-outline" id="close-detail-footer" type="button">Đóng</button></div>
+    <div class="dialog-actions">
+      <button class="button button-outline" id="close-detail-footer" type="button">Đóng</button>
+    </div>
   </dialog>
+
+  <!-- Modal Xác nhận Hủy đặt phòng theo BR-06 (Section 4) -->
+  <dialog class="booking-dialog cancel-dialog" id="cancel-dialog" aria-labelledby="cancel-dialog-title">
+    <div class="dialog-heading">
+      <div>
+        <p class="eyebrow">CANCELLATION POLICY (BR-06)</p>
+        <h2 id="cancel-dialog-title">Xác nhận hủy đặt phòng</h2>
+        <p class="dialog-description">Kiểm tra thông tin hoàn cọc theo chính sách trước khi xác nhận.</p>
+      </div>
+      <button class="dialog-close" id="close-cancel-dialog" type="button" aria-label="Đóng">×</button>
+    </div>
+
+    <div class="cancel-calculation-card" id="cancel-calc-content">
+      <!-- Sẽ được điền động qua JavaScript -->
+    </div>
+
+    <div class="cancel-warning-note">
+      <strong>Lưu ý:</strong> Hệ thống tính toán số tiền hoàn dự kiến dựa trên thời điểm nhận phòng quy định (14:00).
+      Tuyệt đối không giả lập giao dịch hoàn tiền thành công hoặc phát sinh biến động tài chính khi chưa có xác nhận từ Backend/cổng thanh toán.
+    </div>
+
+    <div class="dialog-actions">
+      <button class="button button-outline" id="cancel-abort-btn" type="button">Giữ lại đơn</button>
+      <button class="button button-primary" id="cancel-confirm-btn" type="button" style="background:#8c2824;border-color:#8c2824;">
+        Xác nhận hủy booking
+      </button>
+    </div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#233e57">
+  <title>Báo cáo & Thống kê | Hotel Reservation Staff</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/reports.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/reports.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+
+  <div class="staff-layout">
+    <aside class="sidebar" id="sidebar" aria-label="Điều hướng chính">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span class="brand-copy"><strong>HOTEL RESERVATION</strong><small>STAFF MANAGEMENT</small></span>
+      </a>
+      <div class="sidebar-section">
+        <p class="sidebar-label">MENU CHÍNH</p>
+        <nav class="side-nav">
+          <a class="nav-link" href="index.html"><span class="nav-icon" aria-hidden="true">▦</span><span>Dashboard</span></a>
+          <a class="nav-link" href="bookings.html"><span class="nav-icon" aria-hidden="true">▤</span><span>Quản lý đặt phòng</span></a>
+          <a class="nav-link" href="checkin.html"><span class="nav-icon" aria-hidden="true">⇄</span><span>Check-in / Check-out</span></a>
+          <a class="nav-link" href="housekeeping.html"><span class="nav-icon" aria-hidden="true">⌂</span><span>Housekeeping Board</span></a>
+          <a class="nav-link" href="services.html"><span class="nav-icon" aria-hidden="true">♧</span><span>Dịch vụ phòng</span></a>
+          <a class="nav-link" href="billing.html"><span class="nav-icon" aria-hidden="true">▧</span><span>Hóa đơn</span></a>
+          <a class="nav-link is-active" href="reports.html" aria-current="page"><span class="nav-icon" aria-hidden="true">▥</span><span>Báo cáo</span></a>
+        </nav>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="help-card"><span class="help-icon" aria-hidden="true">?</span><div><strong>Báo cáo</strong><p>Tổng hợp KPI hiệu suất hoạt động khách sạn.</p></div></div>
+        <div class="sidebar-user">
+          <div class="avatar" aria-hidden="true">D</div>
+          <div class="user-copy"><strong>Phạm Quang Duy</strong><span>Front Desk / Staff</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Mở hoặc đóng menu" aria-expanded="false" aria-controls="sidebar"><span aria-hidden="true">☰</span></button>
+          <div class="breadcrumb"><a href="index.html">Staff</a><span class="breadcrumb-separator">/</span><strong>Báo cáo &amp; Thống kê</strong></div>
+        </div>
+        <div class="topbar-actions">
+          <div class="mode-control-wrap" id="mode-control-wrap">
+            <span class="mode-badge" id="mode-badge">Đang tải...</span>
+            <button class="mode-toggle-btn" id="mode-toggle-btn" type="button">Đổi chế độ</button>
+          </div>
+          <span class="today-label" id="today-label">Hôm nay</span>
+          <div class="topbar-profile">
+            <div class="avatar avatar-small" aria-hidden="true">D</div>
+            <div class="user-copy"><strong>Duy</strong><span>Front Desk</span></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content" id="main-content">
+        <div class="notice-banner" id="mode-notice-banner" hidden>
+          <span><strong>⚠️ DỮ LIỆU MÔ PHỎNG / CHỜ TÍCH HỢP API:</strong> Báo cáo được tính từ Mock Data trong LocalStorage.</span>
+          <button class="button button-outline button-small" id="switch-to-api-btn" type="button">Chuyển sang API thật</button>
+        </div>
+
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow">QUẢN LÝ · ANALYTICS &amp; REPORTS</p>
+            <h1>Báo cáo &amp; Thống kê</h1>
+            <p class="page-description">Tổng hợp KPI hiệu suất hoạt động khách sạn theo kỳ: công suất phòng, doanh thu, phân bổ trạng thái đặt phòng và dịch vụ.</p>
+          </div>
+          <button class="button button-outline" id="refresh-btn" type="button"><span aria-hidden="true">↻</span> Cập nhật báo cáo</button>
+        </section>
+
+        <!-- Bộ lọc kỳ báo cáo -->
+        <div class="reports-toolbar">
+          <div class="range-tabs" role="tablist">
+            <button class="range-tab-btn is-active" data-range="today" role="tab" type="button">Hôm nay</button>
+            <button class="range-tab-btn" data-range="week" role="tab" type="button">7 ngày qua</button>
+            <button class="range-tab-btn" data-range="month" role="tab" type="button">Tháng này</button>
+          </div>
+          <span class="report-last-update" id="report-last-update">Đang cập nhật...</span>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-state" id="report-error" hidden>
+          <h3>Không thể tải dữ liệu báo cáo</h3>
+          <p id="report-error-msg">Không thể lấy dữ liệu từ máy chủ.</p>
+          <div class="error-state-actions">
+            <button class="button button-primary button-small" id="retry-btn" type="button">Thử lại</button>
+            <button class="button button-outline button-small" id="enable-mock-btn" type="button">Bật Mock Mode</button>
+          </div>
+        </div>
+
+        <!-- 4 KPI chính -->
+        <section class="kpi-row" aria-label="Các chỉ số KPI chính" id="kpi-row">
+          <article class="kpi-card">
+            <span class="kpi-label">Công suất phòng</span>
+            <div class="kpi-value" id="kpi-occupancy">—</div>
+            <span class="kpi-sub" id="kpi-occupancy-sub">Phòng đang có khách / tổng</span>
+          </article>
+          <article class="kpi-card kpi-green">
+            <span class="kpi-label">Doanh thu (đã thu)</span>
+            <div class="kpi-value" id="kpi-revenue">—</div>
+            <span class="kpi-sub" id="kpi-revenue-sub">Từ hóa đơn đã thanh toán</span>
+          </article>
+          <article class="kpi-card kpi-blue">
+            <span class="kpi-label">Tổng đặt phòng</span>
+            <div class="kpi-value" id="kpi-bookings">—</div>
+            <span class="kpi-sub" id="kpi-bookings-sub">Tất cả trạng thái trong kỳ</span>
+          </article>
+          <article class="kpi-card kpi-orange">
+            <span class="kpi-label">Đơn dịch vụ</span>
+            <div class="kpi-value" id="kpi-services">—</div>
+            <span class="kpi-sub" id="kpi-services-sub">Tổng đơn Room Service</span>
+          </article>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="reports-grid" id="charts-section">
+          <!-- Chart 1: Phân bổ trạng thái đặt phòng -->
+          <div class="chart-panel">
+            <div class="chart-panel-header">
+              <h3>Phân bổ trạng thái đặt phòng</h3>
+              <p>Tỷ lệ phân bổ booking theo từng trạng thái trong kỳ</p>
+            </div>
+            <div id="booking-status-chart">
+              <!-- Render qua JS -->
+            </div>
+          </div>
+
+          <!-- Chart 2: Phân bổ tình trạng phòng -->
+          <div class="chart-panel">
+            <div class="chart-panel-header">
+              <h3>Tình trạng phòng hiện tại</h3>
+              <p>Phân bổ trạng thái phòng theo thời gian thực</p>
+            </div>
+            <div id="room-status-chart">
+              <!-- Render qua JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Chi tiết bảng thống kê -->
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">CHI TIẾT THỐNG KÊ</p>
+              <h2>Bảng phân tích theo trạng thái đặt phòng</h2>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th>TRẠNG THÁI</th>
+                  <th style="text-align:right;">SỐ LƯỢNG</th>
+                  <th style="text-align:right;">TỶ LỆ</th>
+                  <th>PHÂN BỐ</th>
+                </tr>
+              </thead>
+              <tbody id="report-detail-table">
+                <tr><td colspan="4" style="text-align:center; color:var(--text-secondary); padding:20px;">Đang tải...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <footer class="page-footer">
+          <span>Hotel Reservation · Báo cáo &amp; Thống kê Hoạt động</span>
+          <span>Phụ trách: Phạm Quang Duy</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

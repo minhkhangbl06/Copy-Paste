@@ -106,3 +106,69 @@
   - Đang chạy độc lập với **dữ liệu giả lập (Mock data / `sessionStorage`)**, có thể trải nghiệm toàn bộ luồng nghiệp vụ trên trình duyệt mà không phụ thuộc backend.
   - **Khuyến nghị xem giao diện**: Mở qua Live Server (VS Code) hoặc bất kỳ local web server nào để tránh lỗi CORS khi tải linh kiện chung (`components/header.html`, `components/footer.html`).
   - **Kế hoạch tiếp theo**: Sau khi các thành viên hoàn tất Auth và CSDL chung, nhóm sẽ tiến hành đấu nối các API Laravel (`/api/rooms`, `/api/bookings`, `/api/services`, `/api/invoices`) vào frontend.
+
+### ### 📌 Phạm Quang Duy - Phân hệ Staff Frontend / Management Portal (Đã triển khai các phân hệ chính - Đang kiểm thử và hoàn thiện tích hợp)
+
+- **Vị trí source code**: `HotelReservation/frontend/staff/`.
+
+- **Các hạng mục đã triển khai**:
+
+  - **Dashboard tổng quan** (`index.html`, `js/main.js`):
+    - Xây dựng giao diện quản trị tổng quan dành cho nhân viên khách sạn.
+    - Tổ chức bố cục Sidebar, Topbar và khu vực nội dung quản trị.
+    - Hiển thị các thông tin tổng quan và điều hướng đến các phân hệ Staff.
+
+  - **API Client dùng chung** (`js/api.js`):
+    - Xây dựng tầng kết nối HTTP tập trung (`StaffAPI`) giao tiếp với Backend Laravel.
+    - Sử dụng URL gốc `http://127.0.0.1:8000/api`.
+    - Chuẩn hóa cấu trúc request/response theo convention `{ status, message, data }`.
+    - Xử lý timeout, lỗi mạng và thông báo lỗi API.
+    - Hỗ trợ API Mode và Mock Mode chủ động; không tự động chuyển sang dữ liệu giả khi API thật gặp lỗi.
+    - Lưu trữ dữ liệu mô phỏng bằng `localStorage`.
+
+  - **Quản lý đặt phòng** (`bookings.html`, `js/bookings.js`, `css/bookings.css`):
+    - Hiển thị và thống kê danh sách đặt phòng.
+    - Tìm kiếm theo mã booking, tên khách, số điện thoại và số phòng.
+    - Lọc theo trạng thái và ngày nhận phòng.
+    - Tạo booking mới, tính toán số đêm, tiền phòng, phụ thu và tiền cọc theo BR-04/BR-05.
+    - Xem chi tiết booking.
+    - Hủy booking theo chính sách BR-06:
+      - `UT-CAN-01`: Hoàn 100% tiền cọc khi hủy trước hoặc đúng 48 giờ.
+      - `UT-CAN-02`: Hoàn 50% tiền cọc khi hủy từ 24 giờ đến dưới 48 giờ.
+      - `UT-CAN-03`: Không hoàn tiền khi hủy dưới 24 giờ hoặc No-show.
+    - Hiển thị số tiền hoàn dự kiến và cảnh báo chưa thực hiện giao dịch tài chính thật.
+
+  - **Check-in / Check-out** (`checkin.html`, `js/checkin.js`, `css/checkin.css`):
+    - Triển khai giao diện và JavaScript phục vụ nghiệp vụ nhận phòng, trả phòng.
+
+  - **Housekeeping** (`housekeeping.html`, `js/housekeeping.js`, `css/housekeeping.css`):
+    - Triển khai giao diện quản lý công việc buồng phòng.
+  - **Room Service** (`services.html`, `js/services.js`, `css/services.css`):
+    - Triển khai giao diện quản lý hàng đợi dịch vụ phòng.
+
+  - **Billing** (`billing.html`, `js/billing.js`, `css/billing.css`):
+    - Triển khai giao diện quản lý thanh toán và hóa đơn.
+
+  - **Reports** (`reports.html`, `js/reports.js`, `css/reports.css`):
+    - Triển khai giao diện báo cáo và thống kê dành cho nhân viên quản trị.
+
+- **Phong cách thiết kế**:
+  - Kế thừa ngôn ngữ thiết kế Guest Frontend của Tống Phước Kiêng.
+  - Sử dụng bảng màu navy `#233e57`, slate `#708090`, font Be Vietnam Pro / Roboto.
+  - Bố cục quản trị riêng với Sidebar, Topbar và các khu vực chức năng độc lập.
+
+- **Tình trạng tích hợp Backend**:
+  - `GET /api/rooms`: Đã tích hợp trong chức năng lấy danh sách phòng.
+  - `POST /api/bookings`: Đã tích hợp chức năng tạo booking.
+  - `POST /api/bookings/{id}/cancel`: Đã tích hợp chức năng hủy booking.
+  - `GET /api/bookings`: Chưa có trên Backend tại thời điểm ghi nhận trước đó; cần kiểm tra lại với thành viên phụ trách Backend.
+  - Các API phục vụ Check-in, Check-out, Housekeeping, Room Service, Billing và Reports cần tiếp tục đối chiếu với Backend để xác nhận mức độ tích hợp.
+
+- **Trạng thái hiện tại**:
+  - Đã triển khai các màn hình và JavaScript chính của Staff Frontend.
+  - Cần tiếp tục kiểm thử từng chức năng, xác nhận dữ liệu thực tế và xử lý các API chưa được Backend cung cấp.
+  - Chưa xác nhận hoàn tất kiểm thử tích hợp toàn bộ hệ thống.
+
+- **Phạm vi công việc**:
+  - Phụ trách Staff Frontend và JavaScript kết nối với Backend APIs.
+  - Không tự ý chỉnh sửa Laravel Backend, Database Schema, Guest Frontend hoặc code thuộc thành viên khác.
