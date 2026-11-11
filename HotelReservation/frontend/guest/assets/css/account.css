@@ -1,5 +1,5 @@
 /* Shared account navigation, scoped to Profile, My bookings and service history. */
-.account-layout { display: grid; grid-template-columns: 248px minmax(0, 1fr); align-items: start; gap: 24px; min-width: 0; padding-block: 24px 72px; }
+.account-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); align-items: start; gap: 24px; min-width: 0; padding-block: 24px 72px; }
 .account-main { min-width: 0; }
 .account-layout > .my-bookings-content { padding: 0; }
 .account-nav-error { margin-top: 12px; color: #B42318; overflow-wrap: anywhere; }

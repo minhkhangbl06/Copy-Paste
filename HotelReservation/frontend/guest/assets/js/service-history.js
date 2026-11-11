@@ -65,8 +65,7 @@
       const actions = make("div", undefined, "history-actions");
       const service = make("a", "Xem yêu cầu", "button button-outline");
       const url = bookings.entryURL("services.html", booking, location.href); url.searchParams.set("request", r.id); url.hash = "service-" + r.id; service.href = url.href;
-      const detail = make("a", "Chi tiết booking", "button button-outline"); detail.href = bookings.entryURL("booking-detail.html", booking, location.href).href;
-      actions.append(service, detail); card.append(actions); list.append(card);
+      actions.append(service); card.append(actions); list.append(card);
     }
   }
   select.addEventListener("change", () => { selectedReference = select.value; render(); });
