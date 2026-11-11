@@ -22,7 +22,7 @@
     empty.querySelector("a").href=context.url("food-menu.html").href;
     if(loaded.cart.lastSubmission&&!hasItems&&!loaded.error){
       const link=ui.element("a","Xem yêu cầu dịch vụ","button button-outline"),url=context.url("services.html");url.searchParams.set("request",loaded.cart.lastSubmission);link.href=url.href;
-      ui.feedback("");const feedback=document.getElementById("food-feedback");feedback.textContent="Yêu cầu đã được lưu; giỏ món đã được làm trống. ";feedback.append(link);feedback.hidden=false;
+      ui.feedback("");const feedback=document.getElementById("food-feedback");feedback.textContent="";feedback.append(link);feedback.hidden=false;
     }
   }
   function persistNote(){
@@ -45,7 +45,7 @@
     busy=false;
     if(result.error){render();ui.feedback(result.error);document.getElementById("food-feedback").focus({preventScroll:true});return;}
     noteDirty=false;const url=context.url("services.html");url.searchParams.set("request",result.request.id);
-    try{window.location.assign(url.href);}catch{render();ui.feedback("Yêu cầu đã được lưu. Vui lòng mở trang Dịch vụ để xem.");}
+    try{window.location.assign(url.href);}catch{render();ui.feedback("Vui lòng mở trang Dịch vụ để kiểm tra yêu cầu.");}
   });
   window.addEventListener("pageshow",render);
   render();

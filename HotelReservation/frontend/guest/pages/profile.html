@@ -19,10 +19,12 @@
          Auth page layout selectors do not apply to this page. -->
     <link rel="stylesheet" href="../assets/css/auth.css" />
     <link rel="stylesheet" href="../assets/css/profile.css" />
+    <link rel="stylesheet" href="../assets/css/account.css" />
     <script src="../assets/js/guest-validation.js" defer></script>
     <script src="../assets/js/guest-session.js" defer></script>
     <script src="../assets/js/layout.js" defer></script>
     <script src="../assets/js/auth.js" defer></script>
+    <script src="../assets/js/account-nav.js" defer></script>
     <script src="../assets/js/profile.js" defer></script>
   </head>
   <body class="profile-page">
@@ -43,31 +45,19 @@
       <!-- One active demo Guest profile from GuestSession. No real account update or password change. -->
       <section id="profile-unavailable" class="container" role="status" hidden><p></p><a class="profile-menu-item" href="../auth/login.html">Đăng nhập</a></section>
       <div class="container profile-content" hidden>
-        <aside class="profile-sidebar" aria-label="Tài khoản khách hàng">
-          <div class="profile-identity">
-            <span class="profile-avatar" aria-hidden="true"></span>
-            <div class="profile-identity-text">
-              <h2></h2>
-              <p>Khách hàng</p>
-            </div>
-          </div>
-          <nav class="profile-menu" aria-label="Menu tài khoản">
-            <button class="profile-menu-item" type="button" aria-current="page">
-              Thông tin cá nhân
-            </button>
-            <a class="profile-menu-item" href="my-bookings.html">Booking của tôi</a>
-            <div class="profile-menu-logout">
-              <button class="profile-menu-item" type="button" data-profile-logout>Đăng xuất</button>
-            </div>
-          </nav>
-        </aside>
+        <aside class="profile-sidebar" aria-label="Tài khoản khách hàng" data-account-nav="profile"></aside>
 
         <div class="profile-panels">
           <section class="profile-card room-search-form" aria-labelledby="personal-title" data-profile-editor data-mode="view">
             <h2 id="personal-title">Thông tin cá nhân</h2>
             <p id="profile-feedback" role="status" hidden></p>
+            <dl class="profile-view">
+              <div><dt>Họ và tên</dt><dd data-profile-value="fullName"></dd></div>
+              <div><dt>Email</dt><dd data-profile-value="email"></dd></div>
+              <div><dt>Số điện thoại</dt><dd data-profile-value="phone"></dd></div>
+            </dl>
             <div
-              class="profile-personal-fields"
+              class="profile-personal-fields" hidden
               role="group"
               aria-labelledby="personal-title"
             >
@@ -118,7 +108,9 @@
           </section>
 
           <section class="profile-card" aria-labelledby="password-title">
-            <h2 id="password-title">Đổi mật khẩu</h2>
+            <div class="profile-security-heading"><h2 id="password-title">Bảo mật tài khoản</h2><button class="button button-outline" type="button" data-password-open aria-expanded="false" aria-controls="profile-password-editor">Đổi mật khẩu</button></div>
+            <p class="profile-security-intro">Quản lý mật khẩu đăng nhập của bạn.</p>
+            <div id="profile-password-editor" hidden>
             <div
               class="profile-password-fields"
               role="group"
@@ -184,8 +176,10 @@
             </div>
             <div class="profile-actions">
               <button class="button button-primary" type="button">
-                Đổi mật khẩu
+                Cập nhật mật khẩu
               </button>
+              <button class="button button-outline" type="button" data-password-close>Hủy</button>
+            </div>
             </div>
           </section>
         </div>
