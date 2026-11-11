@@ -104,7 +104,6 @@
   gap: 0;
   min-height: 48px;
 }
-.auth-demo-note { margin: 0 0 18px; color: var(--text-secondary); font-size: .875rem; line-height: 1.5; }
 .auth-error { grid-column: 1 / -1; margin-bottom: 16px; color: #B42318; font-size: .875rem; overflow-wrap: anywhere; }
 .auth-field .search-field-error { margin-top: 6px; }
 .auth-switch {
@@ -193,3 +192,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.recovery-feedback { margin: 16px 0 18px; color: var(--text-secondary); font-size: .875rem; line-height: 1.5; overflow-wrap: anywhere; }
+.recovery-feedback:empty { display: none; }
+.auth-forgot a:hover, .auth-forgot a:focus-visible { text-decoration: underline; text-underline-offset: 4px; }

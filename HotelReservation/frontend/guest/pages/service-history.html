@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Tra cứu yêu cầu dịch vụ theo kỳ lưu trú tại Copy Paste Hotel."
+    />
+    <title>Lịch sử dịch vụ - Copy Paste Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap"
+    />
+    <link rel="stylesheet" href="../assets/css/global.css" />
+    <link rel="stylesheet" href="../assets/css/profile.css" />
+    <link rel="stylesheet" href="../assets/css/my-bookings.css" />
+    <link rel="stylesheet" href="../assets/css/account.css" />
+    <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-session.js" defer></script>
+    <script src="../assets/js/layout.js" defer></script>
+    <script src="../assets/js/room-data.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/room-stay.js" defer></script>
+    <script src="../assets/js/booking-draft.js" defer></script>
+    <script src="../assets/js/booking-simulation.js" defer></script>
+    <script src="../assets/js/booking-data.js" defer></script>
+    <script src="../assets/js/booking-actions.js" defer></script>
+    <script src="../assets/js/service-data.js" defer></script>
+    <script src="../assets/js/account-nav.js" defer></script>
+    <script src="../assets/js/service-history.js" defer></script>
+  </head>
+  <body class="service-history-page">
+    <header id="site-header" class="site-header" data-layout="header" data-active-nav="Tài khoản của tôi"></header>
+    <main id="main">
+      <div class="profile-heading"><div class="container"><h1>Tài khoản của tôi</h1></div></div>
+      <div class="container account-layout">
+        <aside class="profile-sidebar" aria-label="Tài khoản khách hàng" data-account-nav="history"></aside>
+        <div class="account-main">
+          <div class="history-filters" role="group" aria-label="Lọc lịch sử dịch vụ">
+            <div><label for="history-booking">Booking</label><select id="history-booking"><option value="">Tất cả booking</option></select></div>
+            <div><label for="history-type">Dịch vụ</label><select id="history-type"><option value="">Tất cả dịch vụ</option><option value="food">Ăn uống</option><option value="laundry">Giặt ủi</option><option value="housekeeping">Dọn phòng</option><option value="transport">Đưa đón (lịch sử cũ)</option></select></div>
+            <div><label for="history-status">Trạng thái</label><select id="history-status"><option value="">Tất cả trạng thái</option><option value="waiting">Đang chờ</option><option value="active">Đang thực hiện</option><option value="completed">Hoàn tất</option><option value="cancelled">Đã hủy</option></select></div>
+          </div>
+          <p id="history-error" role="status" hidden></p>
+          <p id="history-count" class="history-count" role="status"></p>
+          <section id="service-history-list" class="history-list" aria-label="Danh sách yêu cầu dịch vụ"></section>
+          <section id="history-empty" class="history-empty" hidden><p>Chưa có yêu cầu dịch vụ phù hợp.</p><a class="button button-outline" href="services.html">Xem dịch vụ</a></section>
+        </div>
+      </div>
+    </main>
+    <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
+  </body>
+</html>

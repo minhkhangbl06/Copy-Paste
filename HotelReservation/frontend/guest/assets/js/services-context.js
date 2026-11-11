@@ -26,8 +26,6 @@
     message.hidden=Boolean(eligible&&!saved.error);
     message.querySelector("p").textContent=saved.error?"Không thể đọc đầy đủ booking đã lưu. Vui lòng thử lại.":reference!==null&&!booking?"Không tìm thấy booking. Vui lòng chọn lại từ danh sách.":booking?.bookingStatus==="CHECKED_OUT"?"Booking đã hoàn tất. Bạn có thể xem lịch sử dịch vụ.":"Bạn cần có booking đang lưu trú để yêu cầu dịch vụ.";
     message.querySelector("a").href=data.listURL(window.location.href,filter).href;
-    const back=document.querySelector(".services-heading .services-back");back.href=booking?data.entryURL("booking-detail.html",booking,window.location.href,filter).href:data.listURL(window.location.href,filter).href;
-    back.textContent=booking?"← Về chi tiết booking":"← Về booking của tôi";
     const stay=document.querySelector(".services-stay[aria-labelledby]");stay.hidden=!booking;
     if(booking){
       const s=booking.stay,room=window.HotelRooms.find(s.roomType),values=[booking.reference,room.name,s.guests+" khách",s.checkIn.split("-").reverse().join("/"),s.checkOut.split("-").reverse().join("/"),s.roomCount+" phòng"];

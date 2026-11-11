@@ -32,7 +32,6 @@
             Hotel.
           </p>
         </div>
-        <p class="auth-demo-note">Chế độ dùng thử giao diện, chưa xác thực tài khoản thật.</p>
         <p id="auth-error" class="auth-error" role="status" hidden></p>
         <form id="auth-form" class="room-search-form" aria-labelledby="auth-title" novalidate>
           <div class="auth-field auth-field-wide">
@@ -41,7 +40,7 @@
               id="full-name"
               name="fullName"
               type="text"
-              autocomplete="name"
+              autocomplete="name" placeholder="Nhập họ và tên"
             />
           </div>
           <div class="auth-field">
@@ -52,12 +51,12 @@
               type="email"
               autocomplete="email"
               autocapitalize="none"
-              spellcheck="false"
+              spellcheck="false" placeholder="Nhập email"
             />
           </div>
           <div class="auth-field">
             <label for="phone">Số điện thoại</label
-            ><input id="phone" name="phone" type="tel" autocomplete="tel" />
+            ><input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="Nhập số điện thoại" />
           </div>
           <div class="auth-field">
             <label for="password">Mật khẩu</label>
@@ -66,7 +65,7 @@
                 id="password"
                 name="password"
                 type="password"
-                autocomplete="new-password"
+                autocomplete="new-password" placeholder="Nhập mật khẩu"
               /><button
                 class="password-toggle"
                 type="button"
@@ -84,7 +83,7 @@
                 id="confirm-password"
                 name="confirmPassword"
                 type="password"
-                autocomplete="new-password"
+                autocomplete="new-password" placeholder="Nhập lại mật khẩu"
               /><button
                 class="password-toggle"
                 type="button"

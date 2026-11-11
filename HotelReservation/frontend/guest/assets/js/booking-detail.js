@@ -190,8 +190,6 @@
         booking.confirmedAmount === null
           ? "Chưa có thông tin"
           : money(booking.confirmedAmount);
-      transfer.querySelector(".booking-simulation-note").hidden =
-        booking.source === "sample";
     }
     const controls = document.getElementById("booking-action-controls");
     controls.replaceChildren();
@@ -369,7 +367,7 @@
     }
     editPanel.hidden = true;
     render();
-    feedback("Đã lưu thay đổi trong phiên giao diện.");
+    feedback("");
   });
   document
     .getElementById("booking-cancel-back")

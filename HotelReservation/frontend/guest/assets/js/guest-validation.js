@@ -7,13 +7,22 @@
   function contactErrors(values){const errors={};for(const[key,rule]of Object.entries({fullName:nameError,email:emailError,phone:phoneError})){const message=rule(values[key]);if(message)errors[key]=message;}return errors;}
   // UI-only minimum until M5 specifies the real signup policy. Login does not
   // apply a creation policy and passwords must never be trimmed or persisted.
-  function authErrors(values,register=false){
-    const errors=register?contactErrors(values):{};if(!register&&emailError(values.email))errors.email=emailError(values.email);
-    if(typeof values.password!=="string"||values.password.length===0)errors.password="Vui lòng nhập mật khẩu.";
-    else if(register&&values.password.length<8)errors.password="Mật khẩu phải có ít nhất 8 ký tự.";
-    if(register){if(typeof values.confirmPassword!=="string"||values.confirmPassword.length===0)errors.confirmPassword="Vui lòng xác nhận mật khẩu.";
+  function passwordErrors(values,creation=true){
+    const errors={};
+    if(typeof values.password!=="string"||!values.password.length)errors.password="Vui lòng nhập mật khẩu.";
+    else if(creation&&values.password.length<8)errors.password="Mật khẩu phải có ít nhất 8 ký tự.";
+    if(creation){if(typeof values.confirmPassword!=="string"||!values.confirmPassword.length)errors.confirmPassword="Vui lòng xác nhận mật khẩu.";
       else if(values.confirmPassword!==values.password)errors.confirmPassword="Xác nhận mật khẩu không khớp.";}
     return errors;
   }
-  window.GuestValidation=Object.freeze({normalizePhone,emailError,nameError,phoneError,contactErrors,authErrors});
+  function identifierError(value){
+    if(typeof value!=="string"||!value.trim())return "Vui lòng nhập email hoặc số điện thoại.";
+    return value.includes("@")?emailError(value):phoneError(value);
+  }
+  function authErrors(values,register=false){
+    const errors=register?contactErrors(values):{};
+    if(!register&&identifierError(values.identifier))errors.identifier=identifierError(values.identifier);
+    return {...errors,...passwordErrors(values,register)};
+  }
+  window.GuestValidation=Object.freeze({normalizePhone,emailError,nameError,phoneError,contactErrors,passwordErrors,identifierError,authErrors});
 })();
