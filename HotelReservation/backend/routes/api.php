@@ -1,61 +1,64 @@
 <?php
-use App\Http\Controllers\Api\ReservationController;
-
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\RoomStatusController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\ServiceOrderController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes - Hotel Reservation System
-|--------------------------------------------------------------------------
-| Module nhiệm vụ của Khang: Dịch vụ phòng, Đơn dịch vụ, Hóa đơn, Thanh toán,
-| Phụ thu trả phòng muộn và Đóng hóa đơn checkout.
-*/
-
-// 1. Module Quản lý Dịch vụ (Services)
-Route::prefix('services')->group(function () {
-    Route::get('/', [ServiceController::class, 'index']);
-    Route::get('/{id}', [ServiceController::class, 'show']);
-    Route::post('/', [ServiceController::class, 'store']);
+Route::prefix('auth')->group(function (): void {
+    Route::post('/register', [AuthController::class, 'register'])
+         ->middleware('throttle:10,15');
+    Route::post('/login', [AuthController::class, 'login'])
+         ->middleware('throttle:20,15');
 });
+// Module Quản lý Dịch vụ (Services)
+Route::get('/rooms', [ReservationController::class, 'index']);
+Route::get('/rooms/available', [ReservationController::class, 'availableRooms']);
+Route::get('/services', [ServiceController::class, 'index']);
+Route::get('/services/{id}', [ServiceController::class, 'show']);
 
-// 2. Module Đơn dịch vụ (Service Orders)
-Route::prefix('service-orders')->group(function () {
-    Route::get('/', [ServiceOrderController::class, 'index']);
-    Route::post('/', [ServiceOrderController::class, 'store']);
-    Route::patch('/{id}/status', [ServiceOrderController::class, 'updateStatus']);
-    Route::post('/{id}/pay', [ServiceOrderController::class, 'pay']);
-});
+Route::middleware('auth:sanctum')->group(function (): void {
 
-// 3. Module Hóa đơn & Trả phòng (Invoices, Late Checkout & Checkout)
-Route::prefix('bookings/{booking_id}')->group(function () {
-    Route::get('/invoice/preview', [InvoiceController::class, 'preview']);
-    Route::post('/late-checkout', [InvoiceController::class, 'calculateLateCheckout']);
-    Route::post('/invoice', [InvoiceController::class, 'generate']);
-});
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/auth/me', [AuthController::class, 'me']);
 
-Route::prefix('invoices')->group(function () {
-    Route::post('/{id}/pay', [InvoiceController::class, 'recordPayment']);
-    Route::post('/{id}/close', [InvoiceController::class, 'closeInvoice']);
-});
+// Module Đơn dịch vụ (Service Orders)
+Route::post('/service-orders', [ServiceOrderController::class, 'store'])
+         ->middleware('role:guest,receptionist,admin');
 
-// --- Reservation Module (Trịnh Thị Tiểu Muội) ---
+    Route::middleware('role:service_staff,receptionist,admin')->group(function (): void {
+        Route::get('/service-orders', [ServiceOrderController::class, 'index']);
+        Route::patch('/service-orders/{id}/status', [ServiceOrderController::class, 'updateStatus']);
+    });
+
+    Route::post('/services', [ServiceController::class, 'store'])
+         ->middleware('role:admin');
+// Module Hóa đơn & Trả phòng (Invoices, Late Checkout & Checkout)
+Route::middleware('role:billing,receptionist,admin')->group(function (): void {
+        Route::post('/service-orders/{id}/pay', [ServiceOrderController::class, 'pay']);
+        Route::get('/bookings/{booking_id}/invoice/preview', [InvoiceController::class, 'preview']);
+        Route::post('/bookings/{booking_id}/late-checkout', [InvoiceController::class, 'calculateLateCheckout']);
+        Route::post('/bookings/{booking_id}/invoice', [InvoiceController::class, 'generate']);
+        Route::post('/invoices/{id}/pay', [InvoiceController::class, 'recordPayment']);
+        Route::post('/invoices/{id}/close', [InvoiceController::class, 'closeInvoice']);
+    });
+
+// Reservation Module
 Route::get('/rooms', [ReservationController::class, 'index']);
 Route::get('/rooms/available', [ReservationController::class, 'availableRooms']);
 Route::post('/bookings', [ReservationController::class, 'store']);
 Route::patch('/bookings/{id}', [ReservationController::class, 'update']);
 Route::post('/bookings/{id}/cancel', [ReservationController::class, 'cancel']);
 
-// --- Module 4: Phân hệ Đặt phòng (Trịnh Thị Tiểu Muội) ---
-Route::prefix('rooms')->group(function () {
-    Route::get('/', [ReservationController::class, 'index']);
-    Route::get('/available', [ReservationController::class, 'availableRooms']);
-});
-
-Route::prefix('bookings')->group(function () {
-    Route::post('/', [ReservationController::class, 'store']);
-    Route::patch('/{id}', [ReservationController::class, 'update']);
-    Route::post('/{id}/cancel', [ReservationController::class, 'cancel']);
-});
+// Đặt phòng
+Route::middleware('role:guest,receptionist,admin,billing')->group(function (): void {
+        Route::post('/bookings', [ReservationController::class, 'store']);
+        Route::patch('/bookings/{id}', [ReservationController::class, 'update']);
+        Route::post('/bookings/{id}/cancel', [ReservationController::class, 'cancel']);
+    });
+    
+// dọn phòng và bảo trì
+Route::patch('/rooms/{id}/status', [RoomStatusController::class, 'update'])
+         ->middleware('role:housekeeping,admin');
