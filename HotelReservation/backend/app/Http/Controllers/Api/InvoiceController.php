@@ -224,4 +224,78 @@ class InvoiceController extends Controller
             'data' => $invoice->fresh(['booking.room']),
         ]);
     }
+
+    /**
+     * GET /api/invoices
+     * Lấy danh sách toàn bộ hóa đơn (hỗ trợ lọc theo status, search theo mã, khách hàng, SĐT).
+     * Phục vụ Lễ tân / Thu ngân / Báo cáo doanh thu.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $query = Invoice::with(['booking.room', 'payments']);
+
+        if ($request->filled('status') && $request->query('status') !== 'all') {
+            $query->where('status', $request->query('status'));
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->query('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_code', 'like', "%{$search}%")
+                  ->orWhereHas('booking', function ($bq) use ($search) {
+                      $bq->where('booking_code', 'like', "%{$search}%")
+                         ->orWhere('guest_name', 'like', "%{$search}%")
+                         ->orWhere('guest_phone', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $invoices = $query->orderBy('created_at', 'desc')->get();
+
+        // Gắn thêm các trường tiện ích tương thích với Frontend Staff Billing
+        $invoices->transform(function ($invoice) {
+            $invoice->booking_code = $invoice->booking?->booking_code;
+            $invoice->guest_name = $invoice->booking?->guest_name;
+            $invoice->guest_phone = $invoice->booking?->guest_phone;
+            $invoice->room_number = $invoice->booking?->room?->room_number;
+            return $invoice;
+        });
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Lấy danh sách hóa đơn thành công.',
+            'data'    => $invoices,
+        ], 200);
+    }
+
+    /**
+     * GET /api/invoices/{id}
+     * Lấy chi tiết 1 hóa đơn kèm thông tin đặt phòng, phòng, dịch vụ đã gọi và lịch sử thanh toán.
+     */
+    public function show(int $id): JsonResponse
+    {
+        $invoice = Invoice::with([
+            'booking.room',
+            'booking.serviceOrders.items.service',
+            'payments'
+        ])->find($id);
+
+        if (!$invoice) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Không tìm thấy hóa đơn.',
+            ], 404);
+        }
+
+        $invoice->booking_code = $invoice->booking?->booking_code;
+        $invoice->guest_name = $invoice->booking?->guest_name;
+        $invoice->guest_phone = $invoice->booking?->guest_phone;
+        $invoice->room_number = $invoice->booking?->room?->room_number;
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Chi tiết hóa đơn.',
+            'data'    => $invoice,
+        ], 200);
+    }
 }

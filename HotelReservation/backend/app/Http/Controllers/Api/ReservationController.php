@@ -339,4 +339,138 @@ class ReservationController extends Controller
             ]
         ], 200);
     }
+
+    /**
+     * GET /api/bookings
+     * Lấy danh sách toàn bộ đơn đặt phòng (hỗ trợ lọc search, status, check_in_date).
+     * Phục vụ Lễ tân / Staff Management Portal.
+     */
+    public function indexBookings(Request $request)
+    {
+        $query = Booking::with('room');
+
+        if ($request->filled('status') && $request->query('status') !== 'all') {
+            $query->where('status', $request->query('status'));
+        }
+
+        if ($request->filled('check_in_date')) {
+            $query->whereDate('check_in_date', '>=', $request->query('check_in_date'));
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->query('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('booking_code', 'like', "%{$search}%")
+                  ->orWhere('guest_name', 'like', "%{$search}%")
+                  ->orWhere('guest_phone', 'like', "%{$search}%")
+                  ->orWhereHas('room', function ($rq) use ($search) {
+                      $rq->where('room_number', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $bookings = $query->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Lấy danh sách đặt phòng thành công.',
+            'data'    => $bookings
+        ], 200);
+    }
+
+    /**
+     * POST /api/bookings/{id}/check-in
+     * Check-in cho khách: Chuyển booking sang 'checked_in' và cập nhật phòng sang 'occupied'.
+     */
+    public function checkIn(Request $request, $id)
+    {
+        $booking = Booking::with('room')->find($id);
+
+        if (!$booking) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Không tìm thấy đơn đặt phòng.'
+            ], 404);
+        }
+
+        if ($booking->status === 'checked_in') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Đơn đặt phòng này đã hoàn tất check-in trước đó.'
+            ], 400);
+        }
+
+        if (in_array($booking->status, ['checked_out', 'cancelled'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Không thể check-in cho đơn ở trạng thái ' . $booking->status . '.'
+            ], 400);
+        }
+
+        $room = $booking->room;
+        if ($room && $room->status === 'maintenance') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Phòng ' . $room->room_number . ' đang bảo trì, không thể check-in.'
+            ], 400);
+        }
+
+        DB::transaction(function () use ($booking, $room) {
+            $booking->update(['status' => 'checked_in']);
+            if ($room) {
+                $room->update(['status' => 'occupied']);
+            }
+        });
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Check-in thành công cho khách ' . $booking->guest_name . '.',
+            'data'    => $booking->fresh(['room'])
+        ], 200);
+    }
+
+    /**
+     * POST /api/bookings/{id}/check-out
+     * Check-out cho khách: Chuyển booking sang 'checked_out', lưu actual_checkout_at và chuyển phòng sang 'dirty'.
+     */
+    public function checkOut(Request $request, $id)
+    {
+        $booking = Booking::with('room')->find($id);
+
+        if (!$booking) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Không tìm thấy đơn đặt phòng.'
+            ], 404);
+        }
+
+        if ($booking->status !== 'checked_in') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Chỉ có thể check-out cho đơn đang ở trạng thái checked_in.'
+            ], 400);
+        }
+
+        $checkoutTime = $request->filled('actual_checkout_at') 
+            ? Carbon::parse($request->input('actual_checkout_at')) 
+            : now();
+
+        $room = $booking->room;
+
+        DB::transaction(function () use ($booking, $room, $checkoutTime) {
+            $booking->update([
+                'status'             => 'checked_out',
+                'actual_checkout_at' => $checkoutTime,
+            ]);
+            if ($room) {
+                $room->update(['status' => 'dirty']);
+            }
+        });
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Check-out thành công cho đơn ' . $booking->booking_code . '.',
+            'data'    => $booking->fresh(['room'])
+        ], 200);
+    }
 }

@@ -20,9 +20,11 @@ class RoomStatusController
         $status = strtolower($data['status']);
         if ($status === 'clean') {
             $status = 'available';
+        } elseif ($status === 'cleaning') {
+            $status = 'dirty';
         }
 
-        if ($status === 'maintenance' && $request->user()->role !== 'admin') {
+        if ($status === 'maintenance' && $request->user() && $request->user()->role !== 'admin') {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Chỉ quản trị viên mới có quyền đặt phòng vào trạng thái bảo trì.'

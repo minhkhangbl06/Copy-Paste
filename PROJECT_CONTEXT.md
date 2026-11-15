@@ -67,17 +67,40 @@
 
 ---
 
-## 🚀 4. DANH SÁCH TOÀN BỘ API PHÂN HỆ ĐẶT PHÒNG (RESERVATION MODULE)
+## 🚀 4. DANH SÁCH TOÀN BỘ API HỆ THỐNG (API REFERENCE)
 
+### A. Phân hệ Đặt phòng & Buồng phòng (Trịnh Thị Tiểu Muội & Housekeeping)
 | Method | Endpoint | Mô tả |
 |---|---|---|
 | `GET` | `/api/rooms` | Lấy danh sách tất cả các phòng (filter `?room_type=Deluxe&status=available`) |
 | `GET` | `/api/rooms/{id}` | Xem chi tiết 1 phòng |
+| `PATCH`| `/api/rooms/{id}/status` | Đổi trạng thái phòng cho Housekeeping (`clean`, `available`, `dirty`, `maintenance`) |
 | `GET` | `/api/rooms/available` | Tra cứu phòng trống theo ngày (`?check_in_date=...&check_out_date=...&room_type=...`) |
+| `GET` | `/api/bookings` | Lấy danh sách toàn bộ đặt phòng (hỗ trợ search tên/SĐT/mã phòng, lọc status, check_in_date) |
 | `POST` | `/api/bookings` | Đặt phòng (hỗ trợ single/multi-room, multi-night, chống double-booking, phụ thu cuối tuần +15%, tính cọc theo BR-04/05) |
 | `GET` | `/api/bookings/{id}` | Xem chi tiết đơn đặt phòng kèm thông tin phòng liên kết |
-| `PATCH` | `/api/bookings/{id}` | Sửa booking / đổi ngày hoặc đổi phòng có kiểm tra trùng lịch |
+| `PATCH`| `/api/bookings/{id}` | Sửa booking / đổi ngày hoặc đổi phòng có kiểm tra trùng lịch |
 | `POST` | `/api/bookings/{id}/cancel` | Hủy booking & tự động tính hoàn cọc theo BR-06 (>=48h: 100%, 24-48h: 50%, <24h: 0%) |
+| `POST` | `/api/bookings/{id}/check-in` | Nhận phòng (Check-in), chuyển booking sang `checked_in`, phòng sang `occupied` |
+| `POST` | `/api/bookings/{id}/check-out` | Trả phòng (Check-out), ghi nhận `actual_checkout_at`, đổi booking sang `checked_out`, phòng sang `dirty` |
+
+### B. Phân hệ Dịch vụ, Hóa đơn & Thu ngân (Khang)
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| `GET` | `/api/services` | Danh mục dịch vụ khách sạn |
+| `GET` | `/api/services/{id}` | Chi tiết dịch vụ |
+| `POST` | `/api/services` | Thêm dịch vụ mới |
+| `GET` | `/api/service-orders` | Danh sách đơn gọi dịch vụ phòng |
+| `POST` | `/api/service-orders` | Đặt món/dịch vụ tại phòng |
+| `PATCH`| `/api/service-orders/{id}/status` | Cập nhật trạng thái đơn dịch vụ |
+| `POST` | `/api/service-orders/{id}/pay` | Thanh toán riêng cho đơn dịch vụ |
+| `GET` | `/api/bookings/{booking_id}/invoice/preview` | Xem trước bảng kê chi phí phòng, dịch vụ, phụ thu muộn |
+| `POST` | `/api/bookings/{booking_id}/late-checkout` | Tính phụ thu trả phòng muộn độc lập |
+| `POST` | `/api/bookings/{booking_id}/invoice` | Phát hành hóa đơn chính thức cho booking |
+| `GET` | `/api/invoices` | Danh sách toàn bộ hóa đơn cho thu ngân (hỗ trợ search, filter status) |
+| `GET` | `/api/invoices/{id}` | Chi tiết hóa đơn kèm đơn dịch vụ và thanh toán |
+| `POST` | `/api/invoices/{id}/pay` | Ghi nhận thanh toán hóa đơn |
+| `POST` | `/api/invoices/{id}/close` | Đóng hóa đơn và hoàn tất check-out |
 
 ---
 
