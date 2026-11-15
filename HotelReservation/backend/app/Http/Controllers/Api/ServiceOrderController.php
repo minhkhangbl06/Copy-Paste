@@ -34,6 +34,7 @@ class ServiceOrderController extends Controller
 
         return response()->json([
             'status' => 'success',
+            'message' => 'Lấy danh sách đơn dịch vụ thành công.',
             'data' => $orders,
         ]);
     }

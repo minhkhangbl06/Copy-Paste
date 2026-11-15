@@ -52,6 +52,7 @@ class KhangServiceAndBillingTest extends TestCase
         // 1. Tạo đơn dịch vụ
         $createResponse = $this->postJson('/api/service-orders', $orderPayload);
         $createResponse->assertStatus(201)
+            ->assertJsonStructure(['status', 'message', 'data'])
             ->assertJsonPath('data.total_amount', '200000.00')
             ->assertJsonPath('data.status', 'pending');
 
@@ -77,6 +78,7 @@ class KhangServiceAndBillingTest extends TestCase
         ]);
 
         $response->assertStatus(200)
+            ->assertJsonPath('data.result.late_fee', 240000)
             ->assertJsonPath('result.is_late', true)
             ->assertJsonPath('result.fee_rate', 0.3)
             ->assertJsonPath('result.late_fee', 240000); // 800k x 0.3 = 240k
@@ -86,6 +88,7 @@ class KhangServiceAndBillingTest extends TestCase
     {
         $booking = Booking::first();
         $pho = Service::where('name', 'Phở Bò Đặc Biệt')->first();
+        $checkoutTime = $booking->check_out_date->toDateString() . ' 14:00:00';
 
         // 1. Khách gọi 1 tô phở ghi nợ vào phòng
         $this->postJson('/api/service-orders', [
@@ -97,17 +100,28 @@ class KhangServiceAndBillingTest extends TestCase
         ])->assertStatus(201);
 
         // 2. Preview hóa đơn
-        $preview = $this->getJson("/api/bookings/{$booking->id}/invoice/preview");
+        $query = http_build_query(['checkout_time' => $checkoutTime, 'other_surcharges' => 35000]);
+        $preview = $this->getJson("/api/bookings/{$booking->id}/invoice/preview?{$query}");
         $preview->assertStatus(200)
+            ->assertJsonStructure(['status', 'message', 'data'])
             ->assertJsonPath('data.charges.room_charges', 1600000)
             ->assertJsonPath('data.charges.service_charges', 75000)
-            ->assertJsonPath('data.charges.deposit_deducted', 500000);
+            ->assertJsonPath('data.charges.deposit_deducted', 500000)
+            ->assertJsonPath('data.charges.late_checkout_fee', 240000)
+            ->assertJsonPath('data.charges.tax_amount', 116000)
+            ->assertJsonPath('data.charges.total_amount', 1566000);
 
         // 3. Tạo hóa đơn chính thức
-        $invoiceRes = $this->postJson("/api/bookings/{$booking->id}/invoice");
-        $invoiceRes->assertStatus(200);
+        $invoiceRes = $this->postJson("/api/bookings/{$booking->id}/invoice", [
+            'checkout_time' => $checkoutTime,
+            'other_surcharges' => 35000,
+        ]);
+        $invoiceRes->assertStatus(200)->assertJsonPath('data.total_amount', '1566000.00');
         $invoiceId = $invoiceRes->json('data.id');
         $totalAmount = $invoiceRes->json('data.total_amount');
+
+        $this->postJson("/api/invoices/{$invoiceId}/close")->assertUnprocessable();
+        $this->assertDatabaseHas('bookings', ['id' => $booking->id, 'status' => 'checked_in']);
 
         // 4. Thanh toán hóa đơn qua chuyển khoản ngân hàng
         $payRes = $this->postJson("/api/invoices/{$invoiceId}/pay", [

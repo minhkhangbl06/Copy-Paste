@@ -1,0 +1,232 @@
+/**
+ * Hotel Reservation System - Room Service Queue Stylesheet
+ * File: HotelReservation/frontend/staff/css/services.css
+ * Author: Pham Quang Duy (Staff Frontend Lead)
+ */
+
+/* ── SERVICE STATUS FILTER TABS ── */
+.service-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.service-status-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.svc-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+.svc-tab-btn:hover {
+  background: #e2e8f0;
+  color: var(--color-ink);
+}
+.svc-tab-btn.is-active {
+  background: var(--color-ink);
+  color: #ffffff;
+  border-color: var(--color-ink);
+}
+.svc-tab-btn .svc-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgb(255 255 255 / 25%);
+}
+.svc-tab-btn:not(.is-active) .svc-count {
+  background: #cbd5e1;
+  color: #334155;
+}
+
+/* ── PENDING ALERT BADGE ── */
+.pending-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c2410c;
+  border-radius: 2px;
+}
+
+/* ── SERVICE ORDER CARDS (Kanban Style) ── */
+.service-order-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+.svc-order-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 5px solid #94a3b8;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  transition: transform 120ms ease;
+}
+.svc-order-card:hover {
+  transform: translateY(-2px);
+}
+.svc-order-card.status-pending  { border-left-color: #f59e0b; }
+.svc-order-card.status-confirmed { border-left-color: #3b82f6; }
+.svc-order-card.status-in_progress { border-left-color: #8b5cf6; }
+.svc-order-card.status-delivered  { border-left-color: #10b981; }
+.svc-order-card.status-cancelled  { border-left-color: #ef4444; opacity: 0.6; }
+
+.svc-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.svc-order-code {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.svc-status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 2px;
+}
+.svc-status-badge.pending    { background: #fef3c7; color: #92400e; }
+.svc-status-badge.confirmed  { background: #dbeafe; color: #1e40af; }
+.svc-status-badge.in_progress { background: #ede9fe; color: #5b21b6; }
+.svc-status-badge.delivered  { background: #d1fae5; color: #065f46; }
+.svc-status-badge.cancelled  { background: #fee2e2; color: #991b1b; }
+
+.svc-card-body {
+  padding: 14px 16px;
+  flex-grow: 1;
+}
+.svc-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+.svc-meta strong { color: var(--color-ink); }
+
+.svc-items-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 12px;
+}
+.svc-items-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px dashed #f1f5f9;
+}
+.svc-items-list li:last-child { border-bottom: none; }
+
+.svc-total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.svc-card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #f1f5f9;
+  background: #fbfcfd;
+  flex-wrap: wrap;
+}
+.btn-svc-advance {
+  flex: 1;
+  min-width: 120px;
+  padding: 7px 10px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--color-ink);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: opacity 140ms ease;
+  text-align: center;
+}
+.btn-svc-advance:hover { opacity: 0.88; }
+.btn-svc-advance:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-svc-cancel {
+  padding: 7px 12px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 140ms ease;
+}
+.btn-svc-cancel:hover { background: #fca5a5; }
+
+/* ── SUMMARY ROW ── */
+.svc-summary-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.svc-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+  font-size: 11px;
+  color: var(--text-secondary);
+  gap: 4px;
+}
+.svc-stat strong {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--color-ink);
+}
+
+@media (max-width: 900px) {
+  .svc-summary-row { grid-template-columns: repeat(3, minmax(0,1fr)); }
+}
+@media (max-width: 600px) {
+  .svc-summary-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}

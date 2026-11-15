@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#233e57">
+  <meta name="description" content="Room Service Queue - Hotel Reservation Staff">
+  <title>Dịch vụ phòng | Hotel Reservation Staff</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/services.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/services.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+
+  <div class="staff-layout">
+    <aside class="sidebar" id="sidebar" aria-label="Điều hướng chính">
+      <a class="brand" href="index.html" aria-label="Hotel Reservation Staff">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span class="brand-copy">
+          <strong>HOTEL RESERVATION</strong>
+          <small>STAFF MANAGEMENT</small>
+        </span>
+      </a>
+      <div class="sidebar-section">
+        <p class="sidebar-label">MENU CHÍNH</p>
+        <nav class="side-nav">
+          <a class="nav-link" href="index.html"><span class="nav-icon" aria-hidden="true">▦</span><span>Dashboard</span></a>
+          <a class="nav-link" href="bookings.html"><span class="nav-icon" aria-hidden="true">▤</span><span>Quản lý đặt phòng</span></a>
+          <a class="nav-link" href="checkin.html"><span class="nav-icon" aria-hidden="true">⇄</span><span>Check-in / Check-out</span></a>
+          <a class="nav-link" href="housekeeping.html"><span class="nav-icon" aria-hidden="true">⌂</span><span>Housekeeping Board</span></a>
+          <a class="nav-link is-active" href="services.html" aria-current="page"><span class="nav-icon" aria-hidden="true">♧</span><span>Dịch vụ phòng</span></a>
+          <a class="nav-link" href="billing.html"><span class="nav-icon" aria-hidden="true">▧</span><span>Hóa đơn</span></a>
+          <a class="nav-link" href="reports.html"><span class="nav-icon" aria-hidden="true">▥</span><span>Báo cáo</span></a>
+        </nav>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="help-card"><span class="help-icon" aria-hidden="true">?</span><div><strong>Room Service</strong><p>Tiếp nhận &amp; điều phối đơn dịch vụ tại phòng.</p></div></div>
+        <div class="sidebar-user">
+          <div class="avatar" aria-hidden="true">D</div>
+          <div class="user-copy"><strong>Phạm Quang Duy</strong><span>Front Desk / Staff</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Mở hoặc đóng menu" aria-expanded="false" aria-controls="sidebar"><span aria-hidden="true">☰</span></button>
+          <div class="breadcrumb"><a href="index.html">Staff</a><span class="breadcrumb-separator">/</span><strong>Dịch vụ phòng</strong></div>
+        </div>
+        <div class="topbar-actions">
+          <div class="mode-control-wrap" id="mode-control-wrap">
+            <span class="mode-badge" id="mode-badge">Đang tải...</span>
+            <button class="mode-toggle-btn" id="mode-toggle-btn" type="button">Đổi chế độ</button>
+          </div>
+          <span class="today-label" id="today-label">Hôm nay</span>
+          <div class="topbar-profile">
+            <div class="avatar avatar-small" aria-hidden="true">D</div>
+            <div class="user-copy"><strong>Duy</strong><span>Front Desk</span></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content" id="main-content">
+        <div class="notice-banner" id="mode-notice-banner" hidden>
+          <span><strong>⚠️ DỮ LIỆU MÔ PHỎNG / CHỜ TÍCH HỢP API:</strong> Đang hoạt động trên Mock Data.</span>
+          <button class="button button-outline button-small" id="switch-to-api-btn" type="button">Chuyển sang API thật</button>
+        </div>
+
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow">ROOM SERVICE · HÀNG ĐỢI DỊCH VỤ PHÒNG</p>
+            <h1>Quản lý dịch vụ phòng</h1>
+            <p class="page-description">Tiếp nhận và cập nhật trạng thái đơn dịch vụ: ăn uống, minibar, giặt là, spa. Dịch vụ được tính vào hóa đơn thanh toán khi Check-out.</p>
+          </div>
+          <button class="button button-outline" id="refresh-btn" type="button"><span aria-hidden="true">↻</span> Làm mới hàng đợi</button>
+        </section>
+
+        <!-- 5 chỉ số tổng quan -->
+        <section class="svc-summary-row" aria-label="Tổng quan đơn dịch vụ">
+          <div class="svc-stat"><span>Chờ tiếp nhận</span><strong id="svc-count-pending">—</strong></div>
+          <div class="svc-stat"><span>Đã xác nhận</span><strong id="svc-count-confirmed">—</strong></div>
+          <div class="svc-stat"><span>Đang thực hiện</span><strong id="svc-count-in_progress">—</strong></div>
+          <div class="svc-stat"><span>Đã giao</span><strong id="svc-count-delivered">—</strong></div>
+          <div class="svc-stat"><span>Đã hủy</span><strong id="svc-count-cancelled">—</strong></div>
+        </section>
+
+        <div class="error-state" id="svc-error" hidden>
+          <h3>Không thể kết nối máy chủ</h3>
+          <p id="svc-error-msg">Không thể lấy danh sách đơn dịch vụ.</p>
+          <div class="error-state-actions">
+            <button class="button button-primary button-small" id="retry-btn" type="button">Thử lại</button>
+            <button class="button button-outline button-small" id="enable-mock-btn" type="button">Bật Mock Mode</button>
+          </div>
+        </div>
+
+        <section class="panel">
+          <!-- Tabs lọc trạng thái -->
+          <div class="service-filter-bar">
+            <div class="service-status-tabs" id="svc-tabs" role="tablist">
+              <button class="svc-tab-btn is-active" data-status="all" role="tab" aria-selected="true" type="button">Tất cả <span class="svc-count" id="svc-badge-all">0</span></button>
+              <button class="svc-tab-btn" data-status="pending" role="tab" type="button">Chờ tiếp nhận <span class="svc-count" id="svc-badge-pending">0</span></button>
+              <button class="svc-tab-btn" data-status="confirmed" role="tab" type="button">Đã xác nhận <span class="svc-count" id="svc-badge-confirmed">0</span></button>
+              <button class="svc-tab-btn" data-status="in_progress" role="tab" type="button">Đang thực hiện <span class="svc-count" id="svc-badge-in_progress">0</span></button>
+              <button class="svc-tab-btn" data-status="delivered" role="tab" type="button">Đã giao <span class="svc-count" id="svc-badge-delivered">0</span></button>
+            </div>
+            <label class="search-box">
+              <span class="sr-only">Tìm kiếm theo mã đơn hoặc số phòng</span>
+              <span aria-hidden="true">⌕</span>
+              <input id="svc-search" type="search" placeholder="Tìm mã đơn, phòng, khách..." autocomplete="off">
+            </label>
+          </div>
+
+          <div class="loading-state" id="svc-loading" hidden>
+            <div class="loading-spinner"></div>
+            <span>Đang tải hàng đợi dịch vụ phòng...</span>
+          </div>
+
+          <div class="service-order-grid" id="service-order-grid">
+            <!-- Render qua JS -->
+          </div>
+
+          <p class="empty-state" id="empty-state" hidden>Không có đơn dịch vụ nào trong hàng đợi.</p>
+        </section>
+
+        <footer class="page-footer">
+          <span>Hotel Reservation · Room Service Queue</span>
+          <span>Phụ trách: Phạm Quang Duy</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

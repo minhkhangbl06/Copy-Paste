@@ -35,6 +35,7 @@ class ServiceController extends Controller
 
         return response()->json([
             'status' => 'success',
+            'message' => 'Lấy danh sách dịch vụ thành công.',
             'data' => $services,
         ]);
     }
@@ -55,6 +56,7 @@ class ServiceController extends Controller
 
         return response()->json([
             'status' => 'success',
+            'message' => 'Chi tiết dịch vụ.',
             'data' => $service,
         ]);
     }

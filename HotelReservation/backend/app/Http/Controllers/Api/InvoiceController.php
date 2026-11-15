@@ -38,6 +38,7 @@ class InvoiceController extends Controller
 
         return response()->json([
             'status' => 'success',
+            'message' => 'Đã tính bảng kê hóa đơn.',
             'data' => $previewData,
         ]);
     }
@@ -55,12 +56,18 @@ class InvoiceController extends Controller
 
         $result = $this->lateCheckoutService->calculate($booking, $checkoutTime);
 
-        return response()->json([
-            'status' => 'success',
+        $data = [
             'booking_id' => $booking->id,
             'check_out_date' => $booking->check_out_date,
             'simulated_checkout_time' => $checkoutTime->toDateTimeString(),
             'result' => $result,
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Đã tính phụ thu trả phòng muộn.',
+            'data' => $data,
+            ...$data,
         ]);
     }
 
