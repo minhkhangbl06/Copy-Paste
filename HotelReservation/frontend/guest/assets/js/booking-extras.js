@@ -6,7 +6,7 @@
     const saved=data.load(reference),services=saved.requests.filter(data.billable).map(request=>({
       ...request,reference:request.id,name:data.name(request.type),status:request.status,items:request.items||[],
     }));
-    const pending=saved.requests.filter(r=>!["COMPLETED","CANCELLED"].includes(r.status)).map(r=>({
+    const pending=saved.requests.filter(r=>r.type!=="housekeeping"&&!["COMPLETED","CANCELLED"].includes(r.status)).map(r=>({
       reference:r.id,name:data.name(r.type),description:data.label(r)+(r.type==="laundry"&&r.weightConfirmed!==null?" · Khối lượng: "+r.weightConfirmed+" kg":""),
       price:r.type==="transport"?"Chờ báo giá":"Chờ xác nhận",
     }));

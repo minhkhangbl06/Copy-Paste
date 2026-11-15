@@ -66,7 +66,6 @@
         const lines = [data.paymentLabels[booking.paymentStatus]];
         if (booking.reportedAmount !== null) lines.push("Khách báo đã chuyển: " + money(booking.reportedAmount));
         if (booking.confirmedAmount !== null) lines.push("Đã thanh toán được xác nhận: " + money(booking.confirmedAmount));
-        if (booking.source !== "sample") lines.push("Đang dùng dữ liệu mô phỏng, chưa gửi đến khách sạn.");
         lines.forEach(text => { const p = document.createElement("p"); p.textContent = text; transfer.append(p); });
         card.append(transfer);
       }

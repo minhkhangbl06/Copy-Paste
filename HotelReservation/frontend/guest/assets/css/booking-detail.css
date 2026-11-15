@@ -37,7 +37,6 @@
 }
 .booking-detail-reference p { min-width: 0; }
 .booking-detail-missing { padding-block: 24px 48px; }
-.booking-simulation-note { margin-top: 16px; color: var(--text-secondary); font-size: .875rem; }
 [aria-labelledby="requests-title"] > p { white-space: pre-wrap; overflow-wrap: anywhere; }
 .booking-detail-status {
   padding: 4px 12px;

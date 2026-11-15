@@ -1,7 +1,8 @@
 "use strict";
 
 (() => {
-  // Existing declared sample snapshot (2026-11-02). Never infer state from the clock.
+  // Declared sample states never advance with the clock. CP-B003 uses 10–13/11/2026
+  // for in-stay service testing on 11/11/2026, still exactly three nights.
   // Totals remain supplied booking amounts; missing contact/payment facts stay unknown.
   const samples = [
   {
@@ -42,12 +43,14 @@
   },
   {
     "reference": "CP-B003",
+    // Simulated front-desk allocation; service requests never allocate or release rooms.
+    "assignedRooms": [{"id":"DEMO-ROOM-F301","number":"301"}],
     "confirmedAmount": 1080000,
     "paymentStatus": "DEPOSIT_CONFIRMED",
     "stay": {
       "roomType": "family",
-      "checkIn": "2026-11-01",
-      "checkOut": "2026-11-04",
+      "checkIn": "2026-11-10",
+      "checkOut": "2026-11-13",
       "guests": 4,
       "roomCount": 1
     },
@@ -123,6 +126,11 @@
     }
     return { bookings: [...entries.values()], error: journal.error || saved.error };
   }
+  function assignedRooms(booking){
+    const rooms=booking?.assignedRooms;
+    if(!Array.isArray(rooms)||rooms.some(r=>!r||typeof r.id!=="string"||!/^[-A-Z0-9]{1,80}$/.test(r.id)||typeof r.number!=="string"||!r.number.trim())||new Set(rooms.map(r=>r.id)).size!==rooms.length)return [];
+    return rooms.map(r=>({id:r.id,number:r.number}));
+  }
   function normalizeFilter(value) { return filters.includes(value) ? value : "all"; }
   function matchesFilter(booking, filter) {
     if (filter === "all") return true;
@@ -145,5 +153,5 @@
   }
   // Replace only this read adapter with authenticated M3/M4/M5 APIs later.
   // Session data is neither authorization nor proof that any payment was received.
-  window.BookingData = Object.freeze({ load, labels, paymentLabels, normalizeFilter, matchesFilter, canPay, canViewPayment, canReview, listURL, entryURL });
+  window.BookingData = Object.freeze({ assignedRooms, load, labels, paymentLabels, normalizeFilter, matchesFilter, canPay, canViewPayment, canReview, listURL, entryURL });
 })();

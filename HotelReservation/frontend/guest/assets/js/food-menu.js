@@ -18,7 +18,7 @@
     const state=context.refresh();loaded=cart.load(state.reference);
     if(loaded.error)ui.feedback("Không thể đọc giỏ món đã lưu. Vui lòng thử lại.");
     const summary=cart.totals(loaded.cart),allowed=state.eligible&&!loaded.error&&!loaded.locked;
-    if(loaded.locked)ui.feedback("Yêu cầu đã được lưu. Mở giỏ món để hoàn tất lần gửi trước.");
+    if(loaded.locked)ui.feedback("Vui lòng mở giỏ món để kiểm tra yêu cầu trước.");
     const filtered=catalog.items.filter(i=>category==="all"||i.category===category);
     pageCount=Math.max(1,Math.ceil(filtered.length/pageSize));page=Math.min(page,pageCount);saveNavigation();
     grid.replaceChildren();

@@ -38,7 +38,7 @@
     document.getElementById("review-sent-description").textContent=labels[review.rating-1];
     const text=document.getElementById("review-sent-comment");text.textContent=review.comment;text.hidden=!review.comment.trim();
     const time=document.getElementById("review-sent-at");time.dateTime=review.submittedAt;time.textContent=new Date(review.submittedAt).toLocaleString("vi-VN",{timeZone:"Asia/Bangkok"});
-    submit.disabled=true;if(announce)message("Đã lưu đánh giá mô phỏng trong phiên dùng thử.");
+    submit.disabled=true;if(announce)message("");
   }
   function render(){
     const params=new URLSearchParams(window.location.search),reference=params.get("reference"),filter=bookings.normalizeFilter(params.get("filter"));

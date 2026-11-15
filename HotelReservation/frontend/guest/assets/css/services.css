@@ -74,7 +74,7 @@
   font: 400 1rem/2.25 var(--font-body);
 }
 .service-card .button { width: 100%; gap: 0; }
-.service-transfer-note { margin-bottom: 24px; color: var(--text-secondary); }
+.service-request-note { margin-bottom: 24px; color: var(--text-secondary); }
 .service-panel-heading {
   display: flex;
   justify-content: space-between;
@@ -254,7 +254,6 @@
 .services-request-fields textarea[aria-invalid="true"] { border-color: var(--search-error-color); }
 .service-request-reference h3 { overflow-wrap: anywhere; }
 .service-request-highlight { border-color: var(--color-ink); background: var(--color-muted); scroll-margin-top: var(--header-offset); }
-.service-order-notice { grid-column: 1 / -1; color: var(--color-ink); }
 .service-request-facts dd { white-space: pre-wrap; overflow-wrap: anywhere; }
 #services-feedback, #services-history-error { scroll-margin-top: var(--header-offset); }
 .service-cancel-dialog { width: min(500px, calc(100% - 32px)); max-width: calc(100% - 32px); max-height: 90dvh; overflow: auto; padding: 24px; border: var(--border); color: var(--text-primary); background: var(--color-surface); }
@@ -264,3 +263,5 @@
 .service-dialog-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
 .service-dialog-actions .button { flex: 1 1 150px; gap: 0; }
 #service-cancel-error { color: #B42318; }
+
+.service-card .service-price-note { min-height: 36px; line-height: 1.5; }

@@ -26,6 +26,8 @@
     <script src="../assets/js/food-ui.js" defer></script>
     <script src="../assets/js/food-context.js" defer></script>
     <script src="../assets/js/food-menu.js" defer></script>
+    <link rel="stylesheet" href="../assets/css/stay-actions.css" />
+    <script src="../assets/js/stay-actions.js" defer></script>
   </head>
   <body class="food-page" data-food-view="menu">
     <header id="site-header" class="site-header" data-layout="header" data-active-nav="Dịch vụ"></header>
@@ -61,7 +63,7 @@
           <button class="button button-outline" type="button" data-page-step="1" aria-controls="food-menu-list">Sau</button>
         </nav>
 
-        <!-- Kept in normal document flow so it cannot cover the last item or footer. -->
+        <!-- Shared action controller reserves the measured bar height below the menu. -->
         <section class="food-cart-bar" aria-label="Giỏ món đã chọn" hidden>
           <p class="food-cart-count"></p>
           <p class="food-cart-bar-price">Tạm tính: <strong>0 đ</strong></p>

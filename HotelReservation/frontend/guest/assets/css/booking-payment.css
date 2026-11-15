@@ -23,7 +23,6 @@
 .payment-result-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
 .payment-result-links .button { flex: 1 1 180px; gap: 0; }
 #payment-reported { display: grid; gap: 16px; margin-top: 16px; }
-.payment-simulation-note { font-size: .875rem; color: var(--text-secondary); }
 .payment-report-dialog { width: min(520px, calc(100% - 32px)); max-width: calc(100% - 32px); max-height: 90dvh; overflow: auto; padding: 24px; border: var(--border); background: var(--color-surface); color: var(--text-primary); }
 .payment-report-dialog::backdrop { background: rgb(35 62 87 / 65%); }
 .payment-report-dialog h2 { font-size: 1.375rem; }

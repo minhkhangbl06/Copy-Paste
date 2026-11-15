@@ -39,6 +39,8 @@
     if(!Array.isArray(requests)){errors.push("Chưa đủ dữ liệu dịch vụ.");return {charged,pending,total:null};}
     let invalid=false;
     for(const r of requests){
+      // Ordinary in-stay housekeeping is included, never a fee or pending quote.
+      if(object(r)&&r.bookingReference===reference&&r.type==="housekeeping")continue;
       if(!object(r)||r.bookingReference!==reference||!text(r.id)||seen.has(r.id)||!services.name(r.type)||
         !["PENDING","PROCESSING","CONFIRMED","COMPLETED","CANCELLED"].includes(r.status)){
         invalid=true;continue;

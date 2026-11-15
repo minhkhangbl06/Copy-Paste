@@ -1,0 +1,38 @@
+/* Only loaded by the four stay/food pages. Menus remain above the dock;
+   native dialogs use the browser top layer. No nested scrolling. */
+.stay-actions-page { --stay-header-bottom: 92px; --stay-dock-height: 0px; }
+.stay-actions-page :is(input, textarea, select, [tabindex], button, a) {
+  scroll-margin-top: calc(var(--stay-header-bottom) + 16px);
+  scroll-margin-bottom: calc(var(--stay-dock-height) + 16px);
+}
+.stay-summary-sticky { position: sticky; top: calc(var(--stay-header-bottom) + 16px); align-self: start; }
+.stay-summary-tall { position: static; }
+.stay-dock-spacer { height: var(--stay-dock-height); pointer-events: none; }
+.stay-dock {
+  position: fixed; z-index: 50; inset: auto 0 0;
+  width: min(1200px, calc(100% - 48px)); margin: 0 auto;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+  border: var(--border); background: var(--color-surface);
+  box-shadow: 0 -3px 12px rgb(35 62 87 / 8%);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px 20px;
+}
+.stay-dock[hidden] { display: none; }
+.stay-dock-suppressed { visibility: hidden; pointer-events: none; }
+.stay-dock-copy { min-width: 0; }
+.stay-dock-label { color: var(--text-secondary); font-size: .8125rem; line-height: 1.4; }
+.stay-dock-amount { color: var(--color-ink); font: 600 1.125rem/1.4 var(--font-display); overflow-wrap: anywhere; }
+.stay-dock .button { flex-shrink: 0; min-height: 44px; gap: 0; }
+.stay-actions-page.stay-has-dock .food-content,
+.stay-actions-page.stay-has-dock .booking-content { padding-bottom: 24px; }
+.stay-actions-page.stay-has-dock .room-detail-main { padding-bottom: 24px; }
+@media (max-width: 900px) { .stay-summary-sticky { position: static; } }
+@media (max-width: 1100px) { .food-summary.stay-summary-sticky { position: static; } }
+@media (max-width: 600px) {
+  .stay-dock { width: 100%; padding-inline: 12px; gap: 8px 12px; }
+  .stay-dock .button { width: auto; padding: 10px 12px; font-size: .8125rem; line-height: 1.4; max-width: 55%; white-space: normal; text-align: center; }
+  .stay-dock.food-cart-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .stay-dock .food-cart-count { grid-column: 1 / -1; font-size: .8125rem; line-height: 1.4; }
+  .stay-dock .food-cart-bar-price { gap: 4px; font-size: .8125rem; }
+  .stay-dock .food-cart-bar-price strong { font-size: 1.125rem; }
+  .stay-dock.food-cart-bar .button { max-width: none; }
+}

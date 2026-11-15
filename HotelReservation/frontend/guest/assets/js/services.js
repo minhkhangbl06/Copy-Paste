@@ -4,10 +4,10 @@
   if(!page||!context||!store||page.dataset.serviceUiInitialized)return;
   page.dataset.serviceUiInitialized="true";
   const openers=[...page.querySelectorAll("[data-service-open]")],panels=[...page.querySelectorAll("[data-service-panel]")];
-  const forms={laundry:document.getElementById("laundry-form"),transport:document.getElementById("transfer-form")};
-  const fieldIds={laundry:{time:"service-time",note:"service-note"},transport:{pickup:"transfer-pickup",destination:"transfer-destination",date:"transfer-date",time:"transfer-time",passengers:"transfer-passengers",phone:"transfer-phone",note:"transfer-note"}};
-  const panelFor={laundry:"laundry-request-panel",transport:"transfer-request-panel"};
-  const feedback=document.getElementById("services-feedback"),tokens={laundry:null,transport:null},busy={laundry:false,transport:false};
+  const forms={laundry:document.getElementById("laundry-form"),housekeeping:document.getElementById("housekeeping-form")};
+  const fieldIds={laundry:{time:"service-time",note:"service-note"},housekeeping:{roomId:"housekeeping-room",date:"housekeeping-date",time:"housekeeping-time",note:"housekeeping-note"}};
+  const panelFor={laundry:"laundry-request-panel",housekeeping:"housekeeping-request-panel"};
+  const feedback=document.getElementById("services-feedback"),tokens={laundry:null,housekeeping:null},busy={laundry:false,housekeeping:false};
   const dialog=document.getElementById("service-cancel-dialog");
   let wanted=null,cancelTarget=null,cancelOpener=null,cancelling=false,highlightScrolled=false;
   const money=n=>new Intl.NumberFormat("vi-VN").format(n)+" đ";
@@ -36,7 +36,7 @@
   function clearErrors(type){Object.keys(fieldIds[type]).forEach(key=>setError(type,key));document.getElementById(forms[type].id+"-error").hidden=true;}
   function syncTiming(group){
     const hidden=group.querySelector('input[type="radio"]:checked')?.value!=="scheduled",fields=document.getElementById(group.dataset.serviceTiming);
-    fields.hidden=hidden;fields.querySelectorAll("input").forEach(input=>{input.disabled=hidden;if(hidden){const type=fields.id==="laundry-time-fields"?"laundry":"transport",key=input.id==="transfer-date"?"date":"time";setError(type,key);}});
+    fields.hidden=hidden;fields.querySelectorAll("input").forEach(input=>{input.disabled=hidden;if(hidden){const type=fields.id==="laundry-time-fields"?"laundry":"housekeeping",key=input.id==="housekeeping-date"?"date":"time";setError(type,key);}});
   }
   function read(type){
     const values=Object.fromEntries(Object.entries(fieldIds[type]).map(([key,id])=>[key,document.getElementById(id).value]));
@@ -49,25 +49,40 @@
     list.replaceChildren();const saved=state.booking?store.load(state.reference):{requests:[],error:null};
     error.hidden=!saved.error;error.textContent=saved.error?"Không thể đọc đầy đủ yêu cầu đã lưu. Vui lòng thử lại.":"";
     if(!saved.requests.length){list.append(element("p",state.booking?"Chưa có yêu cầu dịch vụ cho booking này.":"Chọn booking để xem lịch sử yêu cầu."));return;}
-    for(const request of saved.requests){
+    // Newest requests first; equal timestamps prefer the later appended record.
+    // Undated historical fixtures stay last in their existing order. Sort a copy
+    // for presentation only; never change the shared store or request statuses.
+    const newestFirst=saved.requests.map((request,index)=>{
+      const timestamp=Date.parse(request.createdAt);
+      return {request,index,time:Number.isFinite(timestamp)?timestamp:null};
+    }).sort((a,b)=>{
+      if(a.time===null&&b.time===null)return a.index-b.index;
+      if(a.time===null)return 1;if(b.time===null)return -1;
+      return b.time-a.time||b.index-a.index;
+    });
+    for(const {request} of newestFirst){
       const card=element("article",undefined,"service-request"+(request.type==="transport"?" service-request-transport":request.type==="food"?" service-request-food":""));
       card.id="service-"+request.id;card.tabIndex=-1;
       const reference=element("div",undefined,"service-request-reference");reference.append(element("p","Mã yêu cầu"),element("h3",request.id));card.append(reference);
       const facts=element("dl",undefined,"service-request-facts");
       function pair(label,value){const row=element("div"),dd=element("dd");if(typeof value==="string")dd.textContent=value;else dd.append(value);row.append(element("dt",label),dd);facts.append(row);}
       pair("Dịch vụ",store.name(request.type));pair("Thời điểm tạo",date(request.createdAt));
-      const badge=element("span",store.label(request),"service-status service-status-"+({PENDING:"pending",PROCESSING:"processing",CANCELLED:"cancelled",COMPLETED:"completed",CONFIRMED:"processing"})[request.status]);pair("Trạng thái",badge);
+      const badge=element("span",store.label(request),"service-status service-status-"+({PENDING:"pending",PROCESSING:"processing",CANCELLED:"cancelled",COMPLETED:"completed",CONFIRMED:"processing",ACCEPTED:"processing",CLEANING:"processing"})[request.status]);pair("Trạng thái",badge);
       const schedule=request.schedule;
       if(request.type==="laundry"){
         pair("Nhân viên đến lấy đồ",schedule.mode==="asap"?"Lấy đồ sớm nhất có thể":schedule.mode==="scheduled"?schedule.date.split("-").reverse().join("/")+" · "+schedule.time:"Chưa có thông tin");
         pair("Khối lượng đã cân",request.weightConfirmed===null?"Chờ cân xác nhận":request.weightConfirmed+" kg");
         if(!["COMPLETED","CANCELLED"].includes(request.status))pair("Dự kiến trả đồ sạch",request.returnExpectedAt?date(request.returnExpectedAt):"Chờ khách sạn xác nhận");
+      }else if(request.type==="housekeeping"){
+        pair("Phòng cần dọn",request.roomNumber);
+        pair("Thời gian mong muốn",schedule.mode==="asap"?"Sớm nhất có thể":schedule.date.split("-").reverse().join("/")+" · "+schedule.time);
       }else if(request.type==="transport"){
         pair("Điểm đón",request.pickup);pair("Điểm đến",request.destination);pair("Số hành khách",String(request.passengers));pair("Điện thoại",request.phone||"Chưa cung cấp");
         pair("Thời điểm đưa đón",schedule.mode==="asap"?"Đi sớm nhất có thể":schedule.mode==="scheduled"?schedule.date.split("-").reverse().join("/")+" · "+schedule.time:"Chưa có thông tin");
         pair("Quãng đường",request.distanceConfirmed===null?"Chờ xác nhận":request.distanceConfirmed+" km");
       }
-      pair(request.type==="transport"?"Báo giá":"Chi phí",request.status==="CANCELLED"?"Không tính vào tổng":request.costConfirmed===null?(request.type==="transport"?"Chờ báo giá":"Chờ khách sạn xác nhận"):money(request.costConfirmed));
+      if(request.type==="housekeeping")pair("Chi phí","Đã bao gồm trong tiền phòng");
+      else pair(request.type==="transport"?"Báo giá":"Chi phí",request.status==="CANCELLED"?"Không tính vào tổng":request.costConfirmed===null?(request.type==="transport"?"Chờ báo giá":"Chờ khách sạn xác nhận"):money(request.costConfirmed));
       if(request.note)pair("Ghi chú",request.note);
       if(request.cancelledAt)pair("Thời điểm hủy",date(request.cancelledAt));
       card.append(facts);
@@ -97,8 +112,10 @@
     try{tokens[type] ||= store.newId();result=store.create(state.reference,type,values,tokens[type]);}catch{result={error:"Chưa lưu được yêu cầu. Vui lòng thử lại."};}
     busy[type]=false;
     if(result.error||result.errors&&Object.keys(result.errors).length){general.textContent=result.error||"Thông tin đã thay đổi. Vui lòng kiểm tra lại.";general.hidden=false;return;}
+    if(result.duplicate){history();feedback.textContent="Phòng này đã có yêu cầu dọn đang chờ hoặc đang thực hiện.";feedback.hidden=false;focusVisible(document.getElementById("service-"+result.request.id),true);return;}
     forms[type].reset();tokens[type]=null;clearErrors(type);page.querySelectorAll("[data-service-timing]").forEach(syncTiming);
-    closePanel(panel,false);history();feedback.textContent="Đã lưu yêu cầu.";feedback.hidden=false;focusVisible(feedback);
+    closePanel(panel,false);history();feedback.textContent="";feedback.hidden=true;
+    const created=document.getElementById("service-"+result.request.id);created?.classList.add("service-request-highlight");focusVisible(created);
   }
   Object.entries(forms).forEach(([type,form])=>{
     form.addEventListener("submit",event=>submit(type,event));
@@ -127,11 +144,21 @@
   document.getElementById("service-cancel-confirm").addEventListener("click",()=>{
     if(cancelling||!cancelTarget)return;cancelling=true;const result=store.cancel(cancelTarget.reference,cancelTarget.id);cancelling=false;
     if(result.error){const error=document.getElementById("service-cancel-error");error.textContent=result.error;error.hidden=false;return;}
-    history();dialog.close();feedback.textContent="Yêu cầu đã hủy.";feedback.hidden=false;
+    history();dialog.close();feedback.textContent="";feedback.hidden=true;
   });
   context.subscribe((state,event)=>{
     if(event.changed){Object.entries(forms).forEach(([type,form])=>{form.reset();tokens[type]=null;clearErrors(type);});closeAll();if(dialog.open)dialog.close();feedback.hidden=true;}
-    if(event.initial){wanted=({laundry:panelFor.laundry,transport:panelFor.transport})[state.requestedService]||null;closeAll();}
+    if(event.initial){wanted=({laundry:panelFor.laundry,housekeeping:panelFor.housekeeping})[state.requestedService]||null;closeAll();}
+    const roomField=document.getElementById("housekeeping-room"),rooms=window.BookingData.assignedRooms(state.booking),signature=JSON.stringify([state.reference,rooms]);
+    if(roomField.dataset.allocation!==signature){
+      roomField.replaceChildren();
+      if(rooms.length!==1){const option=element("option",rooms.length?"Chọn phòng cần dọn":"Chưa có phòng được bố trí");option.value="";roomField.append(option);}
+      rooms.forEach(r=>{const option=element("option",r.number);option.value=r.id;roomField.append(option);});roomField.dataset.allocation=signature;
+    }
+    if(rooms.length===1)roomField.value=rooms[0].id;
+    roomField.disabled=rooms.length<=1;
+    document.getElementById("housekeeping-room-help").hidden=rooms.length>0;
+    forms.housekeeping.querySelector('[type="submit"]').disabled=!state.canRequest||!rooms.length;
     openers.forEach(b=>{b.disabled=!state.canRequest;});
     if(!state.canRequest)closeAll();
     page.querySelectorAll("[data-service-timing]").forEach(syncTiming);history();
@@ -141,7 +168,6 @@
       const request=state.booking&&store.load(state.reference).requests.find(r=>r.id===id&&r.type==="food"&&r.cartFingerprint);
       if(request){
         const card=document.getElementById("service-"+id);card.classList.add("service-request-highlight");
-        card.prepend(element("p","Đã tạo yêu cầu mô phỏng; chưa gửi đến khách sạn.","service-order-notice"));
         // CSS scroll-margin reserves the sticky-header space even before its
         // asynchronous fragment finishes loading. No input receives focus.
         if(!highlightScrolled){highlightScrolled=true;card.focus({preventScroll:true});card.scrollIntoView({block:"start",behavior:"auto"});}

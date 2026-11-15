@@ -52,7 +52,7 @@
     const saved=read();if(saved.error)return {error:"Chưa lưu được giỏ món. Vui lòng thử lại."};
     const cart=clone(saved.byBooking[reference]||empty()),prior=recorded(reference,cart);
     if(prior.error)return prior;
-    if(cart.submission&&prior.request)return {error:"Yêu cầu đã được ghi nhận. Mở giỏ món để hoàn tất lần gửi trước."};
+    if(cart.submission&&prior.request)return {error:"Vui lòng mở giỏ món để kiểm tra yêu cầu trước."};
     if(!allowStale&&(cart.catalogStamp!==catalog.stamp()||cart.items.some(i=>!catalog.find(i.foodId))))return {error:"Thực đơn đã thay đổi. Vui lòng mở giỏ món để xem lại."};
     const result=change(cart);if(result)return {error:result};
     cart.submission=null;cart.lastSubmission=null;
@@ -72,7 +72,7 @@
     // Recover a verified earlier write before creating anything new. The token
     // is durably saved BEFORE the service request; retries use that same token.
     if(prior.request){
-      if(cart.submission&&!save(reference,{...empty(),lastSubmission:prior.request.id},saved))return {error:"Yêu cầu đã được lưu nhưng chưa dọn được giỏ. Vui lòng thử lại để hoàn tất."};
+      if(cart.submission&&!save(reference,{...empty(),lastSubmission:prior.request.id},saved))return {error:"Chưa thể làm trống giỏ món. Vui lòng thử lại để hoàn tất."};
       return {request:prior.request,error:null};
     }
     if(!eligible(reference))return {error:"Booking không còn đủ điều kiện đặt món."};
@@ -87,7 +87,7 @@
     if(cart.submission.fingerprint!==fp)return {error:"Giỏ đã thay đổi so với lần gửi. Vui lòng tải lại để kiểm tra."};
     const order={note:cart.note,cartFingerprint:fp,orderTotal:summary.total,items:summary.items.map(i=>({foodId:i.id,name:i.name,unit:i.unit,quantity:i.quantity,unitPrice:i.price,lineTotal:i.lineTotal}))};
     const result=requests.createFood(reference,order,cart.submission.id);if(result.error)return result;
-    saved=read();if(saved.error||!save(reference,{...empty(),lastSubmission:result.request.id},saved))return {error:"Yêu cầu đã được lưu nhưng chưa dọn được giỏ. Vui lòng thử lại để hoàn tất."};
+    saved=read();if(saved.error||!save(reference,{...empty(),lastSubmission:result.request.id},saved))return {error:"Chưa thể làm trống giỏ món. Vui lòng thử lại để hoàn tất."};
     return result;
   }
   // Frontend session adapter only, not authorization/database/payment evidence.

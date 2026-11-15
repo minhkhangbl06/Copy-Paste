@@ -392,8 +392,8 @@ select {
   gap: 24px;
 }
 .footer-top {
-  padding-bottom: 32px;
-  border-bottom: 1px solid rgb(255 255 255 / 25%);
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 .footer-top nav {
   display: flex;

@@ -29,7 +29,7 @@
       guests: String(Number(criteria.guests)),
     });
     if (criteria.roomType) params.set("roomType", criteria.roomType);
-    const destination = new URL("guest/rooms.html", siteRoot);
+    const destination = new URL("pages/rooms.html", siteRoot);
     destination.search = params.toString();
     // Frontend criteria only; no real availability or booking confirmation.
     window.location.assign(destination.href);
@@ -41,5 +41,9 @@
       title.scrollIntoView({ block: "start", behavior: reducedMotion.matches ? "instant" : "smooth" });
     });
   });
+  const reference=new URLSearchParams(location.search).get("reference"),link=document.querySelector('.service-link[href*="service=housekeeping"]');
+  if(link&&/^(CP-B\d{3}|DEMO-[A-Z0-9-]{8,80})$/.test(reference||"")){
+    const url=new URL(link.href);url.searchParams.set("reference",reference);link.href=url.href;
+  }
   validation.updateDateBounds();
 })();
