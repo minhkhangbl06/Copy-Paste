@@ -10,7 +10,10 @@ class RequireRole
 {
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        $user = $request->user();
+        $user = $request->user('sanctum') ?? $request->user();
+        if ($user) {
+            $request->setUserResolver(fn () => $user);
+        }
 
         if ($user) {
             $userRole = strtolower($user->role ?? 'guest');

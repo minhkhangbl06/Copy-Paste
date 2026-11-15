@@ -136,7 +136,13 @@ class AuthController
     {
         $user = $request->user();
         if ($user) {
-            $user->currentAccessToken()->delete();
+            $token = $user->currentAccessToken();
+            if ($token && method_exists($token, 'delete')) {
+                $token->delete();
+            }
+            if (method_exists($user, 'tokens')) {
+                $user->tokens()->delete();
+            }
 
             try {
                 DB::table('audit_logs')->insert([
@@ -148,6 +154,10 @@ class AuthController
                     'created_at'  => now(),
                 ]);
             } catch (\Throwable $e) {}
+        }
+
+        if (function_exists('auth')) {
+            auth()->forgetGuards();
         }
 
         return response()->noContent();
