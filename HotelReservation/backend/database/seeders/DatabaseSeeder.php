@@ -15,10 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Tạo User mẫu
+        // 1. Seed Roles & Users phân quyền (Lâm Kim Khanh)
+        $this->call([
+            RoleAndUserSeeder::class,
+        ]);
+
+        // Tạo User admin cơ bản nếu chưa có
         User::firstOrCreate(
             ['email' => 'admin@hotel.com'],
-            ['name' => 'Admin Receptionist', 'password' => bcrypt('password')]
+            ['name' => 'Admin Receptionist', 'password' => bcrypt('password'), 'role' => 'admin', 'status' => 'ACTIVE']
         );
 
         // 2. Tạo Phòng mẫu (Rooms)
