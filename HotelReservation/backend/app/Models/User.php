@@ -1,49 +1,63 @@
 <?php
 
 namespace App\Models;
-
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    use HasApiTokens, HasFactory, Notifiable;
+    
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role',
+        'phone',
+        'national_id',
+        'status',
+        'last_login_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login_at'     => 'datetime',
             'password' => 'hashed',
         ];
+    }
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'user_id');
+    }
+
+    public function hasRole(string ...$roles): bool
+    {
+        $userRole = strtolower($this->role ?? 'guest');
+        $allowed = array_map('strtolower', $roles);
+        if (in_array('admin', $allowed, true) && in_array($userRole, ['admin', 'manager'], true)) {
+            return true;
+        }
+        return in_array($userRole, $allowed, true);
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array(strtolower($this->role ?? ''), ['admin', 'manager'], true);
+    }
+
+    public function isGuest(): bool
+    {
+        return strtolower($this->role ?? 'guest') === 'guest';
     }
 }
