@@ -52,7 +52,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // 4. Tạo Booking mẫu đang ở (Checked-in) để test tính hóa đơn và checkout
-        Booking::updateOrCreate(
+        $demoBooking = Booking::updateOrCreate(
             ['booking_code' => 'BK-20261104-001'],
             [
                 'room_id' => $room101->id,
@@ -64,6 +64,26 @@ class DatabaseSeeder extends Seeder
                 'deposit_amount' => 500000,
                 'status' => 'checked_in',
             ]
+        );
+
+        $bookingRoom = \App\Models\BookingRoom::updateOrCreate(
+            ['booking_id' => $demoBooking->id, 'room_id' => $room101->id],
+            [
+                'check_in_date' => '2026-11-02',
+                'check_out_date' => '2026-11-04',
+                'price_per_night' => 800000,
+                'total_room_amount' => 1600000,
+                'status' => 'OCCUPIED',
+            ]
+        );
+
+        \App\Models\RoomNight::updateOrCreate(
+            ['booking_room_id' => $bookingRoom->id, 'stay_date' => '2026-11-02'],
+            ['room_id' => $room101->id, 'rate' => 800000, 'price' => 800000]
+        );
+        \App\Models\RoomNight::updateOrCreate(
+            ['booking_room_id' => $bookingRoom->id, 'stay_date' => '2026-11-03'],
+            ['room_id' => $room101->id, 'rate' => 800000, 'price' => 800000]
         );
     }
 }

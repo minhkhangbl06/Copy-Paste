@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\BookingRoom;
 use App\Models\Payment;
 use App\Models\Service;
 use App\Models\ServiceOrder;
@@ -16,14 +17,33 @@ use Illuminate\Support\Str;
 class ServiceOrderController extends Controller
 {
     /**
-     * Lấy danh sách đơn dịch vụ (Có thể lọc theo booking_id, room_id, status).
+     * Lấy danh sách đơn dịch vụ (Có thể lọc theo booking_id, booking_room_id, room_id, status).
      */
     public function index(Request $request): JsonResponse
     {
-        $query = ServiceOrder::with(['items.service', 'booking.room', 'payments']);
+        $query = ServiceOrder::with([
+            'items.service',
+            'booking.room',
+            'bookingRoom.room',
+            'room',
+            'payments',
+        ]);
 
         if ($request->filled('booking_id')) {
             $query->where('booking_id', $request->query('booking_id'));
+        }
+
+        if ($request->filled('booking_room_id')) {
+            $query->where('booking_room_id', $request->query('booking_room_id'));
+        }
+
+        if ($request->filled('room_id')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('room_id', $request->query('room_id'))
+                  ->orWhereHas('bookingRoom', function ($bq) use ($request) {
+                      $bq->where('room_id', $request->query('room_id'));
+                  });
+            });
         }
 
         if ($request->filled('status')) {
@@ -40,12 +60,14 @@ class ServiceOrderController extends Controller
     }
 
     /**
-     * Tạo đơn đặt dịch vụ (Room Service Order).
+     * Tạo đơn đặt dịch vụ (Room Service Order) gắn với booking_room_id.
      */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'booking_id' => 'required|exists:bookings,id',
+            'booking_room_id' => 'nullable|exists:booking_rooms,id',
+            'room_id' => 'nullable|exists:rooms,id',
             'items' => 'required|array|min:1',
             'items.*.service_id' => 'required|exists:services,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -53,7 +75,7 @@ class ServiceOrderController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $booking = Booking::with('room')->findOrFail($validated['booking_id']);
+        $booking = Booking::with(['room', 'bookingRooms.room'])->findOrFail($validated['booking_id']);
 
         if ($booking->status === 'checked_out' || $booking->status === 'cancelled') {
             return response()->json([
@@ -62,11 +84,37 @@ class ServiceOrderController extends Controller
             ], 422);
         }
 
-        $order = DB::transaction(function () use ($validated, $booking) {
+        // Xác định booking_room_id và room_id tương ứng
+        $bookingRoomId = null;
+        $roomId = null;
+
+        if (!empty($validated['booking_room_id'])) {
+            $bookingRoom = BookingRoom::where('booking_id', $booking->id)
+                ->findOrFail($validated['booking_room_id']);
+            $bookingRoomId = $bookingRoom->id;
+            $roomId = $bookingRoom->room_id;
+        } elseif (!empty($validated['room_id'])) {
+            $roomId = (int) $validated['room_id'];
+            $bookingRoom = BookingRoom::where('booking_id', $booking->id)
+                ->where('room_id', $roomId)
+                ->first();
+            $bookingRoomId = $bookingRoom?->id;
+        } else {
+            if ($booking->bookingRooms->isNotEmpty()) {
+                $firstBr = $booking->bookingRooms->first();
+                $bookingRoomId = $firstBr->id;
+                $roomId = $firstBr->room_id;
+            } else {
+                $roomId = $booking->room_id;
+            }
+        }
+
+        $order = DB::transaction(function () use ($validated, $booking, $bookingRoomId, $roomId) {
             $order = ServiceOrder::create([
                 'order_code' => 'SO-' . date('Ymd') . '-' . strtoupper(Str::random(5)),
                 'booking_id' => $booking->id,
-                'room_id' => $booking->room_id,
+                'booking_room_id' => $bookingRoomId,
+                'room_id' => $roomId,
                 'total_amount' => 0,
                 'status' => 'pending',
                 'charge_to_room' => $validated['charge_to_room'] ?? true,
@@ -77,21 +125,25 @@ class ServiceOrderController extends Controller
             $total = 0;
             foreach ($validated['items'] as $itemData) {
                 $service = Service::findOrFail($itemData['service_id']);
-                $subtotal = $service->price * $itemData['quantity'];
+                $quantity = (int) $itemData['quantity'];
+                $unitPrice = (float) $service->price;
+                $subtotal = round($unitPrice * $quantity, 2);
                 $total += $subtotal;
 
                 ServiceOrderItem::create([
                     'service_order_id' => $order->id,
                     'service_id' => $service->id,
-                    'quantity' => $itemData['quantity'],
-                    'price_at_order' => $service->price,
+                    'quantity' => $quantity,
+                    'price_at_order' => $unitPrice,
+                    'unit_price' => $unitPrice,
                     'subtotal' => $subtotal,
+                    'amount' => $subtotal,
                 ]);
             }
 
             $order->update(['total_amount' => $total]);
 
-            return $order->load(['items.service', 'booking.room']);
+            return $order->load(['items.service', 'booking.room', 'bookingRoom.room', 'room']);
         });
 
         return response()->json([

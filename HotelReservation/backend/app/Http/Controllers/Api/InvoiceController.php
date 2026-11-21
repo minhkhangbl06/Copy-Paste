@@ -26,7 +26,12 @@ class InvoiceController extends Controller
      */
     public function preview(Request $request, int $bookingId): JsonResponse
     {
-        $booking = Booking::with(['room', 'serviceOrders.items.service'])->findOrFail($bookingId);
+        $booking = Booking::with([
+            'room',
+            'bookingRooms.room',
+            'bookingRooms.roomNights',
+            'serviceOrders.items.service',
+        ])->findOrFail($bookingId);
 
         $checkoutTime = $request->filled('checkout_time') 
             ? Carbon::parse($request->query('checkout_time')) 
@@ -37,9 +42,9 @@ class InvoiceController extends Controller
         $previewData = $this->calculationService->calculateBookingCharges($booking, $checkoutTime, $otherSurcharges);
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Đã tính bảng kê hóa đơn.',
-            'data' => $previewData,
+            'data'    => $previewData,
         ]);
     }
 
@@ -48,7 +53,7 @@ class InvoiceController extends Controller
      */
     public function calculateLateCheckout(Request $request, int $bookingId): JsonResponse
     {
-        $booking = Booking::with('room')->findOrFail($bookingId);
+        $booking = Booking::with(['room', 'bookingRooms.room'])->findOrFail($bookingId);
 
         $checkoutTime = $request->filled('checkout_time') 
             ? Carbon::parse($request->input('checkout_time')) 
@@ -57,32 +62,38 @@ class InvoiceController extends Controller
         $result = $this->lateCheckoutService->calculate($booking, $checkoutTime);
 
         $data = [
-            'booking_id' => $booking->id,
-            'check_out_date' => $booking->check_out_date,
+            'booking_id'              => $booking->id,
+            'check_out_date'          => $booking->check_out_date,
             'simulated_checkout_time' => $checkoutTime->toDateTimeString(),
-            'result' => $result,
+            'result'                  => $result,
         ];
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Đã tính phụ thu trả phòng muộn.',
-            'data' => $data,
+            'data'    => $data,
             ...$data,
         ]);
     }
 
     /**
      * Sinh hoặc cập nhật hóa đơn chính thức cho Booking.
+     * Lưu chi tiết vào INVOICE_ITEMS cho từng đêm, dịch vụ theo phòng và phụ thu phát sinh.
      */
     public function generate(Request $request, int $bookingId): JsonResponse
     {
         $validated = $request->validate([
-            'checkout_time' => 'nullable|date',
+            'checkout_time'    => 'nullable|date',
             'other_surcharges' => 'nullable|numeric|min:0',
-            'notes' => 'nullable|string',
+            'notes'            => 'nullable|string',
         ]);
 
-        $booking = Booking::with('room')->findOrFail($bookingId);
+        $booking = Booking::with([
+            'room',
+            'bookingRooms.room',
+            'bookingRooms.roomNights',
+            'serviceOrders.items.service',
+        ])->findOrFail($bookingId);
 
         $checkoutTime = !empty($validated['checkout_time']) 
             ? Carbon::parse($validated['checkout_time']) 
@@ -93,34 +104,51 @@ class InvoiceController extends Controller
         $calc = $this->calculationService->calculateBookingCharges($booking, $checkoutTime, $otherSurcharges);
         $charges = $calc['charges'];
 
-        $invoice = DB::transaction(function () use ($booking, $charges, $validated, $checkoutTime) {
+        $invoice = DB::transaction(function () use ($booking, $charges, $calc, $validated, $checkoutTime) {
             // Cập nhật actual_checkout_at vào booking
             $booking->update(['actual_checkout_at' => $checkoutTime]);
 
+            // Tạo hoặc cập nhật đúng 1 hóa đơn duy nhất cho booking
             $invoice = Invoice::updateOrCreate(
                 ['booking_id' => $booking->id],
                 [
-                    'invoice_code' => 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(5)),
-                    'room_charges' => $charges['room_charges'],
-                    'service_charges' => $charges['service_charges'],
+                    'invoice_code'      => 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(5)),
+                    'room_charges'      => $charges['room_charges'],
+                    'service_charges'   => $charges['service_charges'],
                     'late_checkout_fee' => $charges['late_checkout_fee'],
-                    'other_surcharges' => $charges['other_surcharges'],
-                    'deposit_deducted' => $charges['deposit_deducted'],
-                    'tax_amount' => $charges['tax_amount'],
-                    'total_amount' => $charges['total_amount'],
-                    'status' => $charges['total_amount'] <= 0 ? 'paid' : 'unpaid',
-                    'issued_at' => now(),
-                    'notes' => $validated['notes'] ?? null,
+                    'other_surcharges'  => $charges['other_surcharges'],
+                    'deposit_deducted'  => $charges['deposit_deducted'],
+                    'tax_amount'        => $charges['tax_amount'],
+                    'total_amount'      => $charges['total_amount'],
+                    'status'            => $charges['total_amount'] <= 0 ? 'paid' : 'unpaid',
+                    'issued_at'         => now(),
+                    'notes'             => $validated['notes'] ?? null,
                 ]
             );
 
-            return $invoice->load(['booking.room', 'payments']);
+            // Xóa các dòng invoice_items cũ (nếu xuất lại hóa đơn)
+            $invoice->items()->delete();
+
+            // Lưu các dòng chi tiết vào bảng INVOICE_ITEMS
+            foreach ($calc['invoice_items'] as $itemData) {
+                $invoice->items()->create([
+                    'booking_room_id' => $itemData['booking_room_id'] ?? null,
+                    'room_id'         => $itemData['room_id'] ?? null,
+                    'item_type'       => $itemData['item_type'],
+                    'description'     => $itemData['description'],
+                    'quantity'        => $itemData['quantity'] ?? 1,
+                    'unit_price'      => $itemData['unit_price'],
+                    'amount'          => $itemData['amount'],
+                ]);
+            }
+
+            return $invoice->load(['items.room', 'items.bookingRoom.room', 'booking.room', 'booking.bookingRooms.room', 'payments']);
         });
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Tạo hóa đơn thành công.',
-            'data' => $invoice,
+            'data'    => $invoice,
         ]);
     }
 
@@ -130,36 +158,36 @@ class InvoiceController extends Controller
     public function recordPayment(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'payment_method' => 'required|in:cash,credit_card,bank_transfer,vnpay,momo',
+            'amount'           => 'required|numeric|min:1',
+            'payment_method'   => 'required|in:cash,credit_card,bank_transfer,vnpay,momo',
             'transaction_code' => 'nullable|string',
-            'notes' => 'nullable|string',
+            'notes'            => 'nullable|string',
         ]);
 
         $invoice = Invoice::with('payments')->findOrFail($id);
 
-        if ($invoice->status === 'paid') {
+        if ($invoice->status === 'paid' || $invoice->status === 'closed') {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Hóa đơn này đã được thanh toán toàn bộ trước đó.',
             ], 422);
         }
 
         $payment = DB::transaction(function () use ($invoice, $validated) {
             $payment = Payment::create([
-                'invoice_id' => $invoice->id,
-                'amount' => $validated['amount'],
-                'payment_method' => $validated['payment_method'],
+                'invoice_id'       => $invoice->id,
+                'amount'           => $validated['amount'],
+                'payment_method'   => $validated['payment_method'],
                 'transaction_code' => $validated['transaction_code'] ?? null,
-                'status' => 'success',
-                'notes' => $validated['notes'] ?? null,
+                'status'           => 'success',
+                'notes'            => $validated['notes'] ?? null,
             ]);
 
             $totalPaid = $invoice->payments()->where('status', 'success')->sum('amount');
 
             if ($totalPaid >= $invoice->total_amount) {
                 $invoice->update([
-                    'status' => 'paid',
+                    'status'  => 'paid',
                     'paid_at' => now(),
                 ]);
             } else {
@@ -172,10 +200,10 @@ class InvoiceController extends Controller
         });
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Ghi nhận thanh toán thành công.',
-            'data' => [
-                'invoice' => $invoice->fresh(['payments']),
+            'data'    => [
+                'invoice'     => $invoice->fresh(['payments', 'items']),
                 'new_payment' => $payment,
             ],
         ]);
@@ -183,24 +211,29 @@ class InvoiceController extends Controller
 
     /**
      * Đóng hóa đơn & Hoàn tất thủ tục Check-out.
-     * Chuyển trạng thái booking thành 'checked_out' và phòng thành 'dirty' (chờ dọn dẹp).
+     * Chặn đóng hóa đơn khi chưa thu đủ (BR rule).
+     * Khi đóng, chuyển booking thành 'checked_out' và các phòng thành 'dirty'.
      */
     public function closeInvoice(int $id): JsonResponse
     {
-        $invoice = Invoice::with(['booking.room', 'payments'])->findOrFail($id);
+        $invoice = Invoice::with([
+            'booking.room',
+            'booking.bookingRooms.room',
+            'payments',
+            'items',
+        ])->findOrFail($id);
 
-        if ($invoice->status !== 'paid') {
-            $totalPaid = $invoice->payments()->where('status', 'success')->sum('amount');
-            if ($totalPaid < $invoice->total_amount) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Hóa đơn chưa được thanh toán đủ số tiền. Không thể đóng hóa đơn.',
-                    'total_amount' => $invoice->total_amount,
-                    'paid_amount' => $totalPaid,
-                    'remaining' => $invoice->total_amount - $totalPaid,
-                ], 422);
-            }
-            $invoice->update(['status' => 'paid', 'paid_at' => now()]);
+        $totalPaid = (float) $invoice->payments()->where('status', 'success')->sum('amount');
+
+        // Chặn đóng hóa đơn khi chưa thu đủ tiền
+        if ($totalPaid < (float) $invoice->total_amount) {
+            return response()->json([
+                'status'       => 'error',
+                'message'      => 'Hóa đơn chưa được thanh toán đủ số tiền. Không thể đóng hóa đơn.',
+                'total_amount' => $invoice->total_amount,
+                'paid_amount'  => $totalPaid,
+                'remaining'    => round($invoice->total_amount - $totalPaid, 2),
+            ], 422);
         }
 
         DB::transaction(function () use ($invoice) {
@@ -212,27 +245,46 @@ class InvoiceController extends Controller
             // Cập nhật trạng thái booking sang checked_out
             $invoice->booking->update(['status' => 'checked_out']);
 
-            // Cập nhật phòng sang dirty (chờ Housekeeping dọn)
+            // Cập nhật các phòng sang dirty (chờ buồng phòng dọn dẹp)
+            if ($invoice->booking->bookingRooms()->exists()) {
+                foreach ($invoice->booking->bookingRooms as $br) {
+                    $br->update(['status' => 'CHECKED_OUT']);
+                    if ($br->room) {
+                        $br->room->update(['status' => 'dirty']);
+                    }
+                }
+            }
             if ($invoice->booking->room) {
                 $invoice->booking->room->update(['status' => 'dirty']);
             }
+
+            // Cập nhật trạng thái hóa đơn sang paid / closed
+            $invoice->update([
+                'status'    => 'paid',
+                'paid_at'   => $invoice->paid_at ?? now(),
+                'closed_at' => now(),
+            ]);
         });
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Đã đóng hóa đơn và hoàn tất thủ tục Check-out cho khách.',
-            'data' => $invoice->fresh(['booking.room']),
+            'data'    => $invoice->fresh(['booking.room', 'booking.bookingRooms.room', 'items']),
         ]);
     }
 
     /**
      * GET /api/invoices
      * Lấy danh sách toàn bộ hóa đơn (hỗ trợ lọc theo status, search theo mã, khách hàng, SĐT).
-     * Phục vụ Lễ tân / Thu ngân / Báo cáo doanh thu.
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Invoice::with(['booking.room', 'payments']);
+        $query = Invoice::with([
+            'booking.room',
+            'booking.bookingRooms.room',
+            'payments',
+            'items',
+        ]);
 
         if ($request->filled('status') && $request->query('status') !== 'all') {
             $query->where('status', $request->query('status'));
@@ -257,7 +309,8 @@ class InvoiceController extends Controller
             $invoice->booking_code = $invoice->booking?->booking_code;
             $invoice->guest_name = $invoice->booking?->guest_name;
             $invoice->guest_phone = $invoice->booking?->guest_phone;
-            $invoice->room_number = $invoice->booking?->room?->room_number;
+            $invoice->room_number = $invoice->booking?->room?->room_number 
+                ?? $invoice->booking?->bookingRooms?->pluck('room.room_number')->filter()->join(', ');
             return $invoice;
         });
 
@@ -270,14 +323,17 @@ class InvoiceController extends Controller
 
     /**
      * GET /api/invoices/{id}
-     * Lấy chi tiết 1 hóa đơn kèm thông tin đặt phòng, phòng, dịch vụ đã gọi và lịch sử thanh toán.
+     * Lấy chi tiết 1 hóa đơn kèm danh sách invoice_items từng phòng và lịch sử thanh toán.
      */
     public function show(int $id): JsonResponse
     {
         $invoice = Invoice::with([
             'booking.room',
+            'booking.bookingRooms.room',
             'booking.serviceOrders.items.service',
-            'payments'
+            'items.room',
+            'items.bookingRoom.room',
+            'payments',
         ])->find($id);
 
         if (!$invoice) {
@@ -290,7 +346,8 @@ class InvoiceController extends Controller
         $invoice->booking_code = $invoice->booking?->booking_code;
         $invoice->guest_name = $invoice->booking?->guest_name;
         $invoice->guest_phone = $invoice->booking?->guest_phone;
-        $invoice->room_number = $invoice->booking?->room?->room_number;
+        $invoice->room_number = $invoice->booking?->room?->room_number 
+            ?? $invoice->booking?->bookingRooms?->pluck('room.room_number')->filter()->join(', ');
 
         return response()->json([
             'status'  => 'success',
