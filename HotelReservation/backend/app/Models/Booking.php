@@ -67,6 +67,16 @@ class Booking extends Model
         return $this->hasOne(Invoice::class, 'booking_id');
     }
 
+    public function bookingRooms(): HasMany
+    {
+        return $this->hasMany(BookingRoom::class, 'booking_id');
+    }
+
+    public function roomNights()
+    {
+        return $this->hasManyThrough(RoomNight::class, BookingRoom::class, 'booking_id', 'booking_room_id');
+    }
+
     public function scopeOverlappingStay(Builder $query, string $checkIn, string $checkOut): Builder
     {
         return $query->whereIn('status', ['pending', 'confirmed', 'checked_in'])
