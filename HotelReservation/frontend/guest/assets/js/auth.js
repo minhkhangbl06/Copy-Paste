@@ -16,10 +16,10 @@
   function paint(errors){Object.entries(fields).forEach(([name,f])=>{const text=errors[name]||"",p=document.getElementById(f.id+"-error");p.textContent=text;p.hidden=!text;f.setAttribute("aria-invalid",String(Boolean(text)));});}
   function links(){const target=session.authTarget();const forgot=document.querySelector("[data-forgot-link]");if(forgot)forgot.href=session.authURL("forgot-password",target.href).href;document.querySelector(".auth-home").href=session.home;document.querySelector(".auth-back").href=target.href;document.querySelector(".auth-text-link").href=session.authURL(register?"login":"register",target.href).href;return target;}
   form.addEventListener("input",event=>{if(event.target.getAttribute("aria-invalid")==="true"||event.target.name==="password"&&fields.confirmPassword?.getAttribute("aria-invalid")==="true")paint(rules.authErrors(read(),register));});
-  form.addEventListener("submit",event=>{
+  form.addEventListener("submit",async event=>{
     event.preventDefault();if(busy)return;const values=read(),errors=rules.authErrors(values,register);paint(errors);general.hidden=true;
     const first=Object.keys(fields).find(name=>errors[name]);if(first){fields[first].focus();return;}
-    busy=true;submit.disabled=true;const result=session.start(values,register);busy=false;submit.disabled=false;
+    busy=true;submit.disabled=true;const result=await session.start(values,register);busy=false;submit.disabled=false;
     if(result.error||result.errors){if(result.errors)paint(result.errors);general.textContent=result.error||"Vui lòng kiểm tra thông tin.";general.hidden=false;return;}
     const target=links();clearPasswords();form.reset();window.location.assign(target.href);
   });

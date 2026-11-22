@@ -34,7 +34,7 @@
   // Shared rendering for search and stay-selection forms; optional stay checks
   // extend the same date/guest rules without registering a second set of listeners.
   function attach(form, fields, { onEdit = () => {}, getRoomType = () => "", validateExtra = () => ({}) } = {}) {
-    const roomTypes = fields.roomType ? [...fields.roomType.options].map(option => option.value) : undefined;
+    const roomTypes = () => fields.roomType ? [...fields.roomType.options].map(option => option.value) : undefined;
     const checked = new Set();
     function read() {
       const criteria = Object.fromEntries(Object.entries(fields).map(([key, field]) => [key, field.value.trim()]));
@@ -67,7 +67,7 @@
     }
     function validateAll(criteria = read(), required = true) {
       updateDateBounds();
-      const errors = { ...validate(criteria, { required, roomTypes }), ...validateExtra(criteria, required) };
+      const errors = { ...validate(criteria, { required, roomTypes: roomTypes() }), ...validateExtra(criteria, required) };
       showErrors(errors, true);
       return errors;
     }
@@ -81,7 +81,7 @@
       function edit() {
         updateDateBounds();
         const criteria = read();
-        const errors = { ...validate(criteria, { roomTypes }), ...validateExtra(criteria, true) };
+        const errors = { ...validate(criteria, { roomTypes: roomTypes() }), ...validateExtra(criteria, true) };
         if (checked.has(key)) setError(key, errors[key]);
         if (key === "checkIn" && (checked.has("checkOut") || fields.checkOut.value)) {
           checked.add("checkOut");

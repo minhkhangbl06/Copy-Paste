@@ -15,22 +15,15 @@
       href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap"
     />
     <link rel="stylesheet" href="../assets/css/global.css" />
-    <link rel="stylesheet" href="../assets/css/profile.css" />
-    <link rel="stylesheet" href="../assets/css/my-bookings.css" />
-    <link rel="stylesheet" href="../assets/css/account.css" />
+    <link rel="stylesheet" href="../assets/css/guest-app.css" />
+    <script src="../assets/js/guest-config.js" defer></script>
     <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-api.js" defer></script>
     <script src="../assets/js/guest-session.js" defer></script>
     <script src="../assets/js/layout.js" defer></script>
-    <script src="../assets/js/room-data.js" defer></script>
     <script src="../assets/js/search-validation.js" defer></script>
-    <script src="../assets/js/room-stay.js" defer></script>
-    <script src="../assets/js/booking-draft.js" defer></script>
-    <script src="../assets/js/booking-simulation.js" defer></script>
-    <script src="../assets/js/booking-data.js" defer></script>
-    <script src="../assets/js/booking-actions.js" defer></script>
-    <script src="../assets/js/review-data.js" defer></script>
-    <script src="../assets/js/account-nav.js" defer></script>
-    <script src="../assets/js/my-bookings.js" defer></script>
+    <script src="../assets/js/guest-reservations.js" defer></script>
+    <script src="../assets/js/guest-app.js" defer></script>
   </head>
   <body class="my-bookings-page">
     <!-- No matching navigation item on this page; keep the shared signed-out header. -->
@@ -40,69 +33,7 @@
       data-layout="header"
       data-active-nav="Booking của tôi"
     ></header>
-    <main id="main">
-      <div class="my-bookings-heading">
-        <div class="container">
-          <h1>Tài khoản của tôi</h1>
-        </div>
-      </div>
-
-      <div class="container account-layout">
-        <aside class="profile-sidebar" aria-label="Tài khoản khách hàng" data-account-nav="bookings"></aside>
-        <div class="my-bookings-content account-main">
-        <!-- Status groups are filtered by declared enum codes, never by device date. -->
-        <div
-          class="my-bookings-groups"
-          role="group"
-          aria-label="Phân nhóm booking"
-        >
-          <button type="button" class="my-bookings-group" data-booking-filter="all" aria-pressed="true">
-            Tất cả
-          </button>
-          <button type="button" class="my-bookings-group" data-booking-filter="upcoming" aria-pressed="false">
-            Sắp tới
-          </button>
-          <button type="button" class="my-bookings-group" data-booking-filter="staying" aria-pressed="false">
-            Đang lưu trú
-          </button>
-          <button type="button" class="my-bookings-group" data-booking-filter="completed" aria-pressed="false">
-            Đã hoàn tất
-          </button>
-          <button type="button" class="my-bookings-group" data-booking-filter="cancelled" aria-pressed="false">
-            Đã hủy
-          </button>
-        </div>
-
-        <!-- Shared samples + validated session data: booking-data.js. -->
-        <p id="my-bookings-error" role="status" hidden></p>
-        <div id="my-bookings-empty" hidden>
-          <p>Không có booking trong nhóm này.</p>
-          <a class="button button-primary" href="rooms.html">Tìm phòng</a>
-        </div>
-        <section class="my-bookings-list" aria-label="Danh sách booking"></section>
-        <template id="my-booking-template">
-          <article class="my-booking-card">
-            <div class="my-booking-card-heading"><h2></h2><span class="my-booking-status"></span></div>
-            <div class="my-booking-card-content">
-              <div class="my-booking-room">
-                <figure class="my-booking-image"><img alt="" width="800" height="680" loading="lazy" /></figure>
-                <div class="my-booking-room-name"><p>Loại phòng</p><h3></h3></div>
-              </div>
-              <dl class="my-booking-facts">
-                <div><dt>Ngày nhận phòng</dt><dd></dd></div><div><dt>Ngày trả phòng</dt><dd></dd></div>
-                <div><dt>Số đêm</dt><dd></dd></div><div><dt>Tổng số khách</dt><dd></dd></div>
-                <div><dt>Số lượng phòng</dt><dd></dd></div>
-              </dl>
-              <div class="my-booking-offer">
-                <div><p class="my-booking-money-label"></p><p class="my-booking-money"></p></div>
-                <div class="my-booking-actions"></div>
-              </div>
-            </div>
-          </article>
-        </template>
-        </div>
-      </div>
-    </main>
+    <main id="main" class="container guest-app" data-guest-page="my-bookings"><noscript>Vui lòng bật JavaScript để sử dụng chức năng này.</noscript></main>
     <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
   </body>
 </html>

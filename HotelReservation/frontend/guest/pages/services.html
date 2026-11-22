@@ -15,21 +15,16 @@
       href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Roboto:wght@400;500;600;700&amp;display=swap"
     />
     <link rel="stylesheet" href="../assets/css/global.css" />
-    <link rel="stylesheet" href="../assets/css/services.css" />
+
+    <link rel="stylesheet" href="../assets/css/guest-app.css" />
+    <script src="../assets/js/guest-config.js" defer></script>
     <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-api.js" defer></script>
     <script src="../assets/js/guest-session.js" defer></script>
     <script src="../assets/js/layout.js" defer></script>
-    <script src="../assets/js/room-data.js" defer></script>
     <script src="../assets/js/search-validation.js" defer></script>
-    <script src="../assets/js/room-stay.js" defer></script>
-    <script src="../assets/js/booking-draft.js" defer></script>
-    <script src="../assets/js/booking-simulation.js" defer></script>
-    <script src="../assets/js/booking-data.js" defer></script>
-    <script src="../assets/js/booking-actions.js" defer></script>
-    <script src="../assets/js/service-data.js" defer></script>
-    <script src="../assets/js/booking-extras.js" defer></script>
-    <script src="../assets/js/services-context.js" defer></script>
-    <script src="../assets/js/services.js" defer></script>
+    <script src="../assets/js/guest-reservations.js" defer></script>
+    <script src="../assets/js/guest-app.js" defer></script>
   </head>
   <body class="services-page">
     <header
@@ -38,220 +33,7 @@
       data-layout="header"
       data-active-nav="Dịch vụ"
     ></header>
-    <main id="main">
-      <div class="services-heading">
-        <div class="container">
-          <h1>Dịch vụ</h1>
-          <p>
-            Lựa chọn dịch vụ và theo dõi các yêu cầu trong thời gian lưu trú.
-          </p>
-        </div>
-      </div>
-
-      <!-- Service context and history are read by booking reference. Frontend session
-           simulation only; M4 must validate hotel timezone, checkout cutoff and rights. -->
-      <section id="services-context-message" class="container guest-context-message" role="status" hidden><p></p><a class="services-back" href="my-bookings.html">← Về booking của tôi</a></section>
-      <div class="container services-content" hidden>
-        <section id="services-booking-picker" class="services-stay"><label for="services-booking">Booking đang lưu trú</label><select id="services-booking" aria-label="Chọn booking để sử dụng dịch vụ"></select></section>
-        <p id="services-feedback" role="status" tabindex="-1" hidden></p>
-        <section class="services-stay" aria-labelledby="stay-title">
-          <div class="services-stay-heading">
-            <h2 id="stay-title">Thông tin lưu trú</h2>
-            <span class="service-status service-status-staying"
-              >Đang lưu trú</span
-            >
-          </div>
-          <dl class="services-stay-facts">
-            <div>
-              <dt>Mã booking</dt>
-              <dd></dd>
-            </div>
-            <div>
-              <dt>Loại phòng</dt>
-              <dd></dd>
-            </div>
-            <div>
-              <dt>Tổng số khách</dt>
-              <dd></dd>
-            </div>
-            <div>
-              <dt>Ngày nhận phòng</dt>
-              <dd></dd>
-            </div>
-            <div>
-              <dt>Ngày trả phòng</dt>
-              <dd></dd>
-            </div>
-            <div>
-              <dt>Số lượng phòng</dt>
-              <dd></dd>
-            </div>
-          </dl>
-        </section>
-
-        <section class="services-catalog" aria-labelledby="catalog-title">
-          <h2 id="catalog-title">Dịch vụ dành cho bạn</h2>
-          <div class="services-catalog-grid">
-            <article class="service-card" aria-labelledby="breakfast-title">
-              <h3 id="breakfast-title">Ăn uống</h3>
-              <p class="service-description">
-                Lựa chọn món ăn, đồ uống và số lượng theo nhu cầu.
-              </p>
-              <p class="service-price service-price-note">Giá theo từng món</p>
-              <a id="services-food-menu" class="button button-outline" href="food-menu.html">Xem thực đơn</a>
-            </article>
-            <article class="service-card" aria-labelledby="laundry-title">
-              <h3 id="laundry-title">Giặt ủi</h3>
-              <p class="service-description">
-                Yêu cầu giặt ủi quần áo, tính phí theo khối lượng.
-              </p>
-              <p class="service-price">50.000 <span>đ / kg</span></p>
-              <button
-                id="open-laundry-request"
-                class="button button-outline"
-                type="button"
-                aria-label="Yêu cầu dịch vụ giặt ủi"
-                data-service-open="laundry-request-panel"
-                aria-controls="laundry-request-panel"
-                aria-expanded="false"
-              >
-                Yêu cầu dịch vụ
-              </button>
-            </article>
-            <article class="service-card" aria-labelledby="housekeeping-title">
-  <h3 id="housekeeping-title">Dọn phòng</h3>
-  <p class="service-description">Yêu cầu nhân viên dọn phòng trong thời gian lưu trú.</p>
-  <p class="service-price service-price-note">Đã bao gồm trong tiền phòng</p>
-  <button id="open-housekeeping-request" class="button button-outline" type="button" data-service-open="housekeeping-request-panel" aria-controls="housekeeping-request-panel" aria-expanded="false">Yêu cầu dọn phòng</button>
-</article>
-          </div>
-        </section>
-
-        <section
-          id="laundry-request-panel"
-          class="services-request-panel"
-          aria-labelledby="request-title"
-          data-service-panel
-          hidden
-        >
-          <div class="service-panel-heading">
-            <h2 id="request-title" tabindex="-1">Yêu cầu giặt ủi</h2>
-            <button
-              class="button button-outline service-panel-close"
-              type="button"
-              data-service-close
-              aria-label="Đóng yêu cầu giặt ủi"
-            >
-              Đóng
-            </button>
-          </div>
-          <p class="service-laundry-rate">
-            Đơn giá tham khảo: <strong>50.000 đ/kg</strong>
-          </p>
-          <p class="service-request-note">
-            Khối lượng và chi phí được xác nhận sau khi nhận đồ.
-          </p>
-          <p class="service-request-note">
-            Thời gian dự kiến trả đồ sạch sẽ được khách sạn thông báo sau khi tiếp nhận yêu cầu.
-          </p>
-          <!-- UI convention: pickup is on the day the guest sends the request.
-               Backend will determine that date using hotel time/timezone when integrated.
-               No fixed/current date is rendered here; no return-time promise.
-               Weight is confirmed by staff after collection, not entered by the guest.
-               Fields retain values when toggled; reset only after a successful session save
-               or a booking-context change. No real staff acceptance occurs here. -->
-          <form id="laundry-form" class="services-request-fields room-search-form" aria-labelledby="request-title" novalidate>
-            <fieldset
-              class="service-timing service-field-wide"
-              data-service-timing="laundry-time-fields"
-            >
-              <legend>Bạn muốn nhân viên đến lấy đồ khi nào?</legend>
-              <label for="laundry-asap">
-                <input
-                  id="laundry-asap"
-                  name="laundryTiming"
-                  type="radio"
-                  value="asap"
-                  checked
-                />
-                <span>Lấy đồ sớm nhất có thể</span>
-              </label>
-              <label for="laundry-scheduled">
-                <input
-                  id="laundry-scheduled"
-                  name="laundryTiming"
-                  type="radio"
-                  value="scheduled"
-                  aria-controls="laundry-time-fields"
-                />
-                <span>Chọn giờ đến lấy đồ</span>
-              </label>
-            </fieldset>
-            <div id="laundry-time-fields" class="service-field" hidden>
-              <label for="service-time">Giờ nhân viên đến lấy đồ</label>
-              <input
-                id="service-time"
-                name="preferredTime"
-                type="time"
-                aria-describedby="laundry-time-help service-time-error"
-              />
-              <p id="service-time-error" class="search-field-error" hidden></p>
-              <p id="laundry-time-help" class="service-field-help">
-                Giờ bạn mong muốn nhân viên đến lấy quần áo đem giặt.
-              </p>
-            </div>
-            <div class="service-field service-field-wide">
-              <label for="service-note">Ghi chú</label>
-              <textarea
-                id="service-note"
-                name="note"
-                rows="4" maxlength="1000" aria-describedby="service-note-error"
-                placeholder="Lưu ý về quần áo hoặc hướng dẫn nhân viên đến lấy đồ."
-              ></textarea>
-              <p id="service-note-error" class="search-field-error" hidden></p>
-            </div>
-            <p id="laundry-form-error" class="search-field-error service-field-wide" role="alert" hidden></p>
-            <div class="service-request-action">
-              <button class="button button-primary" type="submit">
-                Gửi yêu cầu giặt ủi
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <section id="housekeeping-request-panel" class="services-request-panel" aria-labelledby="housekeeping-request-title" data-service-panel hidden>
-  <div class="service-panel-heading"><h2 id="housekeeping-request-title" tabindex="-1">Yêu cầu dọn phòng</h2><button class="button button-outline service-panel-close" type="button" data-service-close aria-label="Đóng yêu cầu dọn phòng">Đóng</button></div>
-  <p class="service-request-note">Khách sạn sẽ xác nhận thời gian có thể phục vụ.</p>
-  <!-- Ordinary in-stay housekeeping is included in room charges. Checkout jobs
-       belong to M2's backend workflow and must not release an occupied room here.
-       M4/M5 must validate allocation/ownership and hotel-local service times. -->
-  <form id="housekeeping-form" class="services-request-fields room-search-form" aria-labelledby="housekeeping-request-title" novalidate>
-    <div class="service-field service-field-wide"><label for="housekeeping-room">Phòng cần dọn</label><select id="housekeeping-room" name="roomId" aria-describedby="housekeeping-room-error housekeeping-room-help"></select><p id="housekeeping-room-error" class="search-field-error" hidden></p><p id="housekeeping-room-help" class="service-field-help" hidden>Chưa có thông tin phòng được bố trí. Vui lòng liên hệ lễ tân.</p></div>
-    <fieldset class="service-timing service-field-wide" data-service-timing="housekeeping-schedule-fields"><legend>Thời điểm mong muốn</legend>
-      <label for="housekeeping-asap"><input id="housekeeping-asap" name="housekeepingTiming" type="radio" value="asap" checked /><span>Sớm nhất có thể</span></label>
-      <label for="housekeeping-scheduled"><input id="housekeeping-scheduled" name="housekeepingTiming" type="radio" value="scheduled" aria-controls="housekeeping-schedule-fields" /><span>Chọn thời gian</span></label>
-    </fieldset>
-    <div id="housekeeping-schedule-fields" class="services-request-fields service-field-wide" hidden>
-      <div class="service-field"><label for="housekeeping-date">Ngày dọn phòng</label><input id="housekeeping-date" type="date" aria-describedby="housekeeping-date-error" /><p id="housekeeping-date-error" class="search-field-error" hidden></p></div>
-      <div class="service-field"><label for="housekeeping-time">Giờ dọn phòng mong muốn</label><input id="housekeeping-time" type="time" aria-describedby="housekeeping-time-error" /><p id="housekeeping-time-error" class="search-field-error" hidden></p></div>
-    </div>
-    <div class="service-field service-field-wide"><label for="housekeeping-note">Ghi chú</label><textarea id="housekeeping-note" name="housekeepingNote" rows="4" maxlength="1000" aria-describedby="housekeeping-note-error" placeholder="Ví dụ: Tôi sẽ ra ngoài lúc 14 giờ, vui lòng thay khăn khi dọn phòng."></textarea><p class="service-field-help">Không bắt buộc</p><p id="housekeeping-note-error" class="search-field-error" hidden></p></div>
-    <p id="housekeeping-form-error" class="search-field-error service-field-wide" role="alert" hidden></p>
-    <div class="service-request-action"><button class="button button-primary" type="submit">Gửi yêu cầu dọn phòng</button></div>
-  </form>
-</section>
-
-        <section class="services-history" aria-labelledby="history-title">
-          <h2 id="history-title" tabindex="-1">Yêu cầu của tôi</h2>
-          <p id="services-history-error" role="status" hidden></p>
-          <div class="service-requests-list"></div>
-        </section>
-      </div>
-    </main>
-    <dialog id="service-cancel-dialog" class="service-cancel-dialog" aria-labelledby="service-cancel-title">
-      <h2 id="service-cancel-title">Hủy yêu cầu</h2><p id="service-cancel-summary"></p><p id="service-cancel-error" role="alert" hidden></p>
-      <div class="service-dialog-actions"><button id="service-cancel-back" class="button button-outline" type="button" autofocus>Quay lại</button><button id="service-cancel-confirm" class="button button-primary" type="button">Xác nhận hủy</button></div>
-    </dialog>
+    <main id="main" class="container guest-app" data-guest-page="services"><noscript>Vui lòng bật JavaScript để sử dụng chức năng này.</noscript></main>
     <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
   </body>
 </html>

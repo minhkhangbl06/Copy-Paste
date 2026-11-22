@@ -76,7 +76,7 @@
     function close(restore = false) { if (!dropdown) return; dropdown.hidden = true; avatar.setAttribute("aria-expanded", "false"); if (restore) avatar.focus({ preventScroll: true }); }
     header.closeAccount = () => close();
     function authLinks() { actions.querySelectorAll("a").forEach(a => { a.href = session.authURL(a.dataset.sitePath.includes("register") ? "register" : "login", window.location.href).href; }); }
-    function logout() { const result = session.logout(); if (result.error) { const text = notice.querySelector("p") || document.createElement("p"); text.textContent = result.error; if (!text.parentNode) notice.prepend(text); notice.hidden = false; } }
+    async function logout() { const result = await session.logout(); if (result.error) { const text = notice.querySelector("p") || document.createElement("p"); text.textContent = result.error; if (!text.parentNode) notice.prepend(text); notice.hidden = false; } }
     function render() {
       const state = session.load(); close(); host.replaceChildren(); avatar = null; dropdown = null;
       host.hidden = !state.guest; actions.hidden = Boolean(state.guest); inner.classList.toggle("session-active", Boolean(state.guest)); authLinks();

@@ -2,135 +2,99 @@ const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const { webcrypto } = require("node:crypto");
 const test = require("node:test");
 
-const scripts = path.join(__dirname, "../assets/js");
-function page(storage = new Map()) {
-  const events = new Map(), main = { hidden: false };
+function page(respond) {
+  const storage = new Map(), requests = [], events = new Map();
   const context = {
-    URL, URLSearchParams, Uint8Array, crypto: webcrypto,
-    Date: class extends Date {
-      constructor(...args) { super(...(args.length ? args : ["2026-11-11T10:00:00+07:00"])); }
-      static now() { return new Date("2026-11-11T10:00:00+07:00").getTime(); }
-    },
+    URL, URLSearchParams, AbortController, setTimeout, clearTimeout, Date, Intl,
     CustomEvent: class { constructor(type, init) { this.type = type; this.detail = init.detail; } },
-    document: { currentScript: { src: "http://localhost/assets/js/guest-session.js" }, querySelector: selector => selector === "main" ? main : null },
-    location: { href: "http://localhost/pages/my-bookings.html", pathname: "/pages/my-bookings.html", assign() {}, reload() { this.reloaded = true; } },
+    document: { currentScript: { src: "http://localhost/guest/assets/js/guest-session.js" }, querySelector: () => null },
+    location: { href: "http://localhost/guest/pages/my-bookings.html", assign() {}, reload() {} },
     sessionStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
-    addEventListener(type, fn) { if (!events.has(type)) events.set(type, []); events.get(type).push(fn); },
-    dispatchEvent(event) { for (const fn of events.get(event.type) || []) fn(event); },
+    addEventListener(type, callback) { if (!events.has(type)) events.set(type, []); events.get(type).push(callback); },
+    dispatchEvent(event) { for (const callback of events.get(event.type) || []) callback(event); },
+    async fetch(url, options) { requests.push({ url, options }); return respond(url, options); },
   };
   context.window = context;
   vm.createContext(context);
-  const load = file => vm.runInContext(readFileSync(path.join(scripts, file), "utf8"), context, { filename: file });
-  load("guest-validation.js"); load("guest-session.js");
-  return { context, session: context.GuestSession, storage, main, load };
+  for (const name of ["guest-config", "guest-validation", "guest-api", "guest-session"]) vm.runInContext(readFileSync(path.join(__dirname, "../assets/js", name + ".js"), "utf8"), context);
+  return { context, storage, requests, session: context.GuestSession, api: context.GuestAPI };
 }
-const login = (p, identifier) => {
-  const result = p.session.start({ identifier, password: "test-password" });
+const response = (data, status = 200) => ({ ok: status >= 200 && status < 300, status, json: async () => data });
+const credentials = { identifier: "alice@example.com", password: "test-password" };
+const authenticated = (id = 42) => response({ data: { user: { id, name: "Alice Guest", email: "alice@example.com", phone: null, role: "guest" }, access_token: "test-token-" + id, expires_in: 28800 } });
+
+test("login sends credentials to the real endpoint and stores only the returned identity and token", async () => {
+  const p = page(() => authenticated());
+  assert.equal((await p.session.start(credentials)).error, null);
+  assert.equal(p.session.owner(), "42");
+  assert.equal(p.session.load().guest.phone, "");
+  assert.equal(p.requests[0].url, "http://127.0.0.1:8000/api/auth/login");
+  assert.deepEqual(JSON.parse(p.requests[0].options.body), { email: credentials.identifier, password: credentials.password });
+  assert.ok(!JSON.stringify([...p.storage.values()]).includes(credentials.password));
+  await p.api.request("/guest/bookings");
+  assert.equal(p.requests[1].options.headers.Authorization, "Bearer test-token-42");
+});
+
+test("wrong credentials and unavailable backend never create a simulated session", async () => {
+  for (const reply of [() => response({ message: "Sai thông tin" }, 401), () => { throw Error("offline"); }]) {
+    const p = page(reply);
+    assert.ok((await p.session.start(credentials)).error);
+    assert.equal(p.session.owner(), null);
+    assert.equal(p.storage.size, 0);
+  }
+});
+
+test("registration maps frontend field names to the backend contract", async () => {
+  const p = page(() => authenticated());
+  const result = await p.session.start({ fullName: "Alice Guest", email: "alice@example.com", phone: "0912345678", password: "test-password", confirmPassword: "test-password" }, true);
   assert.equal(result.error, null);
-  return result.guest;
-};
-function markWorkspace(p) { for (const key of p.session.privateKeys) p.storage.set(key, "previous-owner"); }
-function assertCleared(p) { for (const key of p.session.privateKeys) assert.equal(p.storage.has(key), false, key); }
-function assertPreserved(p) { for (const key of p.session.privateKeys) assert.equal(p.storage.get(key), "previous-owner", key); }
-
-test("demo phone never inherits an email guest's placeholder phone or private data", () => {
-  const p = page(), alice = login(p, "alice@example.com");
-  assert.equal(alice.phone, "0900000000"); markWorkspace(p);
-  const demo = login(p, "0900 000-000");
-  assert.equal(demo.id, p.session.demoGuestId); assert.notEqual(demo.id, alice.id);
-  assertCleared(p);
-  assert.equal(JSON.parse(p.storage.get(p.session.workspaceKey)).guestId, demo.id);
+  const body = JSON.parse(p.requests[0].options.body);
+  assert.equal(body.name, "Alice Guest"); assert.equal(body.role, undefined); assert.equal(body.confirmPassword, undefined);
 });
 
-test("both demo aliases preserve the same workspace, including after profile edits", () => {
-  const p = page(); login(p, "0900000000");
-  assert.equal(p.session.update({ fullName: "Updated Demo", email: "changed@example.com", phone: "0912345678" }).error, null);
-  markWorkspace(p);
-  assert.equal(login(p, " GUEST.DEMO@example.com ").id, p.session.demoGuestId); assertPreserved(p);
-  assert.equal(login(p, "0900000000").id, p.session.demoGuestId); assertPreserved(p);
+test("account switch clears all former simulated private data", async () => {
+  let id = 1;
+  const p = page(() => authenticated(id));
+  await p.session.start(credentials);
+  p.session.privateKeys.forEach(key => p.storage.set(key, "old-owner"));
+  id = 2; await p.session.start(credentials);
+  assert.equal(p.session.owner(), "2");
+  p.session.privateKeys.forEach(key => assert.equal(p.storage.has(key), false));
 });
 
-for (const identifier of ["changed@example.com", "0912345678"]) {
-  test(`edited demo contact ${identifier} does not grant its workspace to another identity`, () => {
-    const p = page(); login(p, "guest.demo@example.com");
-    p.session.update({ fullName: "Updated Demo", email: "changed@example.com", phone: "0912345678" }); markWorkspace(p);
-    assert.notEqual(login(p, identifier).id, p.session.demoGuestId); assertCleared(p);
-  });
-}
-
-test("registered guest can reuse email and explicit phone without losing private data", () => {
-  const p = page(), result = p.session.start({ fullName: "Alice Guest", email: "alice@example.com", phone: "0912 345-678", password: "test-password", confirmPassword: "test-password" }, true);
-  assert.equal(result.error, null); markWorkspace(p);
-  assert.equal(login(p, " ALICE@example.com ").id, result.guest.id); assertPreserved(p);
-  assert.equal(login(p, "0912-345 678").id, result.guest.id); assertPreserved(p);
+test("logout revokes the server token before clearing the local session", async () => {
+  const p = page(url => url.endsWith("/logout") ? response(null, 204) : authenticated());
+  await p.session.start(credentials);
+  assert.equal((await p.session.logout()).error, null);
+  assert.equal(p.requests[1].options.method, "POST");
+  assert.equal(p.requests[1].options.headers.Authorization, "Bearer test-token-42");
+  assert.equal(p.session.token(), null);
 });
 
-test("a non-demo registration using the reserved phone cannot inherit demo data", () => {
-  const p = page(); login(p, "0900000000"); markWorkspace(p);
-  const result = p.session.start({ fullName: "Alice Guest", email: "alice@example.com", phone: "0900000000", password: "test-password", confirmPassword: "test-password" }, true);
-  assert.equal(result.error, null); assert.notEqual(result.guest.id, p.session.demoGuestId); assertCleared(p);
-  markWorkspace(p);
-  assert.equal(login(p, "0900000000").id, p.session.demoGuestId); assertCleared(p);
+test("401 on a private API clears the expired identity", async () => {
+  const p = page(url => url.endsWith("/login") ? authenticated() : response({ message: "Unauthenticated" }, 401));
+  await p.session.start(credentials);
+  await assert.rejects(p.api.request("/guest/bookings"));
+  assert.equal(p.session.owner(), null);
 });
 
-test("editing a regular profile to the demo email cannot retain its workspace on demo login", () => {
-  const p = page(), alice = login(p, "alice@example.com");
-  p.session.update({ fullName: "Alice Guest", email: "guest.demo@example.com", phone: "0912345678" }); markWorkspace(p);
-  assert.notEqual(login(p, "guest.demo@example.com").id, alice.id); assertCleared(p);
+test("redirects reject external paths and preserve multi-room selection", () => {
+  const p = page(() => authenticated());
+  for (const target of ["https://evil.example/guest/pages/invoice.html", "//evil.example/", "javascript:alert(1)", "/guest/auth/login.html"]) assert.equal(p.session.safeReturn(target).href, p.session.home);
+  const url = p.session.safeReturn("pages/booking.html?roomIds=1%2C2&checkIn=2026-12-01&password=secret");
+  assert.equal(url.searchParams.get("roomIds"), "1,2"); assert.equal(url.searchParams.has("password"), false);
 });
 
-for (const identifiers of [["alice@example.com", "bob@example.com"], ["0912345678", "0987654321"], ["guest.demo@example.com", "bob@example.com"]]) {
-  test(`switching ${identifiers.join(" to ")} clears every private store`, () => {
-    const p = page(), first = login(p, identifiers[0]); markWorkspace(p);
-    assert.notEqual(login(p, identifiers[1]).id, first.id); assertCleared(p);
-  });
-}
-
-test("invalid login leaves the current identity and workspace intact", () => {
-  const p = page(), alice = login(p, "alice@example.com"); markWorkspace(p);
-  assert.ok(p.session.start({ identifier: "not-an-email", password: "test-password" }).errors);
-  assert.equal(p.session.owner(), alice.id); assertPreserved(p);
-});
-
-test("failed cleanup blocks both identities; retry clears the entire old workspace", () => {
-  const p = page(); login(p, "alice@example.com"); markWorkspace(p);
-  const remove = p.context.sessionStorage.removeItem;
-  p.context.sessionStorage.removeItem = key => { if (key === "copyPasteHotel.serviceRequests") throw Error("storage unavailable"); remove(key); };
-  assert.ok(p.session.start({ identifier: "0900000000", password: "test-password" }).error);
-  assert.equal(p.session.load().guest, null);
-  assert.equal(JSON.parse(p.storage.get(p.session.key)).state, "clearing");
-  p.context.sessionStorage.removeItem = remove;
-  login(p, "0900000000"); assertCleared(p);
-});
-
-test("logout clears all private stores, session and workspace binding", () => {
-  const p = page(); login(p, "alice@example.com"); markWorkspace(p);
-  assert.equal(p.session.logout().error, null); assertCleared(p);
-  assert.equal(p.storage.has(p.session.key), false); assert.equal(p.storage.has(p.session.workspaceKey), false);
-});
-
-test("real booking, service and cart adapters cannot carry old guest data across a switch", () => {
-  const p = page(); login(p, "guest.demo@example.com");
-  for (const file of ["room-data.js", "search-validation.js", "room-stay.js", "booking-draft.js", "booking-simulation.js", "booking-data.js", "booking-actions.js", "service-data.js", "food-data.js", "food-cart-data.js", "review-data.js"]) p.load(file);
-  const c = p.context, contact = { fullName: "Demo Guest", email: "guest.demo@example.com", phone: "0900000000" };
-  const draft = c.BookingDraft.create({ roomType: "standard", checkIn: "2026-11-23", checkOut: "2026-11-25", guests: "2", roomCount: "1" }, contact, "", new URLSearchParams());
-  assert.equal(c.BookingDraft.save(draft), true);
-  const payment = c.BookingSimulation.prepare(), expected = { reference: payment.draft.payment.reference, plan: payment.draft.payment.plan, fingerprint: c.BookingSimulation.fingerprint(payment.draft) };
-  assert.equal(c.BookingSimulation.send(expected).error, null);
-  const request = c.ServiceRequests.create("CP-B003", "housekeeping", { mode: "asap", roomId: "DEMO-ROOM-F301", note: "Demo request" }, c.ServiceRequests.newId());
-  assert.equal(request.error, null);
-  assert.equal(c.FoodCart.setQuantity("CP-B003", "water", 2).error, null);
-  const oldPage = page(p.storage);
-  login(p, "alice@example.com"); assertCleared(p);
-  assert.equal(c.BookingData.load().bookings.length, 0);
-  assert.equal(c.FoodCart.load("CP-B003").cart.items.length, 0);
-  assert.equal(c.ServiceRequests.load("CP-B003").requests.some(r => r.id === request.request.id), false);
-  assert.ok(c.ReviewData.saveDraft("CP-B004", 5, "Old page callback").error);
-  oldPage.context.dispatchEvent({ type: "pageshow" });
-  assert.equal(oldPage.main.hidden, true); assert.equal(oldPage.context.location.reloaded, true);
-  login(p, "0900000000"); assertCleared(p);
-  assert.equal(c.BookingData.load().bookings.some(b => b.reference === expected.reference), false);
+test("invoice lines stay with the selected booking room; shared charges stay separate", () => {
+  const p = page(() => authenticated());
+  const groups = p.api.groupItems([
+    { booking_room_id: 12, room_id: 102, amount: "900000" },
+    { room_id: 101, amount: "50000" },
+    { room_id: null, amount: "20000" },
+  ], [{ id: 11, room_id: 101 }, { id: 12, room_id: 102 }]);
+  assert.equal(groups.length, 3); assert.equal(groups[0].items[0].amount, "50000");
+  assert.equal(groups[1].items[0].amount, "900000"); assert.equal(groups[2].room, null);
+  assert.equal(p.api.money(null), "Chưa có thông tin");
 });

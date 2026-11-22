@@ -1,0 +1,31 @@
+.guest-app { padding-block: 48px 72px; min-height: 65vh; }
+.guest-app h1 { margin-bottom: 12px; }
+.guest-app h2 { font-size: 1.35rem; margin: 0 0 20px; }
+.guest-app p { line-height: 1.7; }
+.guest-toolbar, .guest-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-block: 20px; }
+.guest-card { background: #fff; border: 1px solid #e3ded5; border-radius: 16px; padding: 24px; margin-block: 20px; }
+.guest-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 20px; }
+.guest-grid .guest-card { margin: 0; }
+.guest-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 18px; align-items: end; }
+.guest-field { display: grid; gap: 8px; }
+.guest-field input, .guest-field select, .guest-field textarea { width: 100%; padding: 12px; border: 1px solid #bdb7ac; border-radius: 8px; font: inherit; background: #fff; color: #272d29; }
+.guest-field textarea { min-height: 90px; }
+.guest-app button:disabled { opacity: .55; cursor: wait; }
+.guest-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+.guest-facts dt { color: #666; font-size: .9rem; }
+.guest-facts dd { margin: 6px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.guest-note, .guest-feedback { padding: 16px; background: #f4f0e7; border-radius: 8px; margin-block: 16px; }
+.guest-feedback[data-error="true"] { background: #fff0eb; color: #8f291e; }
+.guest-table-wrap { overflow-x: auto; }
+.guest-table { width: 100%; border-collapse: collapse; text-align: left; }
+.guest-table th, .guest-table td { padding: 12px 10px; border-bottom: 1px solid #e3ded5; vertical-align: top; }
+.guest-table th { font-weight: 600; }
+.guest-table[data-columns="4"] { min-width: 580px; }
+.guest-table[data-columns="4"] th:first-child { width: 45%; }
+.guest-table td:last-child, .guest-table th:last-child { text-align: right; white-space: nowrap; }
+.guest-choice { display: flex; align-items: center; gap: 12px; font-weight: 600; cursor: pointer; }
+.guest-choice input { width: 20px; height: 20px; accent-color: #264e3b; }
+.guest-selection { position: sticky; bottom: 12px; z-index: 2; box-shadow: 0 4px 24px #0001; }
+.guest-amount { font-size: 1.5rem; font-weight: 700; }
+.guest-room-photo { width: 100%; height: 210px; object-fit: cover; border-radius: 10px; margin-bottom: 16px; }
+@media (max-width: 600px) { .guest-app { padding-top: 28px; } .guest-card { padding: 18px; } .guest-table { font-size: .88rem; } }
