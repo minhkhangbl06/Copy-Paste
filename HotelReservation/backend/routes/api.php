@@ -8,15 +8,6 @@ use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\ServiceOrderController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes - Hotel Reservation System
-|--------------------------------------------------------------------------
-*/
-
-// =========================================================================
-// 0. Module Xác thực & Bảo mật (Auth & Security - Lâm Kim Khanh)
-// =========================================================================
 Route::prefix('auth')->group(function (): void {
     Route::post('/register', [AuthController::class, 'register'])
          ->middleware('throttle:10,15');
@@ -29,10 +20,6 @@ Route::prefix('auth')->group(function (): void {
     });
 });
 
-// =========================================================================
-// 1. Phân hệ của Khang: Dịch vụ phòng, Đơn dịch vụ, Hóa đơn & Thanh toán
-// =========================================================================
-
 // Module Quản lý Dịch vụ (Services)
 Route::prefix('services')->group(function (): void {
     Route::get('/', [ServiceController::class, 'index']);
@@ -44,34 +31,36 @@ Route::prefix('services')->group(function (): void {
 // Module Đơn dịch vụ (Service Orders)
 Route::prefix('service-orders')->group(function (): void {
     Route::get('/', [ServiceOrderController::class, 'index'])
-         ->middleware('role:service_staff,receptionist,admin');
+         ->middleware('role:service_staff,receptionist,admin,manager');
     Route::post('/', [ServiceOrderController::class, 'store'])
-         ->middleware('role:guest,receptionist,admin');
+         ->middleware('role:guest,receptionist,admin,manager');
     Route::patch('/{id}/status', [ServiceOrderController::class, 'updateStatus'])
-         ->middleware('role:service_staff,receptionist,admin');
+         ->middleware('role:service_staff,receptionist,admin,manager');
     Route::post('/{id}/pay', [ServiceOrderController::class, 'pay'])
-         ->middleware('role:billing,receptionist,admin');
+         ->middleware('role:billing,receptionist,admin,manager');
 });
 
 // Module Bảng kê, Phụ thu trả phòng muộn & Hóa đơn theo Booking
 Route::prefix('bookings/{booking_id}')->group(function (): void {
-    Route::get('/invoice/preview', [InvoiceController::class, 'preview']);
-    Route::post('/late-checkout', [InvoiceController::class, 'calculateLateCheckout']);
-    Route::post('/invoice', [InvoiceController::class, 'generate']);
+    Route::get('/invoice/preview', [InvoiceController::class, 'preview'])
+         ->middleware('role:guest,receptionist,billing,admin,manager');
+    Route::post('/late-checkout', [InvoiceController::class, 'calculateLateCheckout'])
+         ->middleware('role:billing,receptionist,admin,manager');
+    Route::post('/invoice', [InvoiceController::class, 'generate'])
+         ->middleware('role:billing,receptionist,admin,manager');
 });
 
 // Module Quản lý Hóa đơn & Thanh toán (Invoices & Billing)
 Route::prefix('invoices')->group(function (): void {
-    Route::get('/', [InvoiceController::class, 'index']);
-    Route::get('/{id}', [InvoiceController::class, 'show']);
-    Route::post('/{id}/pay', [InvoiceController::class, 'recordPayment']);
+    Route::get('/', [InvoiceController::class, 'index'])
+         ->middleware('role:guest,billing,receptionist,admin,manager');
+    Route::get('/{id}', [InvoiceController::class, 'show'])
+         ->middleware('role:guest,billing,receptionist,admin,manager');
+    Route::post('/{id}/pay', [InvoiceController::class, 'recordPayment'])
+         ->middleware('role:billing,receptionist,admin,manager');
     Route::post('/{id}/close', [InvoiceController::class, 'closeInvoice'])
-         ->middleware('role:billing,receptionist,admin');
+         ->middleware('role:billing,admin,manager');
 });
-
-// =========================================================================
-// 2. Phân hệ của Trịnh Thị Tiểu Muội: Quản lý Phòng & Đặt phòng (Reservation)
-// =========================================================================
 
 // Module Phòng & Trạng thái phòng (Rooms & Housekeeping)
 Route::prefix('rooms')->group(function (): void {
@@ -79,19 +68,23 @@ Route::prefix('rooms')->group(function (): void {
     Route::get('/available', [ReservationController::class, 'getAvailableRooms']);
     Route::get('/{id}', [ReservationController::class, 'showRoom']);
     Route::patch('/{id}/status', [RoomStatusController::class, 'update'])
-         ->middleware('role:housekeeping,admin');
+         ->middleware('role:housekeeping,admin,manager');
 });
 
 // Module Đặt phòng (Bookings, Check-in, Check-out & Hủy hoàn cọc BR-06)
 Route::prefix('bookings')->group(function (): void {
-    Route::get('/', [ReservationController::class, 'indexBookings']);
+    Route::get('/', [ReservationController::class, 'indexBookings'])
+         ->middleware('role:guest,receptionist,admin,billing,manager');
     Route::post('/', [ReservationController::class, 'createBooking'])
-         ->middleware('role:guest,receptionist,admin,billing');
-    Route::get('/{id}', [ReservationController::class, 'showBooking']);
+         ->middleware('role:guest,receptionist,admin,billing,manager');
+    Route::get('/{id}', [ReservationController::class, 'showBooking'])
+         ->middleware('role:guest,receptionist,admin,billing,manager');
     Route::patch('/{id}', [ReservationController::class, 'updateBooking'])
-         ->middleware('role:guest,receptionist,admin,billing');
+         ->middleware('role:guest,receptionist,admin,billing,manager');
     Route::post('/{id}/cancel', [ReservationController::class, 'cancelBooking'])
-         ->middleware('role:guest,receptionist,admin,billing');
-    Route::post('/{id}/check-in', [ReservationController::class, 'checkIn']);
-    Route::post('/{id}/check-out', [ReservationController::class, 'checkOut']);
+         ->middleware('role:guest,receptionist,admin,billing,manager');
+    Route::post('/{id}/check-in', [ReservationController::class, 'checkIn'])
+         ->middleware('role:receptionist,admin,manager');
+    Route::post('/{id}/check-out', [ReservationController::class, 'checkOut'])
+         ->middleware('role:receptionist,admin,manager');
 });
