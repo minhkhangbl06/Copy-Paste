@@ -41,6 +41,21 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class, 'user_id');
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class, 'user_id');
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class, 'user_id');
+    }
+
+    public function housekeepingTasks(): HasMany
+    {
+        return $this->hasMany(HousekeepingTask::class, 'assigned_to');
+    }
+    
     public function hasRole(string ...$roles): bool
     {
         $userRole = strtolower($this->role ?? 'guest');
@@ -49,6 +64,11 @@ class User extends Authenticatable
             return true;
         }
         return in_array($userRole, $allowed, true);
+    }
+
+    public function isStaff(): bool
+    {
+        return in_array(strtolower($this->role ?? ''), ['admin', 'manager', 'receptionist', 'billing', 'housekeeping', 'service_staff'], true);
     }
 
     public function isAdmin(): bool
