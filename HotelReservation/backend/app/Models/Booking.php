@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Booking extends Model
@@ -57,6 +58,16 @@ class Booking extends Model
         return $this->belongsTo(Room::class, 'room_id');
     }
 
+    public function bookingRooms(): HasMany
+    {
+        return $this->hasMany(BookingRoom::class, 'booking_id');
+    }
+
+    public function roomNights(): HasManyThrough
+    {
+        return $this->hasManyThrough(RoomNight::class, BookingRoom::class, 'booking_id', 'booking_room_id');
+    }
+    
     public function serviceOrders(): HasMany
     {
         return $this->hasMany(ServiceOrder::class, 'booking_id');
@@ -67,6 +78,16 @@ class Booking extends Model
         return $this->hasOne(Invoice::class, 'booking_id');
     }
 
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class, 'booking_id');
+    }
+
+    public function housekeepingTasks(): HasMany
+    {
+        return $this->hasMany(HousekeepingTask::class, 'booking_id');
+    }
+    
     public function scopeOverlappingStay(Builder $query, string $checkIn, string $checkOut): Builder
     {
         return $query->whereIn('status', ['pending', 'confirmed', 'checked_in'])
