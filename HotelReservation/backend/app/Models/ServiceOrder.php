@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ServiceOrder extends Model
 {
@@ -12,6 +14,7 @@ class ServiceOrder extends Model
     protected $fillable = [
         'order_code',
         'booking_id',
+        'booking_room_id',
         'room_id',
         'total_amount',
         'status',
@@ -26,23 +29,28 @@ class ServiceOrder extends Model
         'is_paid' => 'boolean',
     ];
 
-    public function booking()
+    public function booking(): belongsTo
     {
-        return $this->belongsTo(Booking::class);
+        return $this->belongsTo(Booking::class, 'booking_id');
     }
 
-    public function room()
+    public function bookingRoom(): BelongsTo
     {
-        return $this->belongsTo(Room::class);
+        return $this->belongsTo(BookingRoom::class, 'booking_room_id');
     }
 
-    public function items()
+    public function room(): belongsTo
     {
-        return $this->hasMany(ServiceOrderItem::class);
+        return $this->belongsTo(Room::class, 'room_id');
     }
 
-    public function payments()
+    public function items(): hasMany
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(ServiceOrderItem::class, 'service_order_id');
+    }
+
+    public function payments(): hasMany
+    {
+        return $this->hasMany(Payment::class, 'service_order_id');
     }
 }
