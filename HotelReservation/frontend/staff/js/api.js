@@ -422,6 +422,10 @@
       'Content-Type': 'application/json'
     };
 
+    var token = sessionStorage.getItem('hotel_staff_token');
+    if (token && new URL(url).origin === new URL(DEFAULT_API_BASE).origin) {
+      defaultHeaders.Authorization = 'Bearer ' + token;
+    }
     var config = Object.assign({}, options, {
       headers: Object.assign({}, defaultHeaders, options.headers || {})
     });
@@ -988,3 +992,132 @@
     }
   };
 });
+
+// them moi 
+(async function checkStaffSession() {
+  const receptionPages = ['index.html', 'bookings.html', 'checkin.html',
+    'housekeeping.html', 'services.html', 'billing.html', 'reports.html'];
+  const pagesByRole = {
+    receptionist: receptionPages,
+    admin: receptionPages,
+    manager: receptionPages,
+    housekeeping: ['housekeeping.html'],
+    service_staff: ['services.html'],
+    billing: ['billing.html', 'checkin.html', 'reports.html']
+  };
+  const roleLabels = {
+    receptionist: 'Lễ tân',
+    admin: 'Quản trị viên',
+    manager: 'Quản lý',
+    housekeeping: 'Buồng phòng',
+    service_staff: 'Dịch vụ phòng',
+    billing: 'Thu ngân'
+  };
+
+  const page = location.pathname.split('/').pop() || 'index.html';
+  if (!receptionPages.includes(page)) return;
+
+  const tokenKey = 'hotel_staff_token';
+  const token = sessionStorage.getItem(tokenKey);
+  const goToLogin = () => {
+    sessionStorage.removeItem(tokenKey);
+    location.replace('login.html');
+  };
+
+  if (!token) {
+    goToLogin();
+    return;
+  }
+
+  const headers = {
+    Accept: 'application/json',
+    Authorization: 'Bearer ' + token
+  };
+  const authBase = 'http://127.0.0.1:8000/api/auth';
+
+  document.documentElement.style.visibility = 'hidden';
+
+  try {
+    const response = await fetch(authBase + '/me', {
+      headers,
+      signal: AbortSignal.timeout(7000)
+    });
+    if (response.status === 401 || response.status === 403) {
+      goToLogin();
+      return;
+    }
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+
+    const { data: user } = await response.json();
+    const allowed = Object.hasOwn(pagesByRole, user.role)
+      ? pagesByRole[user.role]
+      : null;
+
+    if (!allowed) {
+      goToLogin();
+      return;
+    }
+    if (!allowed.includes(page)) {
+      location.replace(allowed[0]);
+      return;
+    }
+
+    document.querySelectorAll('a[href]').forEach((link) => {
+      const target = link.getAttribute('href');
+      if (receptionPages.includes(target) && !allowed.includes(target)) {
+        if (link.classList.contains('brand')) link.href = allowed[0];
+        else link.style.display = 'none';
+      }
+    });
+
+    document.querySelectorAll('.user-copy strong').forEach((element) => {
+      element.textContent = user.name;
+    });
+    document.querySelectorAll('.user-copy span').forEach((element) => {
+      element.textContent = roleLabels[user.role];
+    });
+    document.querySelectorAll('.avatar').forEach((element) => {
+      element.textContent = user.name.trim().charAt(0).toUpperCase();
+    });
+
+    const greeting = document.querySelector('.page-heading .page-description');
+    if (page === 'index.html' && greeting) {
+      greeting.textContent =
+        `Xin chào ${user.name}! Đây là tình hình hoạt động của khách sạn.`;
+    }
+
+    const topbar = document.querySelector('.topbar-actions');
+    if (topbar) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'button button-outline';
+      button.textContent = 'Đăng xuất';
+      topbar.appendChild(button);
+
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+          const result = await fetch(authBase + '/logout', {
+            method: 'POST',
+            headers,
+            signal: AbortSignal.timeout(7000)
+          });
+          if (!result.ok && result.status !== 401) {
+            throw new Error('HTTP ' + result.status);
+          }
+          goToLogin();
+        } catch {
+          alert('Chưa đăng xuất được. Vui lòng kiểm tra backend và thử lại.');
+          button.disabled = false;
+        }
+      });
+    }
+
+    document.documentElement.style.visibility = '';
+  } catch {
+    const message = document.createElement('p');
+    message.textContent = 'Không kiểm tra được phiên Staff. Hãy kiểm tra Laravel rồi tải lại trang.';
+    document.body.replaceChildren(message);
+    document.documentElement.style.visibility = '';
+  }
+})();
