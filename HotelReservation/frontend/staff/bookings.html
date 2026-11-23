@@ -256,9 +256,10 @@
         </label>
         <label class="form-field">
           <span>Chọn phòng lưu trú <b>*</b></span>
-          <select name="room_id" id="booking-room-select" required>
+          <select name="room_ids" id="booking-room-select" multiple size="6" required aria-describedby="booking-room-help">
             <option value="">-- Đang nạp danh sách phòng --</option>
           </select>
+          <small id="booking-room-help">Giữ Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều phòng.</small>
         </label>
         <label class="form-field">
           <span>Ngày nhận phòng <b>*</b></span>

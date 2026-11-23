@@ -88,6 +88,13 @@ class Booking extends Model
         return $this->hasMany(HousekeepingTask::class, 'booking_id');
     }
     
+    public function scopeForRoom(Builder $query, int $roomId): Builder
+    {
+        return $query->where(fn (Builder $match) => $match
+            ->where('room_id', $roomId)
+            ->orWhereHas('bookingRooms', fn (Builder $rooms) => $rooms->where('room_id', $roomId)));
+    }
+
     public function scopeOverlappingStay(Builder $query, string $checkIn, string $checkOut): Builder
     {
         return $query->whereIn('status', ['pending', 'confirmed', 'checked_in'])

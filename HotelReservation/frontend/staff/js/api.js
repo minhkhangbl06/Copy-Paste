@@ -25,6 +25,17 @@
 
   // Cấu hình URL Backend Laravel
   var DEFAULT_API_BASE = 'http://127.0.0.1:8000/api';
+  function bookingRooms(booking) {
+    var links = booking.booking_rooms || [];
+    if (links.length) return links.map(function (link) { return link.room; }).filter(Boolean);
+    return booking.rooms && booking.rooms.length ? booking.rooms : (booking.room ? [booking.room] : []);
+  }
+
+  function roomLabels(booking) {
+    return bookingRooms(booking).map(function (room) { return room.room_number; }).join(', ') ||
+      (booking.room_id ? '#' + booking.room_id : '—');
+  }
+
   var STORAGE_KEYS = {
     MOCK_MODE: 'hotel_staff_mock_mode',
     MOCK_BOOKINGS: 'hotel_staff_mock_bookings',
@@ -258,9 +269,8 @@
     createBooking: function (bookingData) {
       var list = this.getBookings();
       var rooms = this.getRooms();
-      var room = rooms.find(function (r) {
-        return String(r.id) === String(bookingData.room_id);
-      }) || null;
+      var selected = rooms.filter(function (room) { return bookingData.room_ids.includes(Number(room.id)); });
+      var room = selected[0];
 
       var newId = list.length > 0 ? Math.max.apply(null, list.map(function (b) { return Number(b.id) || 0; })) + 1 : 1;
       var code = 'BK-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + String(newId).padStart(3, '0');
@@ -268,7 +278,7 @@
       var newBooking = {
         id: newId,
         booking_code: code,
-        room_id: Number(bookingData.room_id),
+        room_id: room.id,
         guest_name: bookingData.guest_name,
         guest_phone: bookingData.guest_phone,
         check_in_date: bookingData.check_in_date,
@@ -277,7 +287,8 @@
         deposit_amount: bookingData.deposit_amount || 0,
         status: bookingData.status || 'confirmed',
         created_at: new Date().toISOString(),
-        room: room
+        room: room,
+        rooms: selected
       };
 
       list.unshift(newBooking);
@@ -565,6 +576,8 @@
    * ==========================================
    */
   return {
+    bookingRooms: bookingRooms,
+    roomLabels: roomLabels,
     isMockMode: function () {
       return MockModeManager.isMockMode();
     },
@@ -630,36 +643,33 @@
         };
       }
 
-      // API Thật: Đọc song song /rooms và /bookings nếu có
-      try {
-        var roomRes = await requestAPI('/rooms');
-        var rList = Array.isArray(roomRes.data) ? roomRes.data : [];
-        var totalR = rList.length;
-        var availR = rList.filter(function (r) { return r.status === 'available'; }).length;
-        var occR = rList.filter(function (r) { return r.status === 'occupied'; }).length;
-        var maintR = rList.filter(function (r) { return r.status === 'maintenance' || r.status === 'dirty'; }).length;
-        var occRate = totalR > 0 ? Math.round((occR / totalR) * 1000) / 10 : 0;
-
-        return {
-          status: 'success',
-          message: 'Lấy dữ liệu tổng quan phòng từ Backend thành công.',
-          data: {
-            total_rooms: totalR,
-            available_rooms: availR,
-            occupied_rooms: occR,
-            maintenance_rooms: maintR,
-            occupancy_rate: occRate,
-            total_bookings: 0,
-            pending_bookings: 0,
-            confirmed_bookings: 0,
-            staying_guests: 0,
-            recent_bookings: []
-          },
-          isMock: false
-        };
-      } catch (err) {
-        throw err;
-      }
+      var [roomRes, bookingRes] = await Promise.all([this.getRooms(), this.getBookings()]);
+      var rooms = roomRes.data;
+      var bookings = bookingRes.data;
+      var occupied = new Set(bookings.flatMap(function (booking) {
+        if (booking.status !== 'checked_in') return [];
+        if (booking.booking_rooms && booking.booking_rooms.length) {
+          return booking.booking_rooms.filter(function (link) { return link.status === 'occupied'; })
+            .map(function (link) { return link.room_id; });
+        }
+        return booking.room_id ? [booking.room_id] : [];
+      }));
+      return {
+        status: 'success',
+        data: {
+          total_rooms: rooms.length,
+          available_rooms: rooms.filter(function (room) { return room.status === 'available'; }).length,
+          occupied_rooms: occupied.size,
+          maintenance_rooms: rooms.filter(function (room) { return ['maintenance', 'dirty'].includes(room.status); }).length,
+          occupancy_rate: rooms.length ? Math.round(occupied.size / rooms.length * 1000) / 10 : 0,
+          total_bookings: bookings.length,
+          pending_bookings: bookings.filter(function (booking) { return booking.status === 'pending'; }).length,
+          confirmed_bookings: bookings.filter(function (booking) { return booking.status === 'confirmed'; }).length,
+          staying_guests: bookings.filter(function (booking) { return booking.status === 'checked_in'; }).length,
+          recent_bookings: bookings.slice(0, 5)
+        },
+        isMock: false
+      };
     },
 
     // ==========================================
@@ -746,7 +756,7 @@
       if (filters.check_in_date) query.append('check_in_date', filters.check_in_date);
       var qs = query.toString() ? ('?' + query.toString()) : '';
 
-      var res = await requestAPI('/bookings' + qs);
+      var res = await requestAPI('/staff/bookings' + qs);
       return Object.assign({}, res, { isMock: false });
     },
 
@@ -766,7 +776,7 @@
         };
       }
 
-      var res = await requestAPI('/bookings/' + id);
+      var res = await requestAPI('/staff/bookings/' + id);
       return Object.assign({}, res, { isMock: false });
     },
 
@@ -781,7 +791,7 @@
         };
       }
 
-      var res = await requestAPI('/bookings', {
+      var res = await requestAPI('/staff/bookings', {
         method: 'POST',
         body: JSON.stringify(bookingPayload)
       });

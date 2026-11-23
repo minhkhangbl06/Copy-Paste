@@ -66,10 +66,10 @@ class ReservationController extends Controller
         $checkOut = Carbon::parse($request->query('check_out_date'))->toDateString();
         $roomType = $request->query('room_type');
 
-        $bookedRoomIds = Booking::whereNotNull('room_id')
-            ->overlappingStay($checkIn, $checkOut)
-            ->pluck('room_id')
-            ->toArray();
+        $overlaps = Booking::query()->overlappingStay($checkIn, $checkOut);
+        $bookedRoomIds = DB::table('booking_rooms')
+            ->whereIn('booking_id', (clone $overlaps)->select('id'))
+            ->pluck('room_id')->merge($overlaps->pluck('room_id'))->filter()->unique();
 
         $availableRooms = Room::whereNotIn('id', $bookedRoomIds)
             ->where('status', '!=', 'maintenance')
@@ -127,7 +127,7 @@ class ReservationController extends Controller
                         throw new \Exception("Không tìm thấy phòng {$roomId}.");
                     }
 
-                    $conflict = Booking::where('room_id', $roomId)
+                    $conflict = Booking::forRoom((int) $roomId)
                         ->overlappingStay($checkIn->toDateString(), $checkOut->toDateString())
                         ->lockForUpdate()
                         ->exists();
@@ -247,7 +247,7 @@ class ReservationController extends Controller
             ]);
         }
 
-        $conflict = Booking::where('room_id', $roomId)
+        $conflict = Booking::forRoom((int) $roomId)
             ->where('id', '!=', $booking->id)
             ->overlappingStay($checkIn->toDateString(), $checkOut->toDateString())
             ->exists();

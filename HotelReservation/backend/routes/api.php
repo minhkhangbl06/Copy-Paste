@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\StaffBookingController;
 use App\Http\Controllers\Api\RoomStatusController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\ServiceOrderController;
@@ -87,4 +88,10 @@ Route::prefix('bookings')->group(function (): void {
          ->middleware('role:receptionist,admin,manager');
     Route::post('/{id}/check-out', [ReservationController::class, 'checkOut'])
          ->middleware('role:receptionist,admin,manager');
+});
+
+Route::prefix('staff/bookings')->middleware(['auth:sanctum', 'role:receptionist,admin,manager'])->group(function (): void {
+    Route::get('/', [StaffBookingController::class, 'index']);
+    Route::get('/{id}', [StaffBookingController::class, 'show'])->whereNumber('id');
+    Route::post('/', [StaffBookingController::class, 'store']);
 });
