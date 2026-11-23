@@ -21,17 +21,30 @@ class LateCheckoutService
         $actualCheckoutTime = $actualCheckoutTime ?? now();
         $standardCheckout = Carbon::parse($booking->check_out_date)->setTime(12, 0, 0);
 
-        // Lấy giá phòng 1 đêm (nếu có room relation hoặc tính từ total_room_amount)
-        $nightlyPrice = $booking->room?->price_per_night 
-            ?? ($booking->total_room_amount > 0 ? $booking->total_room_amount : 500000);
+        // Lấy giá phòng 1 đêm (nếu có room relation hoặc booking_rooms hoặc tính từ total_room_amount)
+        $nightlyPrice = $booking->room?->price_per_night;
+
+        if ($nightlyPrice === null && $booking->relationLoaded('bookingRooms') && $booking->bookingRooms->isNotEmpty()) {
+            $nightlyPrice = (float) $booking->bookingRooms->sum('price_per_night');
+        } elseif ($nightlyPrice === null && $booking->exists && method_exists($booking, 'bookingRooms')) {
+            try {
+                if ($booking->bookingRooms()->exists()) {
+                    $nightlyPrice = (float) $booking->bookingRooms()->sum('price_per_night');
+                }
+            } catch (\Throwable) {}
+        }
+
+        if ($nightlyPrice === null) {
+            $nightlyPrice = (float) ($booking->total_room_amount > 0 ? $booking->total_room_amount : 500000);
+        }
 
         if ($actualCheckoutTime->lte($standardCheckout->copy()->addMinutes(30))) {
             return [
-                'is_late' => false,
+                'is_late'      => false,
                 'minutes_late' => max(0, (int) $standardCheckout->diffInMinutes($actualCheckoutTime)),
-                'fee_rate' => 0,
-                'late_fee' => 0.0,
-                'note' => 'Trả phòng đúng giờ hoặc trong thời gian ân hạn 30 phút.',
+                'fee_rate'     => 0,
+                'late_fee'     => 0.0,
+                'note'         => 'Trả phòng đúng giờ hoặc trong thời gian ân hạn 30 phút.',
             ];
         }
 
@@ -52,12 +65,12 @@ class LateCheckoutService
         }
 
         return [
-            'is_late' => true,
-            'minutes_late' => $minutesLate,
-            'fee_rate' => $rate,
+            'is_late'       => true,
+            'minutes_late'  => $minutesLate,
+            'fee_rate'      => $rate,
             'nightly_price' => $nightlyPrice,
-            'late_fee' => $fee,
-            'note' => $note,
+            'late_fee'      => $fee,
+            'note'          => $note,
         ];
     }
 }

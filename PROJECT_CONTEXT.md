@@ -195,3 +195,21 @@
 - **Phạm vi công việc**:
   - Phụ trách Staff Frontend và JavaScript kết nối với Backend APIs.
   - Không tự ý chỉnh sửa Laravel Backend, Database Schema, Guest Frontend hoặc code thuộc thành viên khác.
+
+### 📌 Lê Minh Khang - Phân hệ Dịch vụ phòng, Hóa đơn & Thu ngân Backend (Đã hoàn thành 100% nhiệm vụ)
+- **Gắn SERVICE_ORDERS vào booking_room_id**:
+  - Bổ sung `booking_room_id` vào `service_orders` để xác định chính xác dịch vụ/món ăn được gọi từ phòng nào trong booking đa phòng.
+  - `ServiceOrderController::store`: tự động xác thực và liên kết với `booking_room_id` hoặc suy từ `room_id`/đơn đặt phòng.
+  - Lưu chi tiết món, số lượng, đơn giá (`unit_price`) và thành tiền (`amount`) trong `SERVICE_ORDER_ITEMS`.
+- **Tạo một INVOICE cho cả booking & Bảng INVOICE_ITEMS**:
+  - Tạo bảng và Model `InvoiceItem` (`invoice_items`) lưu chi tiết từng đêm phòng (`room_night`), dịch vụ theo từng phòng (`service`), phụ thu trả phòng muộn (`late_checkout`), phụ thu phát sinh (`surcharge`) và giảm giá (`discount`).
+  - Hỗ trợ quan hệ `booking_room_id` và `room_id` trên từng dòng `invoice_items` để Guest và Staff xem chi tiết chi phí của từng phòng.
+  - Tạo duy nhất 1 hóa đơn `invoices` cho toàn bộ booking (`booking_id` unique).
+- **Logic tính hóa đơn tổng hợp**:
+  - `InvoiceCalculationService`: tổng hợp tiền phòng từ `room_nights` của tất cả các phòng trong booking (hoặc fallback tính theo đêm), cộng dồn các đơn dịch vụ chưa thanh toán theo phòng, phụ thu trả phòng muộn qua `LateCheckoutService`, phụ thu khác, trừ tiền cọc đã thanh toán và tính thuế VAT 8%.
+- **Chặn đóng hóa đơn khi chưa thu đủ**:
+  - `InvoiceController::closeInvoice`: kiểm tra tổng số tiền đã thanh toán qua `payments` (`status = success`). Nếu chưa đủ số tiền hóa đơn (`totalPaid < total_amount`), trả mã lỗi `422` và chặn không cho đóng hóa đơn.
+  - Khi đã thu đủ tiền, đóng hóa đơn thành công, cập nhật trạng thái booking sang `checked_out` và chuyển toàn bộ các phòng trong booking sang trạng thái `dirty` chờ dọn dẹp.
+- **Kiểm thử tự động**:
+  - Toàn bộ test suite PHPUnit (45 tests, 284 assertions) bao gồm `KhangServiceAndBillingTest` đạt 100% pass.
+
