@@ -16,14 +16,17 @@ class RoomNight extends Model
         'booking_room_id',
         'room_id',
         'stay_date',
+        'rate_applied',
         'rate',
         'price',
+        'status',
     ];
 
     protected $casts = [
-        'stay_date' => 'date',
-        'rate'      => 'decimal:2',
-        'price'     => 'decimal:2',
+        'stay_date'    => 'date',
+        'rate_applied' => 'decimal:2',
+        'rate'         => 'decimal:2',
+        'price'        => 'decimal:2',
     ];
 
     public function bookingRoom(): BelongsTo
@@ -34,5 +37,10 @@ class RoomNight extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class, 'room_id');
+    }
+
+    public function getRateAppliedAttribute($value)
+    {
+        return $value ?? ($this->attributes['price'] ?? ($this->attributes['rate'] ?? null));
     }
 }

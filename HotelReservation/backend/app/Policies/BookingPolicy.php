@@ -9,7 +9,7 @@ class BookingPolicy
 {
     public function view(User $user, Booking $booking): bool
     {
-        if ($user->hasRole('admin', 'receptionist', 'manager')) {
+        if ($user->hasRole('admin', 'receptionist', 'manager', 'billing')) {
             return true;
         }
 
@@ -32,5 +32,15 @@ class BookingPolicy
         }
 
         return $booking->user_id !== null && $booking->user_id === $user->id;
+    }
+
+    public function checkIn(User $user, Booking $booking): bool
+    {
+        return $user->hasRole('admin', 'receptionist', 'manager');
+    }
+
+    public function checkOut(User $user, Booking $booking): bool
+    {
+        return $user->hasRole('admin', 'receptionist', 'manager');
     }
 }

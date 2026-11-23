@@ -18,6 +18,8 @@ class InvoiceItem extends Model
         'room_id',
         'item_type',
         'description',
+        'reference_id',
+        'reference_type',
         'quantity',
         'unit_price',
         'amount',

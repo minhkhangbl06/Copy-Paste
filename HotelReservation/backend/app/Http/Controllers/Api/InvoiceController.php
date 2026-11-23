@@ -33,6 +33,14 @@ class InvoiceController extends Controller
             'serviceOrders.items.service',
         ])->findOrFail($bookingId);
 
+        $user = $request->user('sanctum') ?? $request->user();
+        if ($user && $user->isGuest() && $booking->user_id !== null && $booking->user_id !== $user->id) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Truy cập bị từ chối: Bạn không có quyền xem bảng kê hóa đơn này.'
+            ], 403);
+        }
+
         $checkoutTime = $request->filled('checkout_time') 
             ? Carbon::parse($request->query('checkout_time')) 
             : now();
@@ -126,23 +134,23 @@ class InvoiceController extends Controller
                 ]
             );
 
-            // Xóa các dòng invoice_items cũ (nếu xuất lại hóa đơn)
+            // Xóa các items cũ nếu sinh lại hóa đơn
             $invoice->items()->delete();
 
-            // Lưu các dòng chi tiết vào bảng INVOICE_ITEMS
+            // Lưu chi tiết từng dòng INVOICE_ITEMS
             foreach ($calc['invoice_items'] as $itemData) {
                 $invoice->items()->create([
-                    'booking_room_id' => $itemData['booking_room_id'] ?? null,
-                    'room_id'         => $itemData['room_id'] ?? null,
+                    'booking_room_id' => $itemData['booking_room_id'],
+                    'room_id'         => $itemData['room_id'],
                     'item_type'       => $itemData['item_type'],
                     'description'     => $itemData['description'],
-                    'quantity'        => $itemData['quantity'] ?? 1,
+                    'quantity'        => $itemData['quantity'],
                     'unit_price'      => $itemData['unit_price'],
                     'amount'          => $itemData['amount'],
                 ]);
             }
 
-            return $invoice->load(['items.room', 'items.bookingRoom.room', 'booking.room', 'booking.bookingRooms.room', 'payments']);
+            return $invoice->load(['booking.room', 'booking.bookingRooms.room', 'payments', 'items']);
         });
 
         return response()->json([
@@ -153,34 +161,28 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Ghi nhận thanh toán cho hóa đơn (tiền mặt, chuyển khoản, thẻ POS, VNPay, Momo).
+     * Ghi nhận thanh toán cho Hóa đơn (hỗ trợ tiền mặt, chuyển khoản, thẻ).
      */
     public function recordPayment(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'amount'           => 'required|numeric|min:1',
-            'payment_method'   => 'required|in:cash,credit_card,bank_transfer,vnpay,momo',
-            'transaction_code' => 'nullable|string',
-            'notes'            => 'nullable|string',
+            'amount'         => 'required|numeric|min:1',
+            'payment_method' => 'required|in:cash,credit_card,bank_transfer',
+            'notes'          => 'nullable|string',
         ]);
 
-        $invoice = Invoice::with('payments')->findOrFail($id);
-
-        if ($invoice->status === 'paid' || $invoice->status === 'closed') {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Hóa đơn này đã được thanh toán toàn bộ trước đó.',
-            ], 422);
-        }
+        $invoice = Invoice::with(['booking', 'payments'])->findOrFail($id);
 
         $payment = DB::transaction(function () use ($invoice, $validated) {
             $payment = Payment::create([
-                'invoice_id'       => $invoice->id,
-                'amount'           => $validated['amount'],
-                'payment_method'   => $validated['payment_method'],
-                'transaction_code' => $validated['transaction_code'] ?? null,
-                'status'           => 'success',
-                'notes'            => $validated['notes'] ?? null,
+                'payment_code'   => 'PAY-' . date('Ymd') . '-' . strtoupper(Str::random(5)),
+                'invoice_id'     => $invoice->id,
+                'booking_id'     => $invoice->booking_id,
+                'amount'         => $validated['amount'],
+                'payment_method' => $validated['payment_method'],
+                'status'         => 'success',
+                'paid_at'        => now(),
+                'notes'          => $validated['notes'] ?? null,
             ]);
 
             $totalPaid = $invoice->payments()->where('status', 'success')->sum('amount');
@@ -286,6 +288,11 @@ class InvoiceController extends Controller
             'items',
         ]);
 
+        $user = $request->user('sanctum') ?? $request->user();
+        if ($user && $user->isGuest()) {
+            $query->whereHas('booking', fn ($bq) => $bq->where('user_id', $user->id));
+        }
+
         if ($request->filled('status') && $request->query('status') !== 'all') {
             $query->where('status', $request->query('status'));
         }
@@ -325,7 +332,7 @@ class InvoiceController extends Controller
      * GET /api/invoices/{id}
      * Lấy chi tiết 1 hóa đơn kèm danh sách invoice_items từng phòng và lịch sử thanh toán.
      */
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $invoice = Invoice::with([
             'booking.room',
@@ -341,6 +348,14 @@ class InvoiceController extends Controller
                 'status'  => 'error',
                 'message' => 'Không tìm thấy hóa đơn.',
             ], 404);
+        }
+
+        $user = $request->user('sanctum') ?? $request->user();
+        if ($user && $user->isGuest() && $invoice->booking && $invoice->booking->user_id !== null && $invoice->booking->user_id !== $user->id) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Truy cập bị từ chối: Bạn không có quyền xem hóa đơn này.'
+            ], 403);
         }
 
         $invoice->booking_code = $invoice->booking?->booking_code;
