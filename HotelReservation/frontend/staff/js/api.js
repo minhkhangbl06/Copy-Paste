@@ -683,6 +683,14 @@
     // ==========================================
     // MODULE: ROOMS
     // ==========================================
+    getHousekeepingTasks: function () {
+      return MockModeManager.isMockMode() ? Promise.resolve({ data: [] }) : requestAPI('/staff/housekeeping/tasks');
+    },
+
+    updateHousekeepingTask: function (id, status) {
+      return requestAPI('/staff/housekeeping/tasks/' + id, { method: 'PATCH', body: JSON.stringify({ status: status }) });
+    },
+
     getRooms: async function (filters) {
       filters = filters || {};
       if (MockModeManager.isMockMode()) {
@@ -868,10 +876,14 @@
       return Object.assign({}, res, { isMock: false });
     },
 
-    checkOutBooking: async function (id) {
+    checkOutBooking: async function (id, preview, paymentMethod) {
       if (MockModeManager.isMockMode()) {
         var checkedOut = MockRepository.checkOutBooking(id);
         if (!checkedOut) throw new Error('Không tìm thấy đơn để Check-out.');
+        var invoice = MockRepository.createInvoice(Object.assign({}, preview, {
+          booking_id: id, booking_code: checkedOut.booking_code, guest_name: checkedOut.guest_name
+        }));
+        MockRepository.payInvoice(invoice.id, paymentMethod);
         return {
           status: 'success',
           message: 'Check-out hoàn tất. Trạng thái phòng chuyển sang Dirty cần dọn dẹp (Mock Mode).',
@@ -881,8 +893,9 @@
       }
 
       // API thật
-      var res = await requestAPI('/bookings/' + id + '/check-out', {
-        method: 'POST'
+      var res = await requestAPI('/staff/bookings/' + id + '/checkout', {
+        method: 'POST',
+        body: JSON.stringify({ amount: preview.remaining, payment_method: paymentMethod })
       });
       return Object.assign({}, res, { isMock: false });
     },
@@ -963,7 +976,7 @@
         var b = MockRepository.getBookingById(bookingId);
         if (!b) throw new Error('Không tìm thấy đơn đặt phòng để tạo hóa đơn.');
         var roomCharges = Number(b.total_room_amount) || 0;
-        var deposit = Number(b.deposit_amount) || 0;
+        var deposit = b.deposit_received_at ? Number(b.deposit_amount) || 0 : 0;
         var orders = MockRepository.getOrders().filter(function (o) { return o.booking_id === b.id && o.charge_to_room; });
         var serviceCharges = orders.reduce(function (sum, o) { return sum + (Number(o.total_amount) || 0); }, 0);
         var totalPayable = Math.max(0, roomCharges + serviceCharges - deposit);
@@ -985,11 +998,11 @@
         };
       }
 
-      var res = await requestAPI('/bookings/' + bookingId + '/invoice/preview');
+      var res = await requestAPI('/staff/bookings/' + bookingId + '/checkout');
       return Object.assign({}, res, { isMock: false });
     },
 
-    payInvoice: async function (invoiceId, paymentMethod) {
+    payInvoice: async function (invoiceId, paymentMethod, amount) {
       if (MockModeManager.isMockMode()) {
         var paid = MockRepository.payInvoice(invoiceId, paymentMethod);
         if (!paid) throw new Error('Không tìm thấy hóa đơn.');
@@ -1003,7 +1016,7 @@
 
       var res = await requestAPI('/invoices/' + invoiceId + '/pay', {
         method: 'POST',
-        body: JSON.stringify({ payment_method: paymentMethod })
+        body: JSON.stringify({ payment_method: paymentMethod, amount: amount })
       });
       return Object.assign({}, res, { isMock: false });
     },

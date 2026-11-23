@@ -338,7 +338,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (['pending', 'confirmed'].includes(b.status)) {
         actionBtn = '<button class="btn-checkin-action action-trigger-checkin" data-id="' + b.id + '" type="button">→ Check-in</button>';
       } else if (b.status === 'checked_in') {
-        if (!b.booking_rooms?.length) actionBtn = '<button class="btn-checkout-action action-trigger-checkout" data-id="' + b.id + '" type="button">Thanh toán &amp; Check-out</button>';
+        actionBtn = '<button class="btn-checkout-action action-trigger-checkout" data-id="' + b.id + '" type="button">Thanh toán &amp; Check-out</button>';
         if (!StaffAPI.isMockMode()) {
           actionBtn += ' <button class="btn-checkin-action action-trigger-service" data-id="' + b.id + '" type="button">Ghi dịch vụ</button>';
         }
@@ -525,6 +525,8 @@ document.addEventListener("DOMContentLoaded", function () {
     activeCheckoutBooking = allBookingsCache.find(function (b) { return String(b.id) === String(bookingId); });
     if (!activeCheckoutBooking || !checkoutBody || !checkoutDialog || typeof StaffAPI === 'undefined') return;
 
+    activeInvoicePreview = null;
+    confirmCheckoutBtn.disabled = true;
     checkoutBody.innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><span>Đang đối chiếu số liệu hóa đơn &amp; dịch vụ...</span></div>';
     checkoutDialog.showModal();
 
@@ -535,31 +537,33 @@ document.addEventListener("DOMContentLoaded", function () {
       var roomCharge = Number(activeInvoicePreview.room_charges) || Number(activeCheckoutBooking.total_room_amount) || 0;
       var serviceCharge = Number(activeInvoicePreview.service_charges) || 0;
       var lateFee = Number(activeInvoicePreview.late_checkout_fee) || 0;
-      var depositDeducted = Number(activeInvoicePreview.deposit_deducted) || Number(activeCheckoutBooking.deposit_amount) || 0;
-      var netPayable = Math.max(0, roomCharge + serviceCharge + lateFee - depositDeducted);
+      var depositDeducted = Number(activeInvoicePreview.deposit_deducted) || 0;
+      var netPayable = Number(activeInvoicePreview.remaining ?? activeInvoicePreview.total_amount);
 
       var receiptHtml = '<div class="checkout-receipt">' +
         '<div class="receipt-header">' +
         '<h3>HÓA ĐƠN TRẢ PHÒNG</h3>' +
         '<p>Khách hàng: <strong>' + safeEscape(activeCheckoutBooking.guest_name) + '</strong> | Mã: ' + safeEscape(activeCheckoutBooking.booking_code) + '</p>' +
-        '<p>Phòng: ' + safeEscape(activeCheckoutBooking.room ? activeCheckoutBooking.room.room_number : ('#' + activeCheckoutBooking.room_id)) + ' (' + safeEscape(activeCheckoutBooking.room ? activeCheckoutBooking.room.room_type : '') + ')</p>' +
+        '<p>Phòng: ' + safeEscape(StaffAPI.roomLabels(activeCheckoutBooking)) + '</p>' +
         '</div>' +
         '<div class="receipt-row"><span>Tiền phòng:</span><strong>' + formatVND(roomCharge) + '</strong></div>' +
         '<div class="receipt-row"><span>Dịch vụ phát sinh (F&amp;B / Minibar / Spa):</span><strong>' + formatVND(serviceCharge) + '</strong></div>';
 
       if (lateFee > 0) {
-        receiptHtml += '<div class="receipt-row receipt-late-fee"><span>Phụ phí Check-out trễ (BR-03 sau 12:00):</span><strong>+' + formatVND(lateFee) + '</strong></div>';
+        receiptHtml += '<div class="receipt-row receipt-late-fee"><span>Phụ phí Check-out trễ (BR-07):</span><strong>+' + formatVND(lateFee) + '</strong></div>';
       }
 
       receiptHtml += '<div class="receipt-row receipt-discount"><span>Khấu trừ tiền cọc đã đóng:</span><strong>-' + formatVND(depositDeducted) + '</strong></div>' +
+        '<div class="receipt-row"><span>Thuế VAT:</span><strong>' + formatVND(activeInvoicePreview.tax_amount) + '</strong></div>' +
+        '<div class="receipt-row"><span>Đã thanh toán:</span><strong>' + formatVND(Number(activeInvoicePreview.total_amount) - netPayable) + '</strong></div>' +
         '<div class="receipt-row total-due"><span>TỔNG CỘNG THANH TOÁN:</span><strong style="font-size: 18px; color: var(--color-ink);">' + formatVND(netPayable) + '</strong></div>' +
         '</div>' +
         '<div class="payment-method-group">' +
         '<label>Phương thức thanh toán:</label>' +
         '<div class="payment-options">' +
         '<label class="payment-option-label"><input type="radio" name="checkout_pay_method" value="cash" checked> <span>Tiền mặt</span></label>' +
-        '<label class="payment-option-label"><input type="radio" name="checkout_pay_method" value="card"> <span>Thẻ (POS)</span></label>' +
-        '<label class="payment-option-label"><input type="radio" name="checkout_pay_method" value="transfer"> <span>Chuyển khoản QR</span></label>' +
+        '<label class="payment-option-label"><input type="radio" name="checkout_pay_method" value="credit_card"> <span>Thẻ (POS)</span></label>' +
+        '<label class="payment-option-label"><input type="radio" name="checkout_pay_method" value="bank_transfer"> <span>Chuyển khoản QR</span></label>' +
         '</div>' +
         '</div>' +
         '<p style="font-size: 11px; color: var(--text-secondary); margin: 0;">' +
@@ -567,6 +571,7 @@ document.addEventListener("DOMContentLoaded", function () {
         '</p>';
 
       checkoutBody.innerHTML = receiptHtml;
+      confirmCheckoutBtn.disabled = false;
     } catch (err) {
       checkoutBody.innerHTML = '<div class="error-state"><h3>Không thể tạo hóa đơn xem trước</h3><p>' + safeEscape(err.message) + '</p></div>';
     }
@@ -575,7 +580,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Xác nhận Check-out
   if (confirmCheckoutBtn) {
     confirmCheckoutBtn.addEventListener("click", async function () {
-      if (!activeCheckoutBooking || typeof StaffAPI === 'undefined') return;
+      if (!activeCheckoutBooking || !activeInvoicePreview) return;
       var selectedMethodElem = document.querySelector('input[name="checkout_pay_method"]:checked');
       var payMethod = selectedMethodElem ? selectedMethodElem.value : 'cash';
 
@@ -583,24 +588,7 @@ document.addEventListener("DOMContentLoaded", function () {
       confirmCheckoutBtn.textContent = 'Đang thanh toán & xuất hóa đơn...';
 
       try {
-        // Thực hiện Check-out
-        await StaffAPI.checkOutBooking(activeCheckoutBooking.id);
-
-        // Tạo hóa đơn lưu trữ nếu ở Mock Mode hoặc API hỗ trợ
-        if (activeInvoicePreview && StaffAPI.isMockMode()) {
-          var createdInv = MockRepository.createInvoice({
-            booking_id: activeCheckoutBooking.id,
-            booking_code: activeCheckoutBooking.booking_code,
-            guest_name: activeCheckoutBooking.guest_name,
-            room_charges: activeInvoicePreview.room_charges,
-            service_charges: activeInvoicePreview.service_charges,
-            late_checkout_fee: activeInvoicePreview.late_checkout_fee,
-            deposit_deducted: activeInvoicePreview.deposit_deducted,
-            total_amount: activeInvoicePreview.total_amount,
-            status: 'paid'
-          });
-          StaffAPI.payInvoice(createdInv.id, payMethod);
-        }
+        await StaffAPI.checkOutBooking(activeCheckoutBooking.id, activeInvoicePreview, payMethod);
 
         showToast('Check-out thành công cho khách ' + activeCheckoutBooking.guest_name + '! Phòng đã chuyển sang Cần dọn (Dirty).', 'success');
         if (checkoutDialog) checkoutDialog.close();

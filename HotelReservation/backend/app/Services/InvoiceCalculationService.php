@@ -19,7 +19,8 @@ class InvoiceCalculationService
         Booking $booking, 
         ?Carbon $checkoutTime = null, 
         float $otherSurcharges = 0.0,
-        float $taxRate = 0.08 // Thuế VAT mặc định 8%
+        float $taxRate = 0.08,
+        bool $requireConfirmedDeposit = false // Thuế VAT mặc định 8%
     ): array {
         $invoiceItems = [];
 
@@ -78,18 +79,23 @@ class InvoiceCalculationService
                     $in = Carbon::parse($br->check_in_date);
                     $out = Carbon::parse($br->check_out_date);
                     $pricePerNight = (float) $br->price_per_night;
-                    $days = max(1, $in->diffInDays($out));
+                    [$quotedTotal] = ReservationPricing::quote($in, $out, $pricePerNight);
+                    $usesQuotedPricing = abs($quotedTotal - (float) $br->total_room_amount) < 0.005;
 
                     for ($d = $in->copy(); $d->lt($out); $d->addDay()) {
-                        $roomCharges += $pricePerNight;
+                        $price = $usesQuotedPricing
+                            ? ReservationPricing::quote($d, $d->copy()->addDay(), $pricePerNight)[0]
+                            : $pricePerNight;
+
+                        $roomCharges += $price;
                         $invoiceItems[] = [
                             'item_type'       => 'room_night',
                             'booking_room_id' => $br->id,
                             'room_id'         => $br->room_id,
                             'description'     => "Tiền phòng: Phòng {$roomNumber} - Đêm " . $d->format('d/m/Y'),
                             'quantity'        => 1,
-                            'unit_price'      => $pricePerNight,
-                            'amount'          => $pricePerNight,
+                            'unit_price'      => $price,
+                            'amount'          => $price,
                         ];
                     }
                 }
@@ -217,7 +223,9 @@ class InvoiceCalculationService
         }
 
         // 6. Tiền cọc đã cọc trước
-        $depositDeducted = (float) $booking->deposit_amount;
+        $depositDeducted = $requireConfirmedDeposit && $hasBookingRooms && !$booking->deposit_received_at
+            ? 0.0
+            : (float) $booking->deposit_amount;
 
         // 7. Tạm tính trước thuế
         $subtotal = $roomCharges + $serviceCharges + $lateCheckoutFee + $otherSurcharges - $discount;

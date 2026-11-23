@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var kw           = searchInputElem  ? searchInputElem.value.trim().toLowerCase() : '';
 
     var filtered = allInvoicesCache.filter(function (inv) {
-      if (filterStatus !== 'all' && inv.status !== filterStatus) return false;
+      if (filterStatus !== 'all' && (inv.closed_at ? 'closed' : inv.status) !== filterStatus) return false;
       if (kw) {
         var haystack = (String(inv.invoice_code || '') + ' ' +
           String(inv.booking_code || '') + ' ' +
@@ -179,12 +179,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     var html = '';
     filtered.forEach(function (inv) {
-      var payBadgeClass = inv.status === 'paid'   ? 'paid'   :
-                          inv.status === 'closed' ? 'closed' : 'unpaid';
-      var payBadgeLabel = inv.status === 'paid'   ? 'Đã thanh toán' :
-                          inv.status === 'closed' ? 'Đã đóng'       : 'Chờ thanh toán';
+      var displayStatus = inv.closed_at ? 'closed' : inv.status;
+      var payBadgeClass = displayStatus === 'paid'   ? 'paid'   :
+                          displayStatus === 'closed' ? 'closed' : 'unpaid';
+      var payBadgeLabel = displayStatus === 'paid'   ? 'Đã thanh toán' :
+                          displayStatus === 'closed' ? 'Đã đóng'       : 'Chờ thanh toán';
 
-      var actionHtml = inv.status === 'unpaid'
+      var actionHtml = ['unpaid', 'partially_paid'].includes(inv.status)
         ? '<button class="button button-primary button-small inv-pay-btn" data-id="' + inv.id + '" type="button">Thu tiền</button>'
         : '<span style="font-size:11px; color:var(--text-secondary);">Đã xử lý</span>';
 
@@ -238,7 +239,8 @@ document.addEventListener("DOMContentLoaded", function () {
       '<div style="margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--color-border);">' +
         '<p style="margin:0 0 4px; font-size:11px; color:var(--text-secondary);">Khách hàng</p>' +
         '<strong style="font-size:15px;">' + safeEscape(inv.guest_name) + '</strong><br>' +
-        '<span style="font-size:12px; color:var(--text-secondary);">Mã đặt phòng: ' + safeEscape(inv.booking_code || '—') + '</span>' +
+        '<span style="font-size:12px; color:var(--text-secondary);">Mã đặt phòng: ' + safeEscape(inv.booking_code || '—') + '</span><br>' +
+        '<span>Phòng: ' + safeEscape(inv.booking ? StaffAPI.roomLabels(inv.booking) : inv.room_number || '—') + '</span>' +
       '</div>' +
       '<div class="inv-breakdown-row"><span>Tiền phòng:</span><strong>' + formatVND(inv.room_charges) + '</strong></div>' +
       '<div class="inv-breakdown-row"><span>Dịch vụ phòng (F&B / Minibar / Spa):</span><strong>' + formatVND(inv.service_charges) + '</strong></div>';
@@ -260,12 +262,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /* Nút hành động */
     var actionsHtml = '';
-    if (inv.status === 'unpaid') {
+    if (['unpaid', 'partially_paid'].includes(inv.status)) {
       actionsHtml =
         '<select class="inv-payment-select" id="inv-pay-method">' +
           '<option value="cash">Tiền mặt</option>' +
-          '<option value="card">Thẻ (POS)</option>' +
-          '<option value="transfer">Chuyển khoản QR</option>' +
+          '<option value="credit_card">Thẻ (POS)</option>' +
+          '<option value="bank_transfer">Chuyển khoản QR</option>' +
         '</select>' +
         '<button class="button button-primary" id="confirm-pay-btn" type="button" style="width:100%;">Xác nhận Thu tiền</button>' +
         '<button class="button button-outline" id="close-inv-panel-alt" type="button" style="width:100%;">Đóng lại</button>';
@@ -286,7 +288,10 @@ document.addEventListener("DOMContentLoaded", function () {
         confirmPayBtn.textContent = 'Đang xử lý...';
 
         try {
-          await StaffAPI.payInvoice(activeInvoice.id, payMethod);
+          var paid = (activeInvoice.payments || []).reduce(function (total, payment) {
+            return total + (payment.status === 'success' ? Number(payment.amount) : 0);
+          }, 0);
+          await StaffAPI.payInvoice(activeInvoice.id, payMethod, Math.round((Number(activeInvoice.total_amount) - paid) * 100) / 100);
           showToast('Thanh toán hóa đơn ' + activeInvoice.invoice_code + ' thành công!', 'success');
           closePanelFn();
           loadInvoices();

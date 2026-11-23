@@ -45,7 +45,7 @@ class StaffBookingRoomsTest extends TestCase
         $this->assertDatabaseCount('booking_rooms', 2);
     }
 
-    public function test_staff_confirms_deposit_checks_in_all_rooms_and_assigns_service_to_one_room(): void
+    public function test_staff_completes_multi_room_stay_and_housekeeping_tracks_each_room(): void
     {
         Sanctum::actingAs(User::factory()->create(['role' => 'receptionist']));
         $rooms = collect(['201', '202', '203'])->map(fn ($number) => Room::create([
@@ -89,5 +89,42 @@ class StaffBookingRoomsTest extends TestCase
             ->assertCreated()->assertJsonPath('data.room_id', $rooms[1]->id)
             ->assertJsonPath('data.booking_room_id', $booking['booking_rooms'][1]['id']);
         $this->assertDatabaseCount('service_orders', 1);
+
+        $preview = $this->getJson("{$path}/checkout")->assertOk()->json('data');
+        $this->assertEquals($booking['total_room_amount'], $preview['room_charges']);
+        $this->assertEquals($booking['deposit_amount'], $preview['deposit_deducted']);
+        $this->assertEquals(100000, $preview['service_charges']);
+        $checkout = ['amount' => $preview['remaining'], 'payment_method' => 'cash'];
+        $this->postJson("{$path}/checkout", array_replace($checkout, ['amount' => 0]))->assertConflict();
+        $this->assertDatabaseCount('invoices', 0);
+
+        $invoice = $this->postJson("{$path}/checkout", $checkout)->assertOk()
+            ->assertJsonPath('data.status', 'paid')->json('data');
+        $this->assertNotNull($invoice['closed_at']);
+        $this->postJson("{$path}/checkout", $checkout)->assertOk()->assertJsonPath('data.id', $invoice['id']);
+        $this->assertDatabaseCount('invoices', 1);
+        $this->assertDatabaseCount('payments', 1);
+        $this->assertDatabaseCount('housekeeping_tasks', 2);
+        $this->assertDatabaseCount('housekeeping_events', 2);
+        $this->assertDatabaseHas('service_orders', ['booking_id' => $id, 'is_paid' => true]);
+        $this->assertDatabaseHas('rooms', ['id' => $rooms[1]->id, 'status' => 'dirty']);
+
+        $tasks = $this->getJson('/api/staff/housekeeping/tasks')->assertOk()->assertJsonCount(2, 'data')->json('data');
+        $task = '/api/staff/housekeeping/tasks/'.$tasks[0]['id'];
+        $this->patchJson($task, ['status' => 'in_progress'])->assertForbidden();
+        $housekeeper = User::factory()->create(['role' => 'housekeeping']);
+        Sanctum::actingAs($housekeeper);
+        $this->patchJson('/api/rooms/'.$tasks[0]['room_id'].'/status', ['status' => 'available'])->assertConflict();
+        $this->patchJson($task, ['status' => 'done'])->assertConflict();
+        $this->patchJson($task, ['status' => 'in_progress'])->assertOk();
+        $this->patchJson($task, ['status' => 'done'])->assertOk();
+        $this->patchJson($task, ['status' => 'done'])->assertOk();
+        $this->assertDatabaseHas('housekeeping_events', [
+            'task_id' => $tasks[0]['id'], 'actor_id' => $housekeeper->id, 'event_type' => 'completed',
+            'from_status' => 'in_progress', 'to_status' => 'done',
+        ]);
+        $this->assertDatabaseCount('housekeeping_events', 4);
+        $this->assertDatabaseHas('rooms', ['id' => $tasks[0]['room_id'], 'status' => 'available']);
+        $this->assertDatabaseHas('rooms', ['id' => $tasks[1]['room_id'], 'status' => 'dirty']);
     }
 }

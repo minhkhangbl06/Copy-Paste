@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Room;
+use App\Models\HousekeepingTask;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RoomStatusController
 {
@@ -14,8 +16,6 @@ class RoomStatusController
             'status' => ['required', 'string', 'in:clean,available,dirty,cleaning,maintenance'],
             'note'   => ['nullable', 'string', 'max:255'],
         ]);
-
-        $room = Room::findOrFail($id);
 
         $status = strtolower($data['status']);
         if ($status === 'clean') {
@@ -31,14 +31,16 @@ class RoomStatusController
             ], 403);
         }
 
-        if (strtolower($room->status) === 'occupied' && $status !== 'occupied') {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Không thể đổi trạng thái phòng đang có khách lưu trú.'
-            ], 409);
-        }
+        $room = DB::transaction(function () use ($id, $status) {
+            $room = Room::lockForUpdate()->findOrFail($id);
+            abort_if(strtolower($room->status) === 'occupied', 409, 'Không thể đổi trạng thái phòng đang có khách lưu trú.');
+            $activeTask = HousekeepingTask::where('room_id', $room->id)
+                ->whereIn('status', ['pending', 'in_progress'])->exists();
+            abort_if($activeTask, 409, 'Hãy cập nhật công việc dọn phòng để lưu lịch sử.');
+            $room->update(['status' => $status]);
 
-        $room->update(['status' => $status]);
+            return $room;
+        });
 
         return response()->json([
             'status'  => 'success',
