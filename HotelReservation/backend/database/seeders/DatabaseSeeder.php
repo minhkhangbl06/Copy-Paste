@@ -249,48 +249,103 @@ class DatabaseSeeder extends Seeder
                 'status'            => 'checked_in',
             ]
         );
-        
-        User::firstOrCreate(
-            ['email' => 'admin@hotel.com'],
-            ['name' => 'Admin Receptionist', 'password' => bcrypt('password'), 'role' => 'admin', 'status' => 'ACTIVE']
-        );
 
-        $room101 = Room::updateOrCreate(
-            ['room_number' => '101'],
-            ['room_type' => 'Deluxe Double', 'price_per_night' => 800000, 'status' => 'occupied']
-        );
-
-        $room102 = Room::updateOrCreate(
-            ['room_number' => '102'],
-            ['room_type' => 'Standard Single', 'price_per_night' => 500000, 'status' => 'available']
-        );
-
-        $services = [
-            ['name' => 'Phở Bò Đặc Biệt', 'category' => 'food', 'price' => 75000, 'unit' => 'tô', 'description' => 'Phở bò tái nạm gầu nóng hổi phục vụ tận phòng'],
-            ['name' => 'Cơm Gà Hải Nam', 'category' => 'food', 'price' => 85000, 'unit' => 'phần', 'description' => 'Cơm gà kèm canh rong biển'],
-            ['name' => 'Coca Cola (Lon)', 'category' => 'minibar', 'price' => 25000, 'unit' => 'lon', 'description' => 'Nước giải khát ướp lạnh'],
-            ['name' => 'Nước Suối Lavie 500ml', 'category' => 'minibar', 'price' => 15000, 'unit' => 'chai', 'description' => 'Nước suối khoóng đóng chai'],
-            ['name' => 'Giặt Sấy Lấy Liền', 'category' => 'laundry', 'price' => 60000, 'unit' => 'kg', 'description' => 'Giặt sấy ủi giao trong vòng 4 tiếng'],
-            ['name' => 'Massage Body Tinh Dầu 60p', 'category' => 'spa', 'price' => 350000, 'unit' => 'vé', 'description' => 'Dịch vụ spa thư giãn tại phòng'],
-        ];
-
-        foreach ($services as $svc) {
-            Service::updateOrCreate(['name' => $svc['name']], $svc);
-        }
-
-        // 4. Tạo Booking mẫu đang ở (Checked-in) để test tính hóa đơn và checkout
-        Booking::updateOrCreate(
-            ['booking_code' => 'BK-20261104-001'],
+        $br1 = BookingRoom::updateOrCreate(
+            ['booking_id' => $multiBooking->id, 'room_id' => $roomModels['201']->id],
             [
-                'room_id' => $room101->id,
-                'guest_name' => 'Nguyen Van A',
-                'guest_phone' => '0901234567',
-                'check_in_date' => '2026-11-02',
-                'check_out_date' => '2026-11-04',
-                'total_room_amount' => 1600000,
-                'deposit_amount' => 500000,
-                'status' => 'checked_in',
+                'check_in_date'     => $checkIn->toDateString(),
+                'check_out_date'    => $checkOut->toDateString(),
+                'price_per_night'   => 850000,
+                'total_room_amount' => 1700000,
+                'status'            => 'occupied',
             ]
         );
+
+        $br2 = BookingRoom::updateOrCreate(
+            ['booking_id' => $multiBooking->id, 'room_id' => $roomModels['301']->id],
+            [
+                'check_in_date'     => $checkIn->toDateString(),
+                'check_out_date'    => $checkOut->toDateString(),
+                'price_per_night'   => 1500000,
+                'total_room_amount' => 3000000,
+                'status'            => 'occupied',
+            ]
+        );
+
+        RoomNight::updateOrCreate(
+            ['room_id' => $roomModels['201']->id, 'stay_date' => $checkIn->toDateString()],
+            ['booking_room_id' => $br1->id, 'rate_applied' => 850000, 'status' => 'occupied']
+        );
+        RoomNight::updateOrCreate(
+            ['room_id' => $roomModels['201']->id, 'stay_date' => $checkIn->copy()->addDay()->toDateString()],
+            ['booking_room_id' => $br1->id, 'rate_applied' => 850000, 'status' => 'occupied']
+        );
+        RoomNight::updateOrCreate(
+            ['room_id' => $roomModels['301']->id, 'stay_date' => $checkIn->toDateString()],
+            ['booking_room_id' => $br2->id, 'rate_applied' => 1500000, 'status' => 'occupied']
+        );
+        RoomNight::updateOrCreate(
+            ['room_id' => $roomModels['301']->id, 'stay_date' => $checkIn->copy()->addDay()->toDateString()],
+            ['booking_room_id' => $br2->id, 'rate_applied' => 1500000, 'status' => 'occupied']
+        );
+
+        $sampleInvoice = Invoice::updateOrCreate(
+            ['booking_id' => $multiBooking->id],
+            [
+                'invoice_code'      => 'INV-20261121-001',
+                'room_charges'      => 4700000,
+                'service_charges'   => 100000,
+                'late_checkout_fee' => 0,
+                'other_surcharges'  => 0,
+                'deposit_deducted'  => 1500000,
+                'tax_amount'        => 0,
+                'total_amount'      => 3300000,
+                'status'            => 'unpaid',
+                'issued_at'         => now(),
+            ]
+        );
+
+        InvoiceItem::updateOrCreate(
+            ['invoice_id' => $sampleInvoice->id, 'item_type' => 'room_night', 'description' => 'Phòng 201 - Đêm 1 (' . $checkIn->toDateString() . ')'],
+            ['amount' => 850000]
+        );
+        InvoiceItem::updateOrCreate(
+            ['invoice_id' => $sampleInvoice->id, 'item_type' => 'room_night', 'description' => 'Phòng 201 - Đêm 2 (' . $checkIn->copy()->addDay()->toDateString() . ')'],
+            ['amount' => 850000]
+        );
+        InvoiceItem::updateOrCreate(
+            ['invoice_id' => $sampleInvoice->id, 'item_type' => 'room_night', 'description' => 'Phòng 301 - Đêm 1 (' . $checkIn->toDateString() . ')'],
+            ['amount' => 1500000]
+        );
+        InvoiceItem::updateOrCreate(
+            ['invoice_id' => $sampleInvoice->id, 'item_type' => 'room_night', 'description' => 'Phòng 301 - Đêm 2 (' . $checkIn->copy()->addDay()->toDateString() . ')'],
+            ['amount' => 1500000]
+        );
+        InvoiceItem::updateOrCreate(
+            ['invoice_id' => $sampleInvoice->id, 'item_type' => 'deposit', 'description' => 'Khấu trừ tiền cọc đã đặt trước'],
+            ['amount' => -1500000]
+        );
+        
+        $housekeepingStaff = $createdUsers['housekeeping@hotel.example.test'];
+        $dirtyRoom = $roomModels['103'];
+
+        $task = HousekeepingTask::updateOrCreate(
+            ['room_id' => $dirtyRoom->id, 'status' => 'pending'],
+            [
+                'task_type'    => 'checkout_clean',
+                'assigned_to'  => $housekeepingStaff->id,
+                'notes'        => 'Khách vừa check-out lúc sáng, cần thay drap giường và bổ sung khăn tắm mới.',
+                'scheduled_at' => now(),
+            ]
+        );
+
+        HousekeepingEvent::create([
+            'task_id'     => $task->id,
+            'actor_id'    => $housekeepingStaff->id,
+            'event_type'  => 'task_created',
+            'from_status' => null,
+            'to_status'   => 'pending',
+            'note'        => 'Lễ tân hoàn tất check-out và hệ thống tự động gán task cho nhân viên buồng phòng.',
+        ]);
     }
 }
