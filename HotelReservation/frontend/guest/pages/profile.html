@@ -17,15 +17,15 @@
     <link rel="stylesheet" href="../assets/css/global.css" />
     <!-- Reuse Auth's password controls, local Bootstrap SVG masks and toggle logic.
          Auth page layout selectors do not apply to this page. -->
-    <link rel="stylesheet" href="../assets/css/auth.css" />
-    <link rel="stylesheet" href="../assets/css/profile.css" />
-    <link rel="stylesheet" href="../assets/css/account.css" />
+    <link rel="stylesheet" href="../assets/css/guest-app.css" />
+    <script src="../assets/js/guest-config.js" defer></script>
     <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-api.js" defer></script>
     <script src="../assets/js/guest-session.js" defer></script>
     <script src="../assets/js/layout.js" defer></script>
-    <script src="../assets/js/auth.js" defer></script>
-    <script src="../assets/js/account-nav.js" defer></script>
-    <script src="../assets/js/profile.js" defer></script>
+    <script src="../assets/js/search-validation.js" defer></script>
+    <script src="../assets/js/guest-reservations.js" defer></script>
+    <script src="../assets/js/guest-app.js" defer></script>
   </head>
   <body class="profile-page">
     <header
@@ -34,156 +34,7 @@
       data-layout="header"
       data-active-nav="Tài khoản của tôi"
     ></header>
-    <main id="main">
-      <div class="profile-heading">
-        <div class="container">
-          <h1>Tài khoản của tôi</h1>
-        </div>
-      </div>
-
-      <!-- One active demo Guest profile from GuestSession. No real account update or password change. -->
-      <section id="profile-unavailable" class="container" role="status" hidden><p></p><a class="profile-menu-item" href="../auth/login.html">Đăng nhập</a></section>
-      <div class="container profile-content" hidden>
-        <aside class="profile-sidebar" aria-label="Tài khoản khách hàng" data-account-nav="profile"></aside>
-
-        <div class="profile-panels">
-          <section class="profile-card room-search-form" aria-labelledby="personal-title" data-profile-editor data-mode="view">
-            <h2 id="personal-title">Thông tin cá nhân</h2>
-            <p id="profile-feedback" role="status" hidden></p>
-            <dl class="profile-view">
-              <div><dt>Họ và tên</dt><dd data-profile-value="fullName"></dd></div>
-              <div><dt>Email</dt><dd data-profile-value="email"></dd></div>
-              <div><dt>Số điện thoại</dt><dd data-profile-value="phone"></dd></div>
-            </dl>
-            <div
-              class="profile-personal-fields" hidden
-              role="group"
-              aria-labelledby="personal-title"
-            >
-              <div class="profile-field profile-field-wide">
-                <label for="full-name">Họ và tên</label>
-                <input
-                  id="full-name"
-                  name="fullName"
-                  readonly
-                  type="text"
-                  autocomplete="name"
-                />
-              </div>
-              <div class="profile-field">
-                <label for="email">Email</label>
-                <input
-                  id="email"
-                  name="email"
-                  readonly
-                  type="email"
-                  autocomplete="email"
-                  autocapitalize="none"
-                  spellcheck="false"
-                />
-              </div>
-              <div class="profile-field">
-                <label for="phone">Số điện thoại</label>
-                <input
-                  id="phone"
-                  name="phone"
-                  readonly
-                  type="tel"
-                  autocomplete="tel"
-                />
-              </div>
-            </div>
-            <div class="profile-actions profile-edit-actions">
-              <button class="button button-primary" type="button" data-profile-edit>
-                Sửa thông tin
-              </button>
-              <button class="button button-primary" type="button" data-profile-save hidden>
-                Lưu thay đổi
-              </button>
-              <button class="button button-outline" type="button" data-profile-cancel hidden>
-                Hủy
-              </button>
-            </div>
-          </section>
-
-          <section class="profile-card" aria-labelledby="password-title">
-            <div class="profile-security-heading"><h2 id="password-title">Bảo mật tài khoản</h2><button class="button button-outline" type="button" data-password-open aria-expanded="false" aria-controls="profile-password-editor">Đổi mật khẩu</button></div>
-            <p class="profile-security-intro">Quản lý mật khẩu đăng nhập của bạn.</p>
-            <div id="profile-password-editor" hidden>
-            <div
-              class="profile-password-fields"
-              role="group"
-              aria-labelledby="password-title"
-            >
-              <div class="profile-field">
-                <label for="current-password">Mật khẩu hiện tại</label>
-                <div class="password-control">
-                  <input
-                    id="current-password"
-                    name="currentPassword"
-                    type="password"
-                    autocomplete="current-password"
-                  />
-                  <button
-                    class="password-toggle"
-                    type="button"
-                    aria-label="Hiện mật khẩu"
-                    aria-controls="current-password"
-                  >
-                    <span class="password-icon" aria-hidden="true"></span>
-                  </button>
-                </div>
-              </div>
-              <div class="profile-field">
-                <label for="new-password">Mật khẩu mới</label>
-                <div class="password-control">
-                  <input
-                    id="new-password"
-                    name="newPassword"
-                    type="password"
-                    autocomplete="new-password"
-                  />
-                  <button
-                    class="password-toggle"
-                    type="button"
-                    aria-label="Hiện mật khẩu"
-                    aria-controls="new-password"
-                  >
-                    <span class="password-icon" aria-hidden="true"></span>
-                  </button>
-                </div>
-              </div>
-              <div class="profile-field">
-                <label for="confirm-new-password">Xác nhận mật khẩu mới</label>
-                <div class="password-control">
-                  <input
-                    id="confirm-new-password"
-                    name="confirmNewPassword"
-                    type="password"
-                    autocomplete="new-password"
-                  />
-                  <button
-                    class="password-toggle"
-                    type="button"
-                    aria-label="Hiện mật khẩu"
-                    aria-controls="confirm-new-password"
-                  >
-                    <span class="password-icon" aria-hidden="true"></span>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="profile-actions">
-              <button class="button button-primary" type="button">
-                Cập nhật mật khẩu
-              </button>
-              <button class="button button-outline" type="button" data-password-close>Hủy</button>
-            </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </main>
+    <main id="main" class="container guest-app" data-guest-page="profile"><noscript>Vui lòng bật JavaScript để sử dụng chức năng này.</noscript></main>
     <footer id="site-footer" class="site-footer" data-layout="footer"></footer>
   </body>
 </html>

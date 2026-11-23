@@ -10,6 +10,7 @@
   form.addEventListener("submit",event=>{
     event.preventDefault();feedback.textContent="";feedback.hidden=true;const invalid=errors();paint(invalid);
     const first=fields.find(f=>invalid[f.name]);if(first){first.focus();return;}
+    feedback.textContent="Chức năng này chưa được máy chủ hỗ trợ. Vui lòng liên hệ khách sạn để được trợ giúp.";feedback.hidden=false;
     // No recovery API/token exists in current routes. M5 must supply email recovery,
     // validate token expiry/one-time use and define the final password policy.
     // Future API response must not reveal account existence:

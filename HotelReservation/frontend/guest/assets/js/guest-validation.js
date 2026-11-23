@@ -16,8 +16,7 @@
     return errors;
   }
   function identifierError(value){
-    if(typeof value!=="string"||!value.trim())return "Vui lòng nhập email hoặc số điện thoại.";
-    return value.includes("@")?emailError(value):phoneError(value);
+    return emailError(value);
   }
   function authErrors(values,register=false){
     const errors=register?contactErrors(values):{};

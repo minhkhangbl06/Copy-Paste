@@ -16,11 +16,14 @@
     />
     <link rel="stylesheet" href="assets/css/global.css" />
     <link rel="stylesheet" href="assets/css/home.css" />
+      <script src="assets/js/guest-config.js" defer></script>
     <script src="assets/js/guest-validation.js" defer></script>
+    <script src="assets/js/guest-api.js" defer></script>
     <script src="assets/js/guest-session.js" defer></script>
     <script src="assets/js/layout.js" defer></script>
     <script src="assets/js/search-validation.js" defer></script>
     <script src="assets/js/home.js" defer></script>
+    <script src="assets/js/home-catalog.js" defer></script>
   </head>
   <body>
     <!-- Shared header: sticky host must remain a direct child of body. -->
@@ -95,13 +98,7 @@
               </div>
               <div class="field">
                 <label for="room-type">Loại phòng</label
-                ><select id="room-type" name="roomType" aria-describedby="room-type-error">
-                  <option value="">Tất cả</option>
-                  <option value="standard">Standard</option>
-                  <option value="deluxe">Deluxe</option>
-                  <option value="family">Family</option>
-                  <option value="suite">Suite</option>
-                </select>
+                ><select id="room-type" name="roomType" aria-describedby="room-type-error"><option value="">Tất cả</option></select>
                 <p id="room-type-error" class="search-field-error" hidden></p>
               </div>
               <button class="button button-primary search-submit" type="submit">
@@ -127,102 +124,10 @@
               ><span class="text-link-arrow" aria-hidden="true">↗</span></a
             >
           </div>
-          <div class="room-grid">
-            <article class="room-card">
-              <div class="room-image standard">
-                <img
-                  src="assets/images/khach-san-da-lat.jpg"
-                  alt="Minh họa phòng Standard với giường đôi"
-                  width="800"
-                  height="680"
-                  loading="lazy"
-                />
-              </div>
-              <div class="room-content">
-                <p class="room-capacity">01 / TỐI ĐA 2 KHÁCH</p>
-                <h3>Standard</h3>
-                <p class="room-description">
-                  Không gian gọn gàng với giường đôi hoặc 2 giường đơn.
-                </p>
-                <p class="room-amenities">Giường đôi / 2 giường đơn</p>
-                <a class="room-action" href="pages/rooms.html?roomType=standard">
-                  Tìm loại phòng này
-                </a>
-              </div>
-            </article>
-            <article class="room-card">
-              <div class="room-image deluxe">
-                <img
-                  src="assets/images/khach-san-da-lat.jpg"
-                  alt="Minh họa không gian nghỉ ngơi cho phòng Deluxe"
-                  width="800"
-                  height="680"
-                  loading="lazy"
-                />
-              </div>
-              <div class="room-content">
-                <p class="room-capacity">02 / 2–3 KHÁCH</p>
-                <h3>Deluxe</h3>
-                <p class="room-description">
-                  Diện tích lớn hơn, view đẹp cho những phút giây thư thái.
-                </p>
-                <p class="room-amenities">Không gian rộng · View đẹp</p>
-                <a class="room-action" href="pages/rooms.html?roomType=deluxe">
-                  Tìm loại phòng này
-                </a>
-              </div>
-            </article>
-            <article class="room-card">
-              <div class="room-image family">
-                <img
-                  src="assets/images/khach-san-da-lat.jpg"
-                  alt="Minh họa phòng nghỉ cho loại Family"
-                  width="800"
-                  height="680"
-                  loading="lazy"
-                />
-              </div>
-              <div class="room-content">
-                <p class="room-capacity">03 / TỐI ĐA 4 KHÁCH</p>
-                <h3>Family</h3>
-                <p class="room-description">
-                  Cùng nhau nghỉ ngơi trong không gian dành cho gia đình.
-                </p>
-                <p class="room-amenities">2 phòng ngủ hoặc giường phụ</p>
-                <a class="room-action" href="pages/rooms.html?roomType=family">
-                  Tìm loại phòng này
-                </a>
-              </div>
-            </article>
-            <article class="room-card">
-              <div class="room-image suite">
-                <img
-                  src="assets/images/khach-san-da-lat.jpg"
-                  alt="Minh họa không gian nghỉ cho loại Suite"
-                  width="800"
-                  height="680"
-                  loading="lazy"
-                />
-              </div>
-              <div class="room-content">
-                <p class="room-capacity">04 / 2–4 KHÁCH</p>
-                <h3>Suite</h3>
-                <p class="room-description">
-                  Không gian riêng tư, thoải mái cho một kỳ nghỉ trọn vẹn.
-                </p>
-                <p class="room-amenities">
-                  Phòng khách riêng · Tiện nghi cao cấp
-                </p>
-                <a class="room-action" href="pages/rooms.html?roomType=suite">
-                  Tìm loại phòng này
-                </a>
-              </div>
-            </article>
-          </div>
+          <div class="room-grid" data-home-rooms><p role="status">Đang tải danh mục phòng…</p></div>
         </div>
       </section>
-      <section
-        class="services section-space"
+      <section class="services section-space"
         id="dich-vu"
         aria-labelledby="services-title"
       >

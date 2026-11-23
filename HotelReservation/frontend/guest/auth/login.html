@@ -16,7 +16,9 @@
     />
     <link rel="stylesheet" href="../assets/css/global.css" />
     <link rel="stylesheet" href="../assets/css/auth.css" />
+      <script src="../assets/js/guest-config.js" defer></script>
     <script src="../assets/js/guest-validation.js" defer></script>
+    <script src="../assets/js/guest-api.js" defer></script>
     <script src="../assets/js/guest-session.js" defer></script>
     <script src="../assets/js/auth.js" defer></script>
   </head>
@@ -32,13 +34,13 @@
         <p id="auth-error" class="auth-error" role="status" hidden></p>
         <form id="auth-form" class="room-search-form" aria-labelledby="auth-title" novalidate>
           <div class="auth-field">
-            <label for="email">Email hoặc số điện thoại</label
+            <label for="email">Email</label
             ><input
               id="email"
               name="identifier"
-              type="text"
+              type="email"
               autocomplete="username"
-              placeholder="Nhập email hoặc số điện thoại"
+              placeholder="Nhập email"
               autocapitalize="none"
               spellcheck="false"
             />
