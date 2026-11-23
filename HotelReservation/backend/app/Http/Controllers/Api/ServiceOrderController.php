@@ -109,7 +109,32 @@ class ServiceOrderController extends Controller
             }
         }
 
-        $order = DB::transaction(function () use ($validated, $booking, $bookingRoomId, $roomId) {
+        $order = DB::transaction(function () use ($request, $validated, $booking, $bookingRoomId, $roomId) {
+            $booking = Booking::lockForUpdate()->findOrFail($booking->id);
+            abort_if(in_array($booking->status, ['checked_out', 'cancelled']), 422, 'Đơn đã kết thúc lưu trú.');
+
+            if ($request->is('api/staff/service-orders')) {
+                abort_unless($booking->status === 'checked_in', 409, 'Đơn chưa nhận phòng.');
+
+                $selectedRoomId = (int) ($validated['room_id'] ?? 0);
+                $bookingRooms = $booking->bookingRooms();
+                $hasBookingRooms = $bookingRooms->exists();
+                $occupiedRoom = $hasBookingRooms
+                    ? $bookingRooms->where('room_id', $selectedRoomId)->where('status', 'occupied')->first()
+                    : null;
+
+                abort_unless(
+                    $selectedRoomId > 0 && ($hasBookingRooms
+                        ? $occupiedRoom !== null
+                        : $selectedRoomId === (int) $booking->room_id),
+                    422,
+                    'Phòng đang ở phải thuộc đơn đặt phòng.'
+                );
+
+                $roomId = $selectedRoomId;
+                $bookingRoomId = $occupiedRoom?->id;
+            }
+
             $order = ServiceOrder::create([
                 'order_code' => 'SO-' . date('Ymd') . '-' . strtoupper(Str::random(5)),
                 'booking_id' => $booking->id,

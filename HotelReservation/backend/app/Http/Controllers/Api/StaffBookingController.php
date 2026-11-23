@@ -94,6 +94,43 @@ class StaffBookingController
         return $this->success($booking, 201);
     }
 
+    public function confirmDeposit(int $id): JsonResponse
+    {
+        return DB::transaction(function () use ($id) {
+            $booking = Booking::lockForUpdate()->findOrFail($id);
+            abort_unless(in_array($booking->status, ['pending', 'confirmed']) && $booking->deposit_amount > 0,
+                409, 'Đơn này không thể xác nhận thu cọc.');
+            if (!$booking->deposit_received_at) {
+                $booking->forceFill(['deposit_received_at' => now()->startOfSecond()])->save();
+            }
+
+            return $this->success($booking->load(['room', 'bookingRooms.room']));
+        });
+    }
+
+    public function checkIn(int $id): JsonResponse
+    {
+        return DB::transaction(function () use ($id) {
+            $booking = Booking::lockForUpdate()->findOrFail($id);
+            abort_unless(in_array($booking->status, ['pending', 'confirmed']), 409, 'Đơn này không thể nhận phòng.');
+            abort_if($booking->deposit_amount > 0 && !$booking->deposit_received_at, 409, 'Hãy xác nhận thu cọc trước.');
+
+            $links = $booking->bookingRooms()->lockForUpdate()->get();
+            abort_if($links->contains(fn ($link) => $link->status !== 'reserved'), 409, 'Trạng thái phòng trong đơn đã thay đổi.');
+            $ids = $links->isEmpty() ? array_filter([$booking->room_id]) : $links->pluck('room_id')->all();
+            $rooms = Room::whereKey($ids)->orderBy('id')->lockForUpdate()->get();
+            abort_if(!$ids || $rooms->count() !== count($ids) || $rooms->contains(fn ($room) => $room->status !== 'available'),
+                409, 'Tất cả phòng phải sẵn sàng trước khi nhận phòng.');
+
+            Room::whereKey($ids)->update(['status' => 'occupied']);
+            $booking->bookingRooms()->update(['status' => 'occupied']);
+            $booking->roomNights()->get()->each->update(['status' => 'occupied']);
+            $booking->update(['status' => 'checked_in']);
+
+            return $this->success($booking->load(['room', 'bookingRooms.room']));
+        });
+    }
+
     private function success(mixed $data, int $status = 200): JsonResponse
     {
         return response()->json(['status' => 'success', 'data' => $data], $status);

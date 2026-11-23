@@ -43,6 +43,7 @@ class Booking extends Model
         'check_in'           => 'date',
         'check_out'          => 'date',
         'actual_checkout_at' => 'datetime',
+        'deposit_received_at' => 'datetime',
         'total_room_amount'  => 'decimal:2',
         'total_price'        => 'decimal:2',
         'deposit_amount'     => 'decimal:2',

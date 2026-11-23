@@ -218,10 +218,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (checkinErrorElem) checkinErrorElem.hidden = true;
 
     try {
-      var roomsPromise = StaffAPI.getRooms();
-      var bookingsPromise = StaffAPI.getBookings();
-
-      var results = await Promise.all([roomsPromise, bookingsPromise]);
+      var roomResult = await StaffAPI.getRooms();
+      var bookingResult = await StaffAPI.getBookings();
+      var results = [roomResult, bookingResult];
       allRoomsCache = results[0].data || [];
       allBookingsCache = results[1].data || [];
 
@@ -293,7 +292,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var str = (String(b.booking_code || '') + ' ' +
           String(b.guest_name || '') + ' ' +
           String(b.guest_phone || '') + ' ' +
-          (b.room ? (b.room.room_number + ' ' + b.room.room_type) : '')).toLowerCase();
+          StaffAPI.roomLabels(b)).toLowerCase();
         if (str.indexOf(kw) === -1) return false;
       }
 
@@ -316,10 +315,10 @@ document.addEventListener("DOMContentLoaded", function () {
     var html = '';
     for (var i = 0; i < filtered.length; i++) {
       var b = filtered[i];
-      var roomTitle = b.room
-        ? ('Phòng ' + (b.room.room_number || '—') + ' (' + b.room.room_type + ')')
-        : ('Phòng #' + (b.room_id || '—'));
-      var roomStatusBadge = getRoomBadgeHTML(b.room);
+      var roomTitle = StaffAPI.roomLabels(b);
+      var roomStatusBadge = StaffAPI.bookingRooms(b).map(function (room) {
+        return '<div>' + safeEscape(room.room_number) + ' ' + getRoomBadgeHTML(room) + '</div>';
+      }).join('');
 
       var statusBadge = '';
       if (b.status === 'confirmed') {
@@ -336,10 +335,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Nút Thao tác
       var actionBtn = '';
-      if (b.status === 'confirmed') {
+      if (['pending', 'confirmed'].includes(b.status)) {
         actionBtn = '<button class="btn-checkin-action action-trigger-checkin" data-id="' + b.id + '" type="button">→ Check-in</button>';
       } else if (b.status === 'checked_in') {
-        actionBtn = '<button class="btn-checkout-action action-trigger-checkout" data-id="' + b.id + '" type="button">Thanh toán &amp; Check-out</button>';
+        if (!b.booking_rooms?.length) actionBtn = '<button class="btn-checkout-action action-trigger-checkout" data-id="' + b.id + '" type="button">Thanh toán &amp; Check-out</button>';
+        if (!StaffAPI.isMockMode()) {
+          actionBtn += ' <button class="btn-checkin-action action-trigger-service" data-id="' + b.id + '" type="button">Ghi dịch vụ</button>';
+        }
       } else {
         actionBtn = '<small style="color:var(--text-secondary);">Hoàn tất</small>';
       }
@@ -372,6 +374,10 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
+    tableBodyElem.querySelectorAll('.action-trigger-service').forEach(function (button) {
+      button.addEventListener('click', function () { openServiceDialog(button.dataset.id); });
+    });
+
     var checkoutButtons = tableBodyElem.querySelectorAll(".action-trigger-checkout");
     checkoutButtons.forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -382,40 +388,103 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // 10. Mở Modal Check-in
+  var serviceDialog = document.getElementById('staff-room-service-dialog');
+  var serviceForm = document.getElementById('staff-room-service-form');
+  var serviceError = document.getElementById('staff-room-service-error');
+  var serviceSubmit = serviceForm.querySelector('[type="submit"]');
+  var serviceBookingId;
+
+  async function openServiceDialog(id) {
+    var booking = allBookingsCache.find(function (item) { return String(item.id) === id; });
+    serviceBookingId = booking.id;
+    serviceForm.reset();
+    serviceForm.elements.room.replaceChildren(...StaffAPI.bookingRooms(booking).map(function (room) {
+      return new Option(room.room_number, room.id);
+    }));
+    serviceForm.elements.service.replaceChildren();
+    serviceError.textContent = '';
+    serviceSubmit.disabled = true;
+    serviceDialog.showModal();
+    try {
+      var result = await StaffAPI.getServices();
+      var services = Array.isArray(result.data) ? result.data : result.data.data;
+      serviceForm.elements.service.replaceChildren(...services.map(function (service) {
+        return new Option(service.name + ' · ' + formatVND(service.price), service.id);
+      }));
+      serviceSubmit.disabled = !services.length;
+      if (!services.length) serviceError.textContent = 'Danh mục dịch vụ đang trống.';
+    } catch (error) {
+      serviceError.textContent = error.message;
+    }
+  }
+
+  document.getElementById('staff-service-cancel').addEventListener('click', function () { serviceDialog.close(); });
+  serviceForm.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    serviceSubmit.disabled = true;
+    serviceError.textContent = '';
+    try {
+      await StaffAPI.createServiceOrder({
+        booking_id: serviceBookingId,
+        room_id: Number(serviceForm.elements.room.value),
+        items: [{
+          service_id: Number(serviceForm.elements.service.value),
+          quantity: Number(serviceForm.elements.quantity.value)
+        }],
+        charge_to_room: true
+      });
+      serviceDialog.close();
+      showToast('Đã ghi dịch vụ vào phòng được chọn.', 'success');
+    } catch (error) {
+      serviceError.textContent = error.message;
+      serviceSubmit.disabled = false;
+    }
+  });
+
   function openCheckinDialog(bookingId) {
     activeCheckinBooking = allBookingsCache.find(function (b) { return String(b.id) === String(bookingId); });
     if (!activeCheckinBooking || !checkinConfirmBody || !checkinConfirmDialog) return;
 
-    var room = activeCheckinBooking.room;
-    var isRoomDirty = room && room.status === 'dirty';
-    var isRoomMaintenance = room && room.status === 'maintenance';
-
-    var warningHtml = '';
-    if (isRoomDirty) {
-      warningHtml = '<div class="notice-banner banner-api-error" style="margin-bottom: 14px;">' +
-        '<span><strong>⚠️ CẢNH BÁO BUỒNG PHÒNG:</strong> Phòng này hiện có trạng thái <em>Cần dọn (Dirty)</em>. Vui lòng xác nhận phòng đã được vệ sinh sạch sẽ trước khi giao chìa khóa cho khách.</span>' +
-        '</div>';
-    } else if (isRoomMaintenance) {
-      warningHtml = '<div class="notice-banner banner-api-error" style="margin-bottom: 14px;">' +
-        '<span><strong>✕ CẢNH BÁO:</strong> Phòng đang trong diện <em>Bảo trì (Maintenance)</em>. Không thể làm thủ tục nhận phòng này.</span>' +
-        '</div>';
-    }
-
+    var rooms = StaffAPI.bookingRooms(activeCheckinBooking);
+    var unavailable = rooms.filter(function (room) { return room.status !== 'available'; });
+    var needsDeposit = Number(activeCheckinBooking.deposit_amount) > 0 && !activeCheckinBooking.deposit_received_at;
+    var warningHtml = unavailable.length
+      ? '<p>Phòng chưa sẵn sàng: ' + safeEscape(unavailable.map(function (room) { return room.room_number; }).join(', ')) + '</p>'
+      : '';
     var content = warningHtml +
       '<div class="detail-grid" style="margin-bottom: 16px;">' +
       '<div class="detail-item"><span class="detail-label">Mã đặt phòng</span><strong class="detail-value booking-code">' + safeEscape(activeCheckinBooking.booking_code) + '</strong></div>' +
       '<div class="detail-item"><span class="detail-label">Khách hàng</span><strong class="detail-value">' + safeEscape(activeCheckinBooking.guest_name) + '</strong></div>' +
       '<div class="detail-item"><span class="detail-label">Số điện thoại</span><strong class="detail-value">' + safeEscape(activeCheckinBooking.guest_phone || '—') + '</strong></div>' +
-      '<div class="detail-item"><span class="detail-label">Phòng tiếp nhận</span><strong class="detail-value">' + safeEscape(room ? (room.room_type + ' - Phòng ' + room.room_number) : 'Chưa gán') + '</strong></div>' +
+      '<div class="detail-item"><span class="detail-label">Phòng tiếp nhận</span><strong class="detail-value">' + safeEscape(StaffAPI.roomLabels(activeCheckinBooking)) + '</strong></div>' +
       '<div class="detail-item"><span class="detail-label">Thời gian lưu trú</span><strong class="detail-value">' + safeEscape(formatDateVN(activeCheckinBooking.check_in_date)) + ' → ' + safeEscape(formatDateVN(activeCheckinBooking.check_out_date)) + '</strong></div>' +
-      '<div class="detail-item"><span class="detail-label">Tiền cọc đã đóng</span><strong class="detail-value" style="color:#0b6b3a;">' + safeEscape(formatVND(activeCheckinBooking.deposit_amount)) + '</strong></div>' +
+      '<div class="detail-item"><span class="detail-label">Tiền cọc ' + (needsDeposit ? 'cần thu' : 'đã thu') + '</span><strong class="detail-value" style="color:#0b6b3a;">' + safeEscape(formatVND(activeCheckinBooking.deposit_amount)) + '</strong></div>' +
       '</div>' +
       '<p style="font-size: 12px; color: var(--text-secondary); margin: 0;">' +
       'Thủ tục nhận phòng tiêu chuẩn bắt đầu từ <strong>14:00</strong>. Khi xác nhận, phòng sẽ được cập nhật trạng thái <strong>Đang sử dụng (Occupied)</strong>.' +
       '</p>';
 
     checkinConfirmBody.innerHTML = content;
-    if (confirmCheckinBtn) confirmCheckinBtn.disabled = isRoomMaintenance;
+    if (needsDeposit) {
+      var depositButton = document.createElement('button');
+      depositButton.type = 'button';
+      depositButton.className = 'button';
+      depositButton.textContent = 'Xác nhận đã thu cọc';
+      checkinConfirmBody.append(depositButton);
+      depositButton.addEventListener('click', async function () {
+        depositButton.disabled = true;
+        try {
+          var result = await StaffAPI.confirmDeposit(bookingId);
+          Object.assign(activeCheckinBooking, result.data);
+          checkinConfirmDialog.close();
+          openCheckinDialog(bookingId);
+        } catch (error) {
+          showToast(error.message, 'error');
+          depositButton.disabled = false;
+        }
+      });
+    }
+    if (confirmCheckinBtn) confirmCheckinBtn.disabled = Boolean(unavailable.length || needsDeposit);
     checkinConfirmDialog.showModal();
   }
 

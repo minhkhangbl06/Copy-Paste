@@ -94,4 +94,9 @@ Route::prefix('staff/bookings')->middleware(['auth:sanctum', 'role:receptionist,
     Route::get('/', [StaffBookingController::class, 'index']);
     Route::get('/{id}', [StaffBookingController::class, 'show'])->whereNumber('id');
     Route::post('/', [StaffBookingController::class, 'store']);
+    Route::post('/{id}/deposit', [StaffBookingController::class, 'confirmDeposit'])->whereNumber('id');
+    Route::post('/{id}/check-in', [StaffBookingController::class, 'checkIn'])->whereNumber('id');
 });
+
+Route::post('/staff/service-orders', [ServiceOrderController::class, 'store'])
+    ->middleware(['auth:sanctum', 'role:receptionist,admin,manager']);

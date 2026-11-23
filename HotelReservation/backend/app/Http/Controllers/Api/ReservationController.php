@@ -397,6 +397,8 @@ class ReservationController extends Controller
             ], 400);
         }
 
+        abort_if($booking->bookingRooms()->count() > 1 || !$booking->room_id, 409, 'Hãy nhận phòng qua cổng Staff.');
+
         $room = $booking->room;
         if ($room && $room->status === 'maintenance') {
             return response()->json([
@@ -440,6 +442,8 @@ class ReservationController extends Controller
         $checkoutTime = $request->filled('actual_checkout_at') 
             ? Carbon::parse($request->input('actual_checkout_at')) 
             : now();
+
+        abort_if($booking->bookingRooms()->count() > 1 || !$booking->room_id, 409, 'Hãy trả phòng qua hóa đơn chung của Staff.');
 
         $room = $booking->room;
         $user = $request->user('sanctum') ?? $request->user();

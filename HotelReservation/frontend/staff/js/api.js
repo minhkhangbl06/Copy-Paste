@@ -834,6 +834,21 @@
     // ==========================================
     // MODULE: CHECK-IN / CHECK-OUT
     // ==========================================
+    confirmDeposit: async function (id) {
+      if (MockModeManager.isMockMode()) {
+        var list = MockRepository.getBookings();
+        var booking = list.find(function (item) { return String(item.id) === String(id); });
+        booking.deposit_received_at = new Date().toISOString();
+        MockRepository.saveBookings(list);
+        return { data: booking, isMock: true };
+      }
+      return requestAPI('/staff/bookings/' + id + '/deposit', { method: 'POST' });
+    },
+
+    createServiceOrder: function (data) {
+      return requestAPI('/staff/service-orders', { method: 'POST', body: JSON.stringify(data) });
+    },
+
     checkInBooking: async function (id) {
       if (MockModeManager.isMockMode()) {
         var checkedIn = MockRepository.checkInBooking(id);
@@ -847,7 +862,7 @@
       }
 
       // API thật
-      var res = await requestAPI('/bookings/' + id + '/check-in', {
+      var res = await requestAPI('/staff/bookings/' + id + '/check-in', {
         method: 'POST'
       });
       return Object.assign({}, res, { isMock: false });

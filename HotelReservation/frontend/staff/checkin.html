@@ -247,5 +247,19 @@
 
   <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="staff-room-service-dialog">
+    <form id="staff-room-service-form" style="display:grid; gap:12px; min-width:280px">
+      <h2>Ghi dịch vụ theo phòng</h2>
+      <label for="staff-service-room">Phòng</label>
+      <select id="staff-service-room" name="room" required></select>
+      <label for="staff-service-item">Dịch vụ</label>
+      <select id="staff-service-item" name="service" required></select>
+      <label for="staff-service-quantity">Số lượng</label>
+      <input id="staff-service-quantity" name="quantity" type="number" min="1" value="1" required>
+      <p id="staff-room-service-error" role="alert"></p>
+      <button class="button" type="submit">Ghi vào hóa đơn chung</button>
+      <button class="button button-outline" type="button" id="staff-service-cancel">Quay lại</button>
+    </form>
+  </dialog>
 </body>
 </html>
