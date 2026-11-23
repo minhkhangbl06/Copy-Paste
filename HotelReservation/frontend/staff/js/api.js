@@ -426,6 +426,12 @@
    * ==========================================
    */
   async function requestAPI(endpoint, options) {
+    if (typeof window !== 'undefined' && window.staffSessionReady) {
+      if (!(await window.staffSessionReady)) {
+        throw new Error('Phiên Staff chưa được xác thực.');
+      }
+    }
+
     options = options || {};
     var url = endpoint.indexOf('http') === 0 ? endpoint : DEFAULT_API_BASE + endpoint;
     var defaultHeaders = {
@@ -643,7 +649,9 @@
         };
       }
 
-      var [roomRes, bookingRes] = await Promise.all([this.getRooms(), this.getBookings()]);
+
+      var roomRes = await this.getRooms();
+      var bookingRes = await this.getBookings();
       var rooms = roomRes.data;
       var bookings = bookingRes.data;
       var occupied = new Set(bookings.flatMap(function (booking) {
@@ -1004,7 +1012,7 @@
 });
 
 // them moi 
-(async function checkStaffSession() {
+window.staffSessionReady = (async function checkStaffSession() {
   const receptionPages = ['index.html', 'bookings.html', 'checkin.html',
     'housekeeping.html', 'services.html', 'billing.html', 'reports.html'];
   const pagesByRole = {
@@ -1124,6 +1132,7 @@
     }
 
     document.documentElement.style.visibility = '';
+    return true;
   } catch {
     const message = document.createElement('p');
     message.textContent = 'Không kiểm tra được phiên Staff. Hãy kiểm tra Laravel rồi tải lại trang.';
