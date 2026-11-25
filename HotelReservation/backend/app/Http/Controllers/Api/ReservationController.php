@@ -4,14 +4,16 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\BookingRoom;
 use App\Models\HousekeepingEvent;
 use App\Models\HousekeepingTask;
 use App\Models\Room;
 use App\Models\RoomNight;
 use App\Services\ReservationPricing;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class ReservationController extends Controller
 {
@@ -66,10 +68,30 @@ class ReservationController extends Controller
         $checkOut = Carbon::parse($request->query('check_out_date'))->toDateString();
         $roomType = $request->query('room_type');
 
-        $bookedRoomIds = Booking::whereNotNull('room_id')
+        $busyFromNights = RoomNight::whereIn('status', ['reserved', 'occupied'])
+            ->whereDate('stay_date', '>=', $checkIn)
+            ->whereDate('stay_date', '<', $checkOut)
+            ->whereHas('bookingRoom.booking', function ($q) {
+                $q->whereIn('status', ['pending', 'confirmed', 'checked_in']);
+            })
+            ->pluck('room_id')
+            ->toArray();
+
+        $busyFromBookingRooms = BookingRoom::whereIn('status', ['reserved', 'occupied'])
+            ->whereDate('check_in_date', '<', $checkOut)
+            ->whereDate('check_out_date', '>', $checkIn)
+            ->whereHas('booking', function ($q) {
+                $q->whereIn('status', ['pending', 'confirmed', 'checked_in']);
+            })
+            ->pluck('room_id')
+            ->toArray();
+
+        $busyLegacy = Booking::whereNotNull('room_id')
             ->overlappingStay($checkIn, $checkOut)
             ->pluck('room_id')
             ->toArray();
+
+        $bookedRoomIds = array_unique(array_merge($busyFromNights, $busyFromBookingRooms, $busyLegacy));
 
         $availableRooms = Room::whereNotIn('id', $bookedRoomIds)
             ->where('status', '!=', 'maintenance')
@@ -93,12 +115,18 @@ class ReservationController extends Controller
 
     public function createBooking(Request $request)
     {
+        if (!$request->has('room_ids') && $request->filled('room_id')) {
+            $request->merge(['room_ids' => [(int) $request->input('room_id')]]);
+        }
+
         $request->validate([
-            'guest_name' => 'required|string|max:255',
-            'guest_phone' => 'required|string|max:20',
-            'room_ids' => 'required|array|min:1',
-            'room_ids.*' => 'required|integer|distinct|exists:rooms,id',
-            'check_in_date' => 'required|date|after_or_equal:today',
+            'guest_name'     => 'required|string|max:255',
+            'guest_phone'    => 'required|string|max:20',
+            'guest_email'    => 'nullable|email|max:255',
+            'notes'          => 'nullable|string',
+            'room_ids'       => 'required|array|min:1',
+            'room_ids.*'     => 'required|integer|distinct|exists:rooms,id',
+            'check_in_date'  => 'required|date|after_or_equal:today',
             'check_out_date' => 'required|date|after:check_in_date',
         ]);
 
@@ -113,13 +141,16 @@ class ReservationController extends Controller
             ], 400);
         }
 
-        $roomIds = $request->input('room_ids');
+        $roomIds = array_values(array_unique(array_map('intval', $request->input('room_ids'))));
         $user = $request->user('sanctum') ?? $request->user();
 
         try {
-            $createdBookings = DB::transaction(function () use ($request, $roomIds, $checkIn, $checkOut, $user) {
-                $results = [];
+            $booking = DB::transaction(function () use ($request, $roomIds, $checkIn, $checkOut, $user) {
                 $rooms = Room::whereKey($roomIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+
+                $bookingTotalAmount = 0.0;
+                $bookingDepositAmount = 0.0;
+                $roomPlans = [];
 
                 foreach ($roomIds as $roomId) {
                     $room = $rooms->get($roomId);
@@ -127,12 +158,7 @@ class ReservationController extends Controller
                         throw new \Exception("Không tìm thấy phòng {$roomId}.");
                     }
 
-                    $conflict = Booking::where('room_id', $roomId)
-                        ->overlappingStay($checkIn->toDateString(), $checkOut->toDateString())
-                        ->lockForUpdate()
-                        ->exists();
-
-                    if ($conflict) {
+                    if ($this->hasRoomConflict($roomId, $checkIn, $checkOut)) {
                         throw new \Exception("Phòng {$room->room_number} đã có người đặt trong khoảng thời gian này.");
                     }
 
@@ -140,33 +166,68 @@ class ReservationController extends Controller
                         throw new \Exception("Phòng " . $room->room_number . " đang bảo trì.");
                     }
 
+                    $nightlyList = ReservationPricing::nightlyRates($checkIn, $checkOut, (float) $room->price_per_night);
                     [$totalRoomAmount, $depositAmount] = ReservationPricing::quote($checkIn, $checkOut, (float) $room->price_per_night);
 
-                    $bookingCode = 'BK-' . now()->format('Ymd') . '-' . strtoupper(substr(uniqid(), -5));
+                    $bookingTotalAmount += $totalRoomAmount;
+                    $bookingDepositAmount += $depositAmount;
 
-                    $booking = Booking::create([
-                        'booking_code' => $bookingCode,
-                        'user_id' => $user?->id,
-                        'room_id' => $roomId,
-                        'guest_name' => $request->input('guest_name'),
-                        'guest_phone' => $request->input('guest_phone'),
-                        'check_in_date' => $checkIn->toDateString(),
-                        'check_out_date' => $checkOut->toDateString(),
-                        'total_room_amount' => $totalRoomAmount,
-                        'deposit_amount' => $depositAmount,
-                        'status' => 'confirmed',
-                    ]);
-
-                    $results[] = $booking;
+                    $roomPlans[] = [
+                        'room'         => $room,
+                        'nightly_list' => $nightlyList,
+                        'room_total'   => $totalRoomAmount,
+                    ];
                 }
 
-                return $results;
+                $bookingCode = 'BK-' . now()->format('Ymd') . '-' . strtoupper(substr(uniqid(), -5));
+
+                $booking = Booking::create([
+                    'booking_code'      => $bookingCode,
+                    'user_id'           => $user?->id,
+                    'room_id'           => $roomIds[0],
+                    'guest_name'        => $request->input('guest_name'),
+                    'guest_phone'       => $request->input('guest_phone'),
+                    'guest_email'       => $request->input('guest_email'),
+                    'notes'             => $request->input('notes'),
+                    'check_in_date'     => $checkIn->toDateString(),
+                    'check_out_date'    => $checkOut->toDateString(),
+                    'total_room_amount' => round($bookingTotalAmount, 2),
+                    'deposit_amount'    => round($bookingDepositAmount, 2),
+                    'status'            => 'confirmed',
+                ]);
+
+                foreach ($roomPlans as $plan) {
+                    $room = $plan['room'];
+                    $bookingRoom = BookingRoom::create([
+                        'booking_id'        => $booking->id,
+                        'room_id'           => $room->id,
+                        'check_in_date'     => $checkIn->toDateString(),
+                        'check_out_date'    => $checkOut->toDateString(),
+                        'price_per_night'   => $room->price_per_night,
+                        'total_room_amount' => $plan['room_total'],
+                        'status'            => 'reserved',
+                    ]);
+
+                    foreach ($plan['nightly_list'] as $night) {
+                        RoomNight::create([
+                            'booking_room_id' => $bookingRoom->id,
+                            'room_id'         => $room->id,
+                            'stay_date'       => $night['stay_date'],
+                            'rate_applied'    => $night['rate'],
+                            'rate'            => $night['rate'],
+                            'price'           => $night['rate'],
+                            'status'          => 'reserved',
+                        ]);
+                    }
+                }
+
+                return $booking->load(['room', 'bookingRooms.room', 'bookingRooms.roomNights']);
             });
 
             return response()->json([
                 'status'  => 'success',
                 'message' => 'Đặt phòng thành công.',
-                'data'    => $createdBookings
+                'data'    => $booking
             ], 201);
 
         } catch (\Exception $e) {
@@ -179,7 +240,13 @@ class ReservationController extends Controller
 
     public function showBooking(Request $request, $id)
     {
-        $booking = Booking::with(['room', 'bookingRooms.room', 'invoice'])->find($id);
+        $booking = Booking::with([
+            'room',
+            'bookingRooms.room',
+            'bookingRooms.roomNights',
+            'serviceOrders.items.service',
+            'invoice.items',
+        ])->find($id);
 
         if (!$booking) {
             return response()->json([
@@ -205,7 +272,7 @@ class ReservationController extends Controller
 
     public function updateBooking(Request $request, $id)
     {
-        $booking = Booking::find($id);
+        $booking = Booking::with('bookingRooms')->find($id);
 
         if (!$booking) {
             return response()->json([
@@ -213,7 +280,7 @@ class ReservationController extends Controller
                 'message' => 'Không tìm thấy đơn đặt phòng.'
             ], 404);
         }
-        
+
         $user = $request->user('sanctum') ?? $request->user();
         if ($user && $user->isGuest() && $booking->user_id !== null && $booking->user_id !== $user->id) {
             return response()->json([
@@ -221,7 +288,6 @@ class ReservationController extends Controller
                 'message' => 'Truy cập bị từ chối: Bạn không có quyền chỉnh sửa đơn đặt phòng này.'
             ], 403);
         }
-
 
         if (in_array($booking->status, ['checked_in', 'checked_out', 'cancelled'])) {
             return response()->json([
@@ -231,52 +297,122 @@ class ReservationController extends Controller
         }
 
         $request->validate([
-            'room_id' => 'nullable|integer|exists:rooms,id',
-            'check_in_date' => 'nullable|date',
-            'check_out_date' => 'nullable|date|after:check_in_date',
-            'guest_name' => 'nullable|string|max:255',
-            'guest_phone' => 'nullable|string|max:20',
+            'room_id'        => 'nullable|integer|exists:rooms,id',
+            'room_ids'       => 'nullable|array|min:1',
+            'room_ids.*'     => 'required|integer|distinct|exists:rooms,id',
+            'check_in_date'  => 'nullable|date',
+            'check_out_date' => 'nullable|date',
+            'guest_name'     => 'nullable|string|max:255',
+            'guest_phone'    => 'nullable|string|max:20',
+            'guest_email'    => 'nullable|email|max:255',
+            'notes'          => 'nullable|string',
         ]);
 
-        $roomId = $request->input('room_id', $booking->room_id);
+        if ($request->has('room_ids')) {
+            $roomIds = array_values(array_unique(array_map('intval', $request->input('room_ids'))));
+        } elseif ($request->filled('room_id')) {
+            $roomIds = [(int) $request->input('room_id')];
+        } elseif ($booking->bookingRooms->isNotEmpty()) {
+            $roomIds = $booking->bookingRooms->pluck('room_id')->map(fn ($v) => (int) $v)->all();
+        } else {
+            $roomIds = [(int) $booking->room_id];
+        }
+
         $checkIn = Carbon::parse($request->input('check_in_date') ?? $booking->check_in_date)->startOfDay();
         $checkOut = Carbon::parse($request->input('check_out_date') ?? $booking->check_out_date)->startOfDay();
         if ($checkIn->gte($checkOut)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'check_out_date' => 'Ngày trả phòng phải sau ngày nhận phòng.',
             ]);
         }
 
-        $conflict = Booking::where('room_id', $roomId)
-            ->where('id', '!=', $booking->id)
-            ->overlappingStay($checkIn->toDateString(), $checkOut->toDateString())
-            ->exists();
+        try {
+            $updated = DB::transaction(function () use ($request, $booking, $roomIds, $checkIn, $checkOut) {
+                $rooms = Room::whereKey($roomIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
 
-        if ($conflict) {
+                $bookingTotalAmount = 0.0;
+                $bookingDepositAmount = 0.0;
+                $roomPlans = [];
+
+                foreach ($roomIds as $roomId) {
+                    $room = $rooms->get($roomId);
+                    if (!$room || $room->status === 'maintenance') {
+                        throw new \Exception('Phòng được chọn không khả dụng hoặc đang bảo trì.');
+                    }
+
+                    if ($this->hasRoomConflict($roomId, $checkIn, $checkOut, $booking->id)) {
+                        throw new \Exception('Phòng đã có người đặt trong thời gian sửa đổi này.');
+                    }
+
+                    $nightlyList = ReservationPricing::nightlyRates($checkIn, $checkOut, (float) $room->price_per_night);
+                    [$totalRoomAmount, $depositAmount] = ReservationPricing::quote($checkIn, $checkOut, (float) $room->price_per_night);
+
+                    $bookingTotalAmount += $totalRoomAmount;
+                    $bookingDepositAmount += $depositAmount;
+
+                    $roomPlans[] = [
+                        'room'         => $room,
+                        'nightly_list' => $nightlyList,
+                        'room_total'   => $totalRoomAmount,
+                    ];
+                }
+
+                RoomNight::whereHas('bookingRoom', function ($q) use ($booking) {
+                    $q->where('booking_id', $booking->id);
+                })->delete();
+                BookingRoom::where('booking_id', $booking->id)->delete();
+
+                $booking->update([
+                    'room_id'           => $roomIds[0],
+                    'guest_name'        => $request->input('guest_name', $booking->guest_name),
+                    'guest_phone'       => $request->input('guest_phone', $booking->guest_phone),
+                    'guest_email'       => $request->input('guest_email', $booking->guest_email),
+                    'notes'             => $request->input('notes', $booking->notes),
+                    'check_in_date'     => $checkIn->toDateString(),
+                    'check_out_date'    => $checkOut->toDateString(),
+                    'total_room_amount' => round($bookingTotalAmount, 2),
+                    'deposit_amount'    => round($bookingDepositAmount, 2),
+                ]);
+
+                foreach ($roomPlans as $plan) {
+                    $room = $plan['room'];
+                    $bookingRoom = BookingRoom::create([
+                        'booking_id'        => $booking->id,
+                        'room_id'           => $room->id,
+                        'check_in_date'     => $checkIn->toDateString(),
+                        'check_out_date'    => $checkOut->toDateString(),
+                        'price_per_night'   => $room->price_per_night,
+                        'total_room_amount' => $plan['room_total'],
+                        'status'            => 'reserved',
+                    ]);
+
+                    foreach ($plan['nightly_list'] as $night) {
+                        RoomNight::create([
+                            'booking_room_id' => $bookingRoom->id,
+                            'room_id'         => $room->id,
+                            'stay_date'       => $night['stay_date'],
+                            'rate_applied'    => $night['rate'],
+                            'rate'            => $night['rate'],
+                            'price'           => $night['rate'],
+                            'status'          => 'reserved',
+                        ]);
+                    }
+                }
+
+                return $booking->fresh(['room', 'bookingRooms.room', 'bookingRooms.roomNights']);
+            });
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Cập nhật đơn đặt phòng thành công.',
+                'data'    => $updated
+            ], 200);
+        } catch (\Exception $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Phòng đã có người đặt trong thời gian sửa đổi này.'
+                'message' => $e->getMessage()
             ], 409);
         }
-
-        $room = Room::findOrFail($roomId);
-        [$totalRoomAmount, $depositAmount] = ReservationPricing::quote($checkIn, $checkOut, (float) $room->price_per_night);
-
-        $booking->update([
-            'room_id'           => $roomId,
-            'guest_name'        => $request->input('guest_name', $booking->guest_name),
-            'guest_phone'       => $request->input('guest_phone', $booking->guest_phone),
-            'check_in_date'     => $checkIn->toDateString(),
-            'check_out_date'    => $checkOut->toDateString(),
-            'total_room_amount' => $totalRoomAmount,
-            'deposit_amount'    => $depositAmount,
-        ]);
-
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Cập nhật đơn đặt phòng thành công.',
-            'data'    => $booking
-        ], 200);
     }
 
     public function cancelBooking(Request $request, $id)
@@ -289,6 +425,7 @@ class ReservationController extends Controller
                 'message' => 'Không tìm thấy đơn đặt phòng.'
             ], 404);
         }
+
         $user = $request->user('sanctum') ?? $request->user();
         if ($user && $user->isGuest() && $booking->user_id !== null && $booking->user_id !== $user->id) {
             return response()->json([
@@ -296,6 +433,7 @@ class ReservationController extends Controller
                 'message' => 'Truy cập bị từ chối: Bạn không có quyền hủy đơn đặt phòng này.'
             ], 403);
         }
+
         if (in_array($booking->status, ['checked_out', 'cancelled'])) {
             return response()->json([
                 'status'  => 'error',
@@ -315,6 +453,10 @@ class ReservationController extends Controller
         DB::transaction(function () use ($booking) {
             $booking->status = 'cancelled';
             $booking->save();
+
+            BookingRoom::where('booking_id', $booking->id)
+                ->update(['status' => 'cancelled']);
+
             RoomNight::whereHas('bookingRoom', function ($q) use ($booking) {
                 $q->where('booking_id', $booking->id);
             })->delete();
@@ -334,9 +476,10 @@ class ReservationController extends Controller
             ]
         ], 200);
     }
+
     public function indexBookings(Request $request)
     {
-        $query = Booking::with('room');
+        $query = Booking::with(['room', 'bookingRooms.room']);
 
         $user = $request->user('sanctum') ?? $request->user();
         if ($user && $user->isGuest()) {
@@ -359,6 +502,9 @@ class ReservationController extends Controller
                   ->orWhere('guest_phone', 'like', "%{$search}%")
                   ->orWhereHas('room', function ($rq) use ($search) {
                       $rq->where('room_number', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('bookingRooms.room', function ($rq) use ($search) {
+                      $rq->where('room_number', 'like', "%{$search}%");
                   });
             });
         }
@@ -374,7 +520,7 @@ class ReservationController extends Controller
 
     public function checkIn(Request $request, $id)
     {
-        $booking = Booking::with('room')->find($id);
+        $booking = Booking::with(['room', 'bookingRooms.room'])->find($id);
 
         if (!$booking) {
             return response()->json([
@@ -397,17 +543,33 @@ class ReservationController extends Controller
             ], 400);
         }
 
-        $room = $booking->room;
-        if ($room && $room->status === 'maintenance') {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Phòng ' . $room->room_number . ' đang bảo trì, không thể check-in.'
-            ], 400);
+        $targetRooms = $booking->bookingRooms->isNotEmpty()
+            ? $booking->bookingRooms->pluck('room')->filter()
+            : collect([$booking->room])->filter();
+
+        foreach ($targetRooms as $room) {
+            if ($room->status === 'maintenance') {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Phòng ' . $room->room_number . ' đang bảo trì, không thể check-in.'
+                ], 400);
+            }
         }
 
-        DB::transaction(function () use ($booking, $room) {
+        DB::transaction(function () use ($booking, $targetRooms) {
             $booking->update(['status' => 'checked_in']);
-            if ($room) {
+
+            if ($booking->bookingRooms->isNotEmpty()) {
+                BookingRoom::where('booking_id', $booking->id)
+                    ->where('status', '!=', 'cancelled')
+                    ->update(['status' => 'occupied']);
+
+                RoomNight::whereHas('bookingRoom', function ($q) use ($booking) {
+                    $q->where('booking_id', $booking->id);
+                })->update(['status' => 'occupied']);
+            }
+
+            foreach ($targetRooms as $room) {
                 $room->update(['status' => 'occupied']);
             }
         });
@@ -415,13 +577,13 @@ class ReservationController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => 'Check-in thành công cho khách ' . $booking->guest_name . '.',
-            'data'    => $booking->fresh(['room'])
+            'data'    => $booking->fresh(['room', 'bookingRooms.room'])
         ], 200);
     }
 
     public function checkOut(Request $request, $id)
     {
-        $booking = Booking::with('room')->find($id);
+        $booking = Booking::with(['room', 'bookingRooms.room'])->find($id);
 
         if (!$booking) {
             return response()->json([
@@ -441,16 +603,28 @@ class ReservationController extends Controller
             ? Carbon::parse($request->input('actual_checkout_at')) 
             : now();
 
-        $room = $booking->room;
         $user = $request->user('sanctum') ?? $request->user();
+        $targetRooms = $booking->bookingRooms->isNotEmpty()
+            ? $booking->bookingRooms->pluck('room')->filter()
+            : collect([$booking->room])->filter();
 
-        DB::transaction(function () use ($booking, $room, $checkoutTime, $user) {
+        DB::transaction(function () use ($booking, $targetRooms, $checkoutTime, $user) {
             $booking->update([
                 'status'             => 'checked_out',
                 'actual_checkout_at' => $checkoutTime,
             ]);
 
-            if ($room) {
+            if ($booking->bookingRooms->isNotEmpty()) {
+                BookingRoom::where('booking_id', $booking->id)
+                    ->where('status', '!=', 'cancelled')
+                    ->update(['status' => 'checked_out']);
+
+                RoomNight::whereHas('bookingRoom', function ($q) use ($booking) {
+                    $q->where('booking_id', $booking->id);
+                })->update(['status' => 'released']);
+            }
+
+            foreach ($targetRooms as $room) {
                 $room->update(['status' => 'dirty']);
 
                 $task = HousekeepingTask::create([
@@ -476,7 +650,50 @@ class ReservationController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => 'Check-out thành công cho đơn ' . $booking->booking_code . '.',
-            'data'    => $booking->fresh(['room'])
+            'data'    => $booking->fresh(['room', 'bookingRooms.room'])
         ], 200);
+    }
+
+    private function hasRoomConflict(int $roomId, Carbon $checkIn, Carbon $checkOut, ?int $excludeBookingId = null): bool
+    {
+        $inStr = $checkIn->toDateString();
+        $outStr = $checkOut->toDateString();
+
+        $nightConflict = RoomNight::where('room_id', $roomId)
+            ->whereIn('status', ['reserved', 'occupied'])
+            ->whereDate('stay_date', '>=', $inStr)
+            ->whereDate('stay_date', '<', $outStr)
+            ->whereHas('bookingRoom.booking', function ($q) use ($excludeBookingId) {
+                $q->whereIn('status', ['pending', 'confirmed', 'checked_in']);
+                if ($excludeBookingId !== null) {
+                    $q->where('id', '!=', $excludeBookingId);
+                }
+            })
+            ->exists();
+
+        if ($nightConflict) {
+            return true;
+        }
+
+        $brConflict = BookingRoom::where('room_id', $roomId)
+            ->whereIn('status', ['reserved', 'occupied'])
+            ->whereDate('check_in_date', '<', $outStr)
+            ->whereDate('check_out_date', '>', $inStr)
+            ->whereHas('booking', function ($q) use ($excludeBookingId) {
+                $q->whereIn('status', ['pending', 'confirmed', 'checked_in']);
+                if ($excludeBookingId !== null) {
+                    $q->where('id', '!=', $excludeBookingId);
+                }
+            })
+            ->exists();
+
+        if ($brConflict) {
+            return true;
+        }
+
+        return Booking::where('room_id', $roomId)
+            ->when($excludeBookingId !== null, fn ($q) => $q->where('id', '!=', $excludeBookingId))
+            ->overlappingStay($inStr, $outStr)
+            ->exists();
     }
 }

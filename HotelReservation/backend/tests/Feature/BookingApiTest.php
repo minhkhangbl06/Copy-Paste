@@ -27,7 +27,7 @@ class BookingApiTest extends TestCase
 
         $this->book([$booked->id])->assertCreated();
         $this->book([$adjacent->id], '2026-11-10', '2026-11-13')->assertCreated();
-        $cancelledId = $this->book([$cancelled->id])->assertCreated()->json('data.0.id');
+        $cancelledId = $this->book([$cancelled->id])->assertCreated()->json('data.id');
         $this->postJson("/api/bookings/{$cancelledId}/cancel")->assertOk();
         Booking::where('room_id', $booked->id)->firstOrFail()->replicate()->fill([
             'booking_code' => 'BK-WITHOUT-ROOM',
@@ -49,12 +49,14 @@ class BookingApiTest extends TestCase
 
         $this->book([$first->id, $second->id])
             ->assertCreated()
-            ->assertJsonStructure(['status', 'message', 'data'])
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.total_room_amount', '1150000.00')
-            ->assertJsonPath('data.1.deposit_amount', '500000.00');
+            ->assertJsonStructure(['status', 'message', 'data' => ['id', 'booking_rooms']])
+            ->assertJsonCount(2, 'data.booking_rooms')
+            ->assertJsonPath('data.total_room_amount', '2300000.00')
+            ->assertJsonPath('data.deposit_amount', '1000000.00');
 
-        $this->assertDatabaseCount('bookings', 2);
+        $this->assertDatabaseCount('bookings', 1);
+        $this->assertDatabaseCount('booking_rooms', 2);
+        $this->assertDatabaseCount('room_nights', 4);
     }
 
     public function test_rejects_invalid_dates_without_writing_a_booking(): void
@@ -82,13 +84,14 @@ class BookingApiTest extends TestCase
             ->assertJsonPath('status', 'error');
 
         $this->assertDatabaseCount('bookings', 1);
-        $this->assertDatabaseMissing('bookings', ['room_id' => $free->id]);
+        $this->assertDatabaseCount('booking_rooms', 1);
+        $this->assertDatabaseMissing('booking_rooms', ['room_id' => $free->id]);
     }
 
     public function test_cancelling_at_24_hours_refunds_half_and_releases_the_room(): void
     {
         $room = $this->room('101');
-        $id = $this->book([$room->id], '2026-11-11', '2026-11-13')->assertCreated()->json('data.0.id');
+        $id = $this->book([$room->id], '2026-11-11', '2026-11-13')->assertCreated()->json('data.id');
 
         $this->postJson("/api/bookings/{$id}/cancel")
             ->assertOk()
@@ -96,6 +99,7 @@ class BookingApiTest extends TestCase
             ->assertJsonPath('data.refund_amount', 250000);
 
         $this->assertDatabaseHas('bookings', ['id' => $id, 'status' => 'cancelled']);
+        $this->assertDatabaseCount('room_nights', 0);
         $this->book([$room->id], '2026-11-11', '2026-11-13', 'Guest Two')->assertCreated();
     }
 
