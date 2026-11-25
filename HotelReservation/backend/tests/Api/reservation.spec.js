@@ -30,8 +30,8 @@ test('a guest can find, reserve and release a room', async ({ request }) => {
   expect(created.status()).toBe(201);
   const confirmation = await created.json();
   expect(confirmation.status).toBe('success');
-  expect(confirmation.data[0]).toMatchObject({ room_id: roomId, status: 'confirmed' });
-  const bookingId = confirmation.data[0].id;
+  expect(confirmation.data).toMatchObject({ room_id: roomId, status: 'confirmed' });
+  const bookingId = confirmation.data.id;
 
   const occupied = await request.get('/api/rooms/available', { params: dates });
   expect(occupied.status()).toBe(200);
