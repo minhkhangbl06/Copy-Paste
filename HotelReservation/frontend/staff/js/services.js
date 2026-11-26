@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
       items.forEach(function (it) {
         itemsHtml +=
           '<li>' +
-            '<span>' + safeEscape(it.service_name || 'Dịch vụ') + ' x' + (it.quantity || 1) + '</span>' +
+            '<span>' + safeEscape(it.service?.name || it.service_name || 'Dịch vụ') + ' x' + (it.quantity || 1) + '</span>' +
             '<span>' + formatVND(it.subtotal || it.unit_price * it.quantity) + '</span>' +
           '</li>';
       });

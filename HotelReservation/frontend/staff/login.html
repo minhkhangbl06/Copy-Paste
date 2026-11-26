@@ -1,0 +1,23 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng nhập Staff</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/auth.js" defer></script>
+</head>
+<body>
+  <main style="max-width: 420px; margin: 60px auto; padding: 20px">
+    <h1>Đăng nhập Staff</h1>
+    <form id="staff-login" style="display: grid; gap: 12px">
+      <label for="email">Email nhân viên</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">Mật khẩu</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button type="submit" class="button button-primary">Đăng nhập</button>
+      <p id="login-error" role="alert"></p>
+    </form>
+  </main>
+</body>
+</html>

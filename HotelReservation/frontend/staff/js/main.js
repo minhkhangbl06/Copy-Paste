@@ -210,9 +210,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var rowsHtml = '';
     for (var i = 0; i < currentRecentBookings.length; i++) {
       var item = currentRecentBookings[i];
-      var roomDisplay = item.room
-        ? (item.room.room_type + ' ' + (item.room.room_number ? '#' + item.room.room_number : ''))
-        : ('Phòng #' + (item.room_id || '—'));
+      var roomDisplay = StaffAPI.roomLabels(item);
       var statusInfo = getStatusLabelAndClass(item.status);
 
       rowsHtml += '<tr>' +

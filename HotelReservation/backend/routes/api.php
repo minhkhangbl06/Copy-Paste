@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\StaffBookingController;
+use App\Http\Controllers\Api\StaffHousekeepingController;
 use App\Http\Controllers\Api\RoomStatusController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\ServiceOrderController;
@@ -87,4 +89,23 @@ Route::prefix('bookings')->group(function (): void {
          ->middleware('role:receptionist,admin,manager');
     Route::post('/{id}/check-out', [ReservationController::class, 'checkOut'])
          ->middleware('role:receptionist,admin,manager');
+});
+
+Route::prefix('staff/bookings')->middleware(['auth:sanctum', 'role:receptionist,admin,manager'])->group(function (): void {
+    Route::get('/', [StaffBookingController::class, 'index']);
+    Route::get('/{id}', [StaffBookingController::class, 'show'])->whereNumber('id');
+    Route::post('/', [StaffBookingController::class, 'store']);
+    Route::post('/{id}/deposit', [StaffBookingController::class, 'confirmDeposit'])->whereNumber('id');
+    Route::post('/{id}/check-in', [StaffBookingController::class, 'checkIn'])->whereNumber('id');
+    Route::get('/{id}/checkout', [StaffBookingController::class, 'preview'])->whereNumber('id');
+    Route::post('/{id}/checkout', [StaffBookingController::class, 'checkout'])->whereNumber('id');
+});
+
+Route::post('/staff/service-orders', [ServiceOrderController::class, 'store'])
+    ->middleware(['auth:sanctum', 'role:receptionist,admin,manager']);
+
+Route::prefix('staff/housekeeping/tasks')->middleware('auth:sanctum')->group(function (): void {
+    Route::get('/', [StaffHousekeepingController::class, 'index'])->middleware('role:housekeeping,receptionist,admin,manager');
+    Route::patch('/{id}', [StaffHousekeepingController::class, 'update'])->whereNumber('id')
+        ->middleware('role:housekeeping,admin,manager');
 });

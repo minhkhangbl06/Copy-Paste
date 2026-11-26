@@ -130,7 +130,7 @@
   - **Khuyến nghị xem giao diện**: Mở qua Live Server (VS Code) hoặc bất kỳ local web server nào để tránh lỗi CORS khi tải linh kiện chung (`components/header.html`, `components/footer.html`).
   - **Kế hoạch tiếp theo**: Sau khi các thành viên hoàn tất Auth và CSDL chung, nhóm sẽ tiến hành đấu nối các API Laravel (`/api/rooms`, `/api/bookings`, `/api/services`, `/api/invoices`) vào frontend.
 
-### ### 📌 Phạm Quang Duy - Phân hệ Staff Frontend / Management Portal (Đã triển khai các phân hệ chính - Đang kiểm thử và hoàn thiện tích hợp)
+### 📌 Phạm Quang Duy - Phân hệ Staff Frontend / Management Portal
 
 - **Vị trí source code**: `HotelReservation/frontend/staff/`.
 
@@ -180,21 +180,15 @@
   - Sử dụng bảng màu navy `#233e57`, slate `#708090`, font Be Vietnam Pro / Roboto.
   - Bố cục quản trị riêng với Sidebar, Topbar và các khu vực chức năng độc lập.
 
-- **Tình trạng tích hợp Backend**:
-  - `GET /api/rooms`: Đã tích hợp trong chức năng lấy danh sách phòng.
-  - `POST /api/bookings`: Đã tích hợp chức năng tạo booking.
-  - `POST /api/bookings/{id}/cancel`: Đã tích hợp chức năng hủy booking.
-  - `GET /api/bookings`: Chưa có trên Backend tại thời điểm ghi nhận trước đó; cần kiểm tra lại với thành viên phụ trách Backend.
-  - Các API phục vụ Check-in, Check-out, Housekeeping, Room Service, Billing và Reports cần tiếp tục đối chiếu với Backend để xác nhận mức độ tích hợp.
+#### Cập nhật ngày 23/11/2026
 
-- **Trạng thái hiện tại**:
-  - Đã triển khai các màn hình và JavaScript chính của Staff Frontend.
-  - Cần tiếp tục kiểm thử từng chức năng, xác nhận dữ liệu thực tế và xử lý các API chưa được Backend cung cấp.
-  - Chưa xác nhận hoàn tất kiểm thử tích hợp toàn bộ hệ thống.
-
-- **Phạm vi công việc**:
-  - Phụ trách Staff Frontend và JavaScript kết nối với Backend APIs.
-  - Không tự ý chỉnh sửa Laravel Backend, Database Schema, Guest Frontend hoặc code thuộc thành viên khác.
+- **Xác thực Staff**. Portal kết nối API đăng nhập, kiểm tra phiên và đăng xuất của Khanh. Yêu cầu API gửi Bearer token sau khi kiểm tra phiên. Giao diện hiển thị tên và vai trò thật, giới hạn menu và chuyển hướng theo vai trò. Test trên Windows xác nhận lễ tân mở được Dashboard và tài khoản buồng phòng được chuyển về Housekeeping Board khi mở Hóa đơn.
+- **Booking nhiều phòng và Dashboard**. Lễ tân tạo một mã cho nhiều phòng, tìm lại được toàn bộ phòng trong đơn. API Staff lưu booking và các dòng `booking_rooms` trong một transaction, kiểm tra trùng lịch cả booking đơn cũ và phòng liên kết. Dashboard đếm ID phòng khác nhau có khách đang ở, bỏ qua phòng chỉ mới đặt và hỗ trợ booking cũ dùng `room_id`.
+- **Thu cọc, nhận phòng và dịch vụ**. Migration `2026_11_23_000001_add_deposit_received_at_to_bookings.php` bổ sung thời điểm thu cọc. Lễ tân xác nhận đã thu cọc trước khi nhận phòng cho cả đơn. Đơn dịch vụ lưu `booking_room_id` cho phòng được chọn và kiểm tra phòng thực sự thuộc booking.
+- **Hóa đơn chung**. Checkout lập bảng kê tiền phòng, dịch vụ, phụ thu, VAT và cọc đã thu. Một giao dịch ghi nhận phần còn phải thu, đóng một hóa đơn và hoàn tất trả phòng. Gửi lại checkout trả hóa đơn đã chốt và giữ nguyên số khoản thu.
+- **Dọn phòng**. Dùng schema và model housekeeping của Khanh để tạo một task cho từng phòng khi checkout. Task ghi lịch sử khởi tạo, bắt đầu và hoàn tất, kèm người cập nhật và thời điểm. Khi hoàn tất, riêng phòng của task chuyển sang Trống – sạch.
+- **Kiểm thử**. Laravel đạt 49 bài test, 294 assertions, có kiểm tra trùng lịch, quyền backend, thanh toán lặp và dọn riêng từng phòng. Luồng trên Windows đã thử từ đăng nhập đến booking hai phòng, thu cọc, nhận phòng, ghi dịch vụ cho 902, đóng một hóa đơn 1.171.800 đ và tạo hai việc dọn. Tài khoản buồng phòng hoàn tất dọn 902 trong khi 901 vẫn chờ dọn. API từ chối yêu cầu cập nhật task của lễ tân với HTTP 403. Giao diện lễ tân hiện vẫn hiển thị nút đó khi xem bảng phòng.
+- **Tích hợp Git**. Nhánh thử của Duy dựa trên `Khanh` tại `567b5db`. Khi schema của Khanh có mặt trên `main`, đối chiếu tab Files changed để PR vào `main` chỉ chứa phần Duy. Admin thực hiện merge.
 
 ### 📌 Lê Minh Khang - Phân hệ Dịch vụ phòng, Hóa đơn & Thu ngân Backend (Đã hoàn thành 100% nhiệm vụ)
 - **Gắn SERVICE_ORDERS vào booking_room_id**:

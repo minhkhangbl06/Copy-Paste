@@ -25,6 +25,17 @@
 
   // Cấu hình URL Backend Laravel
   var DEFAULT_API_BASE = 'http://127.0.0.1:8000/api';
+  function bookingRooms(booking) {
+    var links = booking.booking_rooms || [];
+    if (links.length) return links.map(function (link) { return link.room; }).filter(Boolean);
+    return booking.rooms && booking.rooms.length ? booking.rooms : (booking.room ? [booking.room] : []);
+  }
+
+  function roomLabels(booking) {
+    return bookingRooms(booking).map(function (room) { return room.room_number; }).join(', ') ||
+      (booking.room_id ? '#' + booking.room_id : '—');
+  }
+
   var STORAGE_KEYS = {
     MOCK_MODE: 'hotel_staff_mock_mode',
     MOCK_BOOKINGS: 'hotel_staff_mock_bookings',
@@ -258,9 +269,8 @@
     createBooking: function (bookingData) {
       var list = this.getBookings();
       var rooms = this.getRooms();
-      var room = rooms.find(function (r) {
-        return String(r.id) === String(bookingData.room_id);
-      }) || null;
+      var selected = rooms.filter(function (room) { return bookingData.room_ids.includes(Number(room.id)); });
+      var room = selected[0];
 
       var newId = list.length > 0 ? Math.max.apply(null, list.map(function (b) { return Number(b.id) || 0; })) + 1 : 1;
       var code = 'BK-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + String(newId).padStart(3, '0');
@@ -268,7 +278,7 @@
       var newBooking = {
         id: newId,
         booking_code: code,
-        room_id: Number(bookingData.room_id),
+        room_id: room.id,
         guest_name: bookingData.guest_name,
         guest_phone: bookingData.guest_phone,
         check_in_date: bookingData.check_in_date,
@@ -277,7 +287,8 @@
         deposit_amount: bookingData.deposit_amount || 0,
         status: bookingData.status || 'confirmed',
         created_at: new Date().toISOString(),
-        room: room
+        room: room,
+        rooms: selected
       };
 
       list.unshift(newBooking);
@@ -415,6 +426,12 @@
    * ==========================================
    */
   async function requestAPI(endpoint, options) {
+    if (typeof window !== 'undefined' && window.staffSessionReady) {
+      if (!(await window.staffSessionReady)) {
+        throw new Error('Phiên Staff chưa được xác thực.');
+      }
+    }
+
     options = options || {};
     var url = endpoint.indexOf('http') === 0 ? endpoint : DEFAULT_API_BASE + endpoint;
     var defaultHeaders = {
@@ -422,6 +439,10 @@
       'Content-Type': 'application/json'
     };
 
+    var token = sessionStorage.getItem('hotel_staff_token');
+    if (token && new URL(url).origin === new URL(DEFAULT_API_BASE).origin) {
+      defaultHeaders.Authorization = 'Bearer ' + token;
+    }
     var config = Object.assign({}, options, {
       headers: Object.assign({}, defaultHeaders, options.headers || {})
     });
@@ -561,6 +582,8 @@
    * ==========================================
    */
   return {
+    bookingRooms: bookingRooms,
+    roomLabels: roomLabels,
     isMockMode: function () {
       return MockModeManager.isMockMode();
     },
@@ -626,41 +649,48 @@
         };
       }
 
-      // API Thật: Đọc song song /rooms và /bookings nếu có
-      try {
-        var roomRes = await requestAPI('/rooms');
-        var rList = Array.isArray(roomRes.data) ? roomRes.data : [];
-        var totalR = rList.length;
-        var availR = rList.filter(function (r) { return r.status === 'available'; }).length;
-        var occR = rList.filter(function (r) { return r.status === 'occupied'; }).length;
-        var maintR = rList.filter(function (r) { return r.status === 'maintenance' || r.status === 'dirty'; }).length;
-        var occRate = totalR > 0 ? Math.round((occR / totalR) * 1000) / 10 : 0;
 
-        return {
-          status: 'success',
-          message: 'Lấy dữ liệu tổng quan phòng từ Backend thành công.',
-          data: {
-            total_rooms: totalR,
-            available_rooms: availR,
-            occupied_rooms: occR,
-            maintenance_rooms: maintR,
-            occupancy_rate: occRate,
-            total_bookings: 0,
-            pending_bookings: 0,
-            confirmed_bookings: 0,
-            staying_guests: 0,
-            recent_bookings: []
-          },
-          isMock: false
-        };
-      } catch (err) {
-        throw err;
-      }
+      var roomRes = await this.getRooms();
+      var bookingRes = await this.getBookings();
+      var rooms = roomRes.data;
+      var bookings = bookingRes.data;
+      var occupied = new Set(bookings.flatMap(function (booking) {
+        if (booking.status !== 'checked_in') return [];
+        if (booking.booking_rooms && booking.booking_rooms.length) {
+          return booking.booking_rooms.filter(function (link) { return link.status === 'occupied'; })
+            .map(function (link) { return link.room_id; });
+        }
+        return booking.room_id ? [booking.room_id] : [];
+      }));
+      return {
+        status: 'success',
+        data: {
+          total_rooms: rooms.length,
+          available_rooms: rooms.filter(function (room) { return room.status === 'available'; }).length,
+          occupied_rooms: occupied.size,
+          maintenance_rooms: rooms.filter(function (room) { return ['maintenance', 'dirty'].includes(room.status); }).length,
+          occupancy_rate: rooms.length ? Math.round(occupied.size / rooms.length * 1000) / 10 : 0,
+          total_bookings: bookings.length,
+          pending_bookings: bookings.filter(function (booking) { return booking.status === 'pending'; }).length,
+          confirmed_bookings: bookings.filter(function (booking) { return booking.status === 'confirmed'; }).length,
+          staying_guests: bookings.filter(function (booking) { return booking.status === 'checked_in'; }).length,
+          recent_bookings: bookings.slice(0, 5)
+        },
+        isMock: false
+      };
     },
 
     // ==========================================
     // MODULE: ROOMS
     // ==========================================
+    getHousekeepingTasks: function () {
+      return MockModeManager.isMockMode() ? Promise.resolve({ data: [] }) : requestAPI('/staff/housekeeping/tasks');
+    },
+
+    updateHousekeepingTask: function (id, status) {
+      return requestAPI('/staff/housekeeping/tasks/' + id, { method: 'PATCH', body: JSON.stringify({ status: status }) });
+    },
+
     getRooms: async function (filters) {
       filters = filters || {};
       if (MockModeManager.isMockMode()) {
@@ -742,7 +772,7 @@
       if (filters.check_in_date) query.append('check_in_date', filters.check_in_date);
       var qs = query.toString() ? ('?' + query.toString()) : '';
 
-      var res = await requestAPI('/bookings' + qs);
+      var res = await requestAPI('/staff/bookings' + qs);
       return Object.assign({}, res, { isMock: false });
     },
 
@@ -762,7 +792,7 @@
         };
       }
 
-      var res = await requestAPI('/bookings/' + id);
+      var res = await requestAPI('/staff/bookings/' + id);
       return Object.assign({}, res, { isMock: false });
     },
 
@@ -777,7 +807,7 @@
         };
       }
 
-      var res = await requestAPI('/bookings', {
+      var res = await requestAPI('/staff/bookings', {
         method: 'POST',
         body: JSON.stringify(bookingPayload)
       });
@@ -812,6 +842,21 @@
     // ==========================================
     // MODULE: CHECK-IN / CHECK-OUT
     // ==========================================
+    confirmDeposit: async function (id) {
+      if (MockModeManager.isMockMode()) {
+        var list = MockRepository.getBookings();
+        var booking = list.find(function (item) { return String(item.id) === String(id); });
+        booking.deposit_received_at = new Date().toISOString();
+        MockRepository.saveBookings(list);
+        return { data: booking, isMock: true };
+      }
+      return requestAPI('/staff/bookings/' + id + '/deposit', { method: 'POST' });
+    },
+
+    createServiceOrder: function (data) {
+      return requestAPI('/staff/service-orders', { method: 'POST', body: JSON.stringify(data) });
+    },
+
     checkInBooking: async function (id) {
       if (MockModeManager.isMockMode()) {
         var checkedIn = MockRepository.checkInBooking(id);
@@ -825,16 +870,20 @@
       }
 
       // API thật
-      var res = await requestAPI('/bookings/' + id + '/check-in', {
+      var res = await requestAPI('/staff/bookings/' + id + '/check-in', {
         method: 'POST'
       });
       return Object.assign({}, res, { isMock: false });
     },
 
-    checkOutBooking: async function (id) {
+    checkOutBooking: async function (id, preview, paymentMethod) {
       if (MockModeManager.isMockMode()) {
         var checkedOut = MockRepository.checkOutBooking(id);
         if (!checkedOut) throw new Error('Không tìm thấy đơn để Check-out.');
+        var invoice = MockRepository.createInvoice(Object.assign({}, preview, {
+          booking_id: id, booking_code: checkedOut.booking_code, guest_name: checkedOut.guest_name
+        }));
+        MockRepository.payInvoice(invoice.id, paymentMethod);
         return {
           status: 'success',
           message: 'Check-out hoàn tất. Trạng thái phòng chuyển sang Dirty cần dọn dẹp (Mock Mode).',
@@ -844,8 +893,9 @@
       }
 
       // API thật
-      var res = await requestAPI('/bookings/' + id + '/check-out', {
-        method: 'POST'
+      var res = await requestAPI('/staff/bookings/' + id + '/checkout', {
+        method: 'POST',
+        body: JSON.stringify({ amount: preview.remaining, payment_method: paymentMethod })
       });
       return Object.assign({}, res, { isMock: false });
     },
@@ -926,7 +976,7 @@
         var b = MockRepository.getBookingById(bookingId);
         if (!b) throw new Error('Không tìm thấy đơn đặt phòng để tạo hóa đơn.');
         var roomCharges = Number(b.total_room_amount) || 0;
-        var deposit = Number(b.deposit_amount) || 0;
+        var deposit = b.deposit_received_at ? Number(b.deposit_amount) || 0 : 0;
         var orders = MockRepository.getOrders().filter(function (o) { return o.booking_id === b.id && o.charge_to_room; });
         var serviceCharges = orders.reduce(function (sum, o) { return sum + (Number(o.total_amount) || 0); }, 0);
         var totalPayable = Math.max(0, roomCharges + serviceCharges - deposit);
@@ -948,11 +998,11 @@
         };
       }
 
-      var res = await requestAPI('/bookings/' + bookingId + '/invoice/preview');
+      var res = await requestAPI('/staff/bookings/' + bookingId + '/checkout');
       return Object.assign({}, res, { isMock: false });
     },
 
-    payInvoice: async function (invoiceId, paymentMethod) {
+    payInvoice: async function (invoiceId, paymentMethod, amount) {
       if (MockModeManager.isMockMode()) {
         var paid = MockRepository.payInvoice(invoiceId, paymentMethod);
         if (!paid) throw new Error('Không tìm thấy hóa đơn.');
@@ -966,7 +1016,7 @@
 
       var res = await requestAPI('/invoices/' + invoiceId + '/pay', {
         method: 'POST',
-        body: JSON.stringify({ payment_method: paymentMethod })
+        body: JSON.stringify({ payment_method: paymentMethod, amount: amount })
       });
       return Object.assign({}, res, { isMock: false });
     },
@@ -988,3 +1038,133 @@
     }
   };
 });
+
+// them moi 
+window.staffSessionReady = (async function checkStaffSession() {
+  const receptionPages = ['index.html', 'bookings.html', 'checkin.html',
+    'housekeeping.html', 'services.html', 'billing.html', 'reports.html'];
+  const pagesByRole = {
+    receptionist: receptionPages,
+    admin: receptionPages,
+    manager: receptionPages,
+    housekeeping: ['housekeeping.html'],
+    service_staff: ['services.html'],
+    billing: ['billing.html', 'checkin.html', 'reports.html']
+  };
+  const roleLabels = {
+    receptionist: 'Lễ tân',
+    admin: 'Quản trị viên',
+    manager: 'Quản lý',
+    housekeeping: 'Buồng phòng',
+    service_staff: 'Dịch vụ phòng',
+    billing: 'Thu ngân'
+  };
+
+  const page = location.pathname.split('/').pop() || 'index.html';
+  if (!receptionPages.includes(page)) return;
+
+  const tokenKey = 'hotel_staff_token';
+  const token = sessionStorage.getItem(tokenKey);
+  const goToLogin = () => {
+    sessionStorage.removeItem(tokenKey);
+    location.replace('login.html');
+  };
+
+  if (!token) {
+    goToLogin();
+    return;
+  }
+
+  const headers = {
+    Accept: 'application/json',
+    Authorization: 'Bearer ' + token
+  };
+  const authBase = 'http://127.0.0.1:8000/api/auth';
+
+  document.documentElement.style.visibility = 'hidden';
+
+  try {
+    const response = await fetch(authBase + '/me', {
+      headers,
+      signal: AbortSignal.timeout(7000)
+    });
+    if (response.status === 401 || response.status === 403) {
+      goToLogin();
+      return;
+    }
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+
+    const { data: user } = await response.json();
+    const allowed = Object.hasOwn(pagesByRole, user.role)
+      ? pagesByRole[user.role]
+      : null;
+
+    if (!allowed) {
+      goToLogin();
+      return;
+    }
+    if (!allowed.includes(page)) {
+      location.replace(allowed[0]);
+      return;
+    }
+
+    document.querySelectorAll('a[href]').forEach((link) => {
+      const target = link.getAttribute('href');
+      if (receptionPages.includes(target) && !allowed.includes(target)) {
+        if (link.classList.contains('brand')) link.href = allowed[0];
+        else link.style.display = 'none';
+      }
+    });
+
+    document.querySelectorAll('.user-copy strong').forEach((element) => {
+      element.textContent = user.name;
+    });
+    document.querySelectorAll('.user-copy span').forEach((element) => {
+      element.textContent = roleLabels[user.role];
+    });
+    document.querySelectorAll('.avatar').forEach((element) => {
+      element.textContent = user.name.trim().charAt(0).toUpperCase();
+    });
+
+    const greeting = document.querySelector('.page-heading .page-description');
+    if (page === 'index.html' && greeting) {
+      greeting.textContent =
+        `Xin chào ${user.name}! Đây là tình hình hoạt động của khách sạn.`;
+    }
+
+    const topbar = document.querySelector('.topbar-actions');
+    if (topbar) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'button button-outline';
+      button.textContent = 'Đăng xuất';
+      topbar.appendChild(button);
+
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+          const result = await fetch(authBase + '/logout', {
+            method: 'POST',
+            headers,
+            signal: AbortSignal.timeout(7000)
+          });
+          if (!result.ok && result.status !== 401) {
+            throw new Error('HTTP ' + result.status);
+          }
+          goToLogin();
+        } catch {
+          alert('Chưa đăng xuất được. Vui lòng kiểm tra backend và thử lại.');
+          button.disabled = false;
+        }
+      });
+    }
+
+    document.documentElement.style.visibility = '';
+    return true;
+  } catch {
+    const message = document.createElement('p');
+    message.textContent = 'Không kiểm tra được phiên Staff. Hãy kiểm tra Laravel rồi tải lại trang.';
+    document.body.replaceChildren(message);
+    document.documentElement.style.visibility = '';
+  }
+})();

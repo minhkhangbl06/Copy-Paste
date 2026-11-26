@@ -43,6 +43,7 @@ class Booking extends Model
         'check_in'           => 'date',
         'check_out'          => 'date',
         'actual_checkout_at' => 'datetime',
+        'deposit_received_at' => 'datetime',
         'total_room_amount'  => 'decimal:2',
         'total_price'        => 'decimal:2',
         'deposit_amount'     => 'decimal:2',
@@ -88,6 +89,13 @@ class Booking extends Model
         return $this->hasMany(HousekeepingTask::class, 'booking_id');
     }
     
+    public function scopeForRoom(Builder $query, int $roomId): Builder
+    {
+        return $query->where(fn (Builder $match) => $match
+            ->where('room_id', $roomId)
+            ->orWhereHas('bookingRooms', fn (Builder $rooms) => $rooms->where('room_id', $roomId)));
+    }
+
     public function scopeOverlappingStay(Builder $query, string $checkIn, string $checkOut): Builder
     {
         return $query->whereIn('status', ['pending', 'confirmed', 'checked_in'])
