@@ -54,3 +54,61 @@ test('a guest can find, reserve and release a room', async ({ request }) => {
   expect(released.status()).toBe(200);
   expect((await released.json()).data.rooms).toContainEqual(expect.objectContaining({ id: roomId }));
 });
+
+test('multi-room booking creates 2 rooms and 4 nights, rolls back on conflict, and releases after cancel', async ({ request }) => {
+  const dates = {
+    check_in_date: futureDate(14),
+    check_out_date: futureDate(16),
+  };
+
+  const search = await request.get('/api/rooms/available', { params: dates });
+  expect(search.status()).toBe(200);
+  const rooms = (await search.json()).data.rooms;
+  expect(rooms.length).toBeGreaterThanOrEqual(3);
+
+  const [roomA, roomB, roomC] = rooms;
+
+  const created = await request.post('/api/bookings', {
+    data: {
+      ...dates,
+      room_ids: [roomA.id, roomB.id],
+      guest_name: 'Playwright Multi Room',
+      guest_phone: '0900000010',
+    },
+  });
+  expect(created.status()).toBe(201);
+  const booking = (await created.json()).data;
+  expect(booking.booking_rooms).toHaveLength(2);
+  const totalNights = booking.booking_rooms.reduce((sum, br) => sum + br.room_nights.length, 0);
+  expect(totalNights).toBe(4);
+
+  // Partial conflict: roomB is taken, roomC is free -> entire request must fail and keep roomC available
+  const conflict = await request.post('/api/bookings', {
+    data: {
+      ...dates,
+      room_ids: [roomB.id, roomC.id],
+      guest_name: 'Playwright Conflict Guest',
+      guest_phone: '0900000011',
+    },
+  });
+  expect(conflict.status()).toBe(409);
+
+  const afterConflict = await request.get('/api/rooms/available', { params: dates });
+  expect((await afterConflict.json()).data.rooms).toContainEqual(expect.objectContaining({ id: roomC.id }));
+
+  // Cancel and rebook the released nights
+  const cancelled = await request.post('/api/bookings/' + booking.id + '/cancel');
+  expect(cancelled.status()).toBe(200);
+  expect((await cancelled.json()).data.refund_rate).toBe('100%');
+
+  const rebooked = await request.post('/api/bookings', {
+    data: {
+      ...dates,
+      room_ids: [roomA.id, roomB.id],
+      guest_name: 'Playwright Rebook Guest',
+      guest_phone: '0900000012',
+    },
+  });
+  expect(rebooked.status()).toBe(201);
+  expect((await rebooked.json()).data.booking_rooms).toHaveLength(2);
+});
