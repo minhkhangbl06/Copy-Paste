@@ -109,7 +109,32 @@ class ServiceOrderController extends Controller
             }
         }
 
-        $order = DB::transaction(function () use ($validated, $booking, $bookingRoomId, $roomId) {
+        $order = DB::transaction(function () use ($request, $validated, $booking, $bookingRoomId, $roomId) {
+            $booking = Booking::lockForUpdate()->findOrFail($booking->id);
+            abort_if(in_array($booking->status, ['checked_out', 'cancelled']), 422, 'Đơn đã kết thúc lưu trú.');
+
+            if ($request->is('api/staff/service-orders')) {
+                abort_unless($booking->status === 'checked_in', 409, 'Đơn chưa nhận phòng.');
+
+                $selectedRoomId = (int) ($validated['room_id'] ?? 0);
+                $bookingRooms = $booking->bookingRooms();
+                $hasBookingRooms = $bookingRooms->exists();
+                $occupiedRoom = $hasBookingRooms
+                    ? $bookingRooms->where('room_id', $selectedRoomId)->where('status', 'occupied')->first()
+                    : null;
+
+                abort_unless(
+                    $selectedRoomId > 0 && ($hasBookingRooms
+                        ? $occupiedRoom !== null
+                        : $selectedRoomId === (int) $booking->room_id),
+                    422,
+                    'Phòng đang ở phải thuộc đơn đặt phòng.'
+                );
+
+                $roomId = $selectedRoomId;
+                $bookingRoomId = $occupiedRoom?->id;
+            }
+
             $order = ServiceOrder::create([
                 'order_code' => 'SO-' . date('Ymd') . '-' . strtoupper(Str::random(5)),
                 'booking_id' => $booking->id,
@@ -162,16 +187,17 @@ class ServiceOrderController extends Controller
             'status' => 'required|in:pending,confirmed,in_progress,delivered,cancelled',
         ]);
 
-        $order = ServiceOrder::findOrFail($id);
+        $order = DB::transaction(function () use ($id, $validated) {
+            $order = ServiceOrder::findOrFail($id);
+            $booking = Booking::lockForUpdate()->findOrFail($order->booking_id);
+            $order->refresh();
+            abort_if($order->booking_room_id && $booking->status === 'checked_out', 409, 'Đơn đã hoàn tất checkout.');
+            abort_if($order->status === 'delivered' && $validated['status'] === 'cancelled', 422,
+                'Đơn dịch vụ đã giao thành công, không thể hủy.');
+            $order->update(['status' => $validated['status']]);
 
-        if ($order->status === 'delivered' && $validated['status'] === 'cancelled') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Đơn dịch vụ đã giao thành công, không thể hủy.',
-            ], 422);
-        }
-
-        $order->update(['status' => $validated['status']]);
+            return $order;
+        });
 
         return response()->json([
             'status' => 'success',
@@ -193,14 +219,10 @@ class ServiceOrderController extends Controller
 
         $order = ServiceOrder::findOrFail($id);
 
-        if ($order->is_paid) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Đơn dịch vụ này đã được thanh toán trước đó.',
-            ], 422);
-        }
-
         $payment = DB::transaction(function () use ($order, $validated) {
+            Booking::lockForUpdate()->findOrFail($order->booking_id);
+            $order->refresh();
+            abort_if($order->is_paid, 422, 'Đơn dịch vụ này đã được thanh toán trước đó.');
             $order->update([
                 'is_paid' => true,
                 'charge_to_room' => false, // Đã thanh toán riêng nên tách khỏi hóa đơn phòng

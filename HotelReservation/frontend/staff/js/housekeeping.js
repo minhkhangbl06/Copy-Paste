@@ -138,6 +138,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /* ── 6. Tải dữ liệu phòng ── */
+  var housekeepingTasks = [];
+
   async function loadRooms() {
     if (typeof StaffAPI === 'undefined') return;
     if (hkLoadingElem) hkLoadingElem.hidden = false;
@@ -147,7 +149,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       var res = await StaffAPI.getRooms();
+      var tasks = await StaffAPI.getHousekeepingTasks();
       allRoomsCache = res.data || [];
+      housekeepingTasks = tasks.data || [];
       updateStats();
       renderBoard();
       if (hkLoadingElem) hkLoadingElem.hidden = true;
@@ -223,6 +227,22 @@ document.addEventListener("DOMContentLoaded", function () {
         actionBtns = '<span style="font-size:11px; color:var(--text-secondary);">Đang có khách. Chờ Check-out.</span>';
       }
 
+      var tasks = housekeepingTasks.filter(function (task) { return task.room_id === room.id; });
+      var activeTask = tasks.find(function (task) { return !['done', 'cancelled'].includes(task.status); });
+      if (activeTask) {
+        var next = activeTask.status === 'pending' ? 'in_progress' : 'done';
+        actionBtns = '<button type="button" class="btn-hk-action btn-clean-done hk-task-action" data-id="' +
+          activeTask.id + '" data-next="' + next + '">' +
+          (next === 'in_progress' ? 'Bắt đầu dọn' : 'Hoàn tất dọn') + '</button>';
+      }
+      var labels = { pending: 'Chờ dọn', in_progress: 'Đang dọn', done: 'Đã dọn', cancelled: 'Đã hủy' };
+      var history = tasks.length ? '<details><summary>Lịch sử dọn phòng</summary><ul>' + tasks.flatMap(function (task) {
+        return task.events.map(function (event) {
+          return '<li>' + safeEscape(event.created_at) + ' · ' + safeEscape(labels[event.to_status]) +
+            ' · ' + safeEscape(event.actor?.name || 'Hệ thống') + '</li>';
+        });
+      }).join('') + '</ul></details>' : '';
+
       html +=
         '<div class="hk-room-card ' + meta.cls + '" data-room-id="' + room.id + '">' +
           '<div class="hk-room-header">' +
@@ -238,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
               '<div class="hk-meta-row"><span>Sức chứa tối đa:</span><strong>' + (room.capacity || '—') + ' khách</strong></div>' +
             '</div>' +
           '</div>' +
-          '<div class="hk-room-actions">' + actionBtns + '</div>' +
+          '<div class="hk-room-actions">' + actionBtns + '</div>' + history +
         '</div>';
     });
 
@@ -249,6 +269,18 @@ document.addEventListener("DOMContentLoaded", function () {
   /* ── 9. Gán sự kiện nút hành động trên Card ── */
   function bindBoardActions() {
     if (!roomBoardGrid) return;
+    roomBoardGrid.querySelectorAll('.hk-task-action').forEach(function (button) {
+      button.addEventListener('click', async function () {
+        button.disabled = true;
+        try {
+          await StaffAPI.updateHousekeepingTask(button.dataset.id, button.dataset.next);
+          await loadRooms();
+        } catch (error) {
+          showToast(error.message, 'error');
+          button.disabled = false;
+        }
+      });
+    });
     var btns = roomBoardGrid.querySelectorAll(".hk-status-action");
     btns.forEach(function (btn) {
       btn.addEventListener("click", async function () {
